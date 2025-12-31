@@ -187,9 +187,9 @@ class ReportRepository:
         }
         
         for report in (all_reports.data or []):
-            status = report.get("status", "UNKNOWN")
-            severity = report.get("severity", "UNASSIGNED")
-            category = report.get("category", "UNASSIGNED")
+            status = report.get("status") or "UNKNOWN"
+            severity = report.get("severity") or "UNASSIGNED"
+            category = report.get("category") or "UNASSIGNED"
             
             stats["by_status"][status] = stats["by_status"].get(status, 0) + 1
             stats["by_severity"][severity] = stats["by_severity"].get(severity, 0) + 1
