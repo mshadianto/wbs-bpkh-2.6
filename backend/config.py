@@ -41,6 +41,11 @@ class Settings(BaseSettings):
         env="CORS_ORIGINS"
     )
     rate_limit_per_minute: int = Field(default=60, env="RATE_LIMIT_PER_MINUTE")
+
+    # JWT Authentication
+    jwt_secret: str = Field(default="change-this-jwt-secret-in-production", env="JWT_SECRET")
+    jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
+    jwt_expiry_minutes: int = Field(default=60, env="JWT_EXPIRY_MINUTES")  # 1 hour
     
     # Notification
     smtp_host: Optional[str] = Field(default=None, env="SMTP_HOST")

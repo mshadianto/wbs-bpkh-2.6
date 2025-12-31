@@ -129,13 +129,15 @@
             <div class="p-4 border-t border-islamic-gold/20 relative">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-islamic-gold/20 rounded-full flex items-center justify-center border border-islamic-gold/30">
-                        <span class="font-semibold text-islamic-gold">UP</span>
+                        <span class="font-semibold text-islamic-gold">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                        </span>
                     </div>
                     <div class="flex-1">
-                        <p class="font-medium text-sm">UP1 Admin</p>
-                        <p class="text-xs text-islamic-gold">Unit Pengelola</p>
+                        <p id="user-name" class="font-medium text-sm">Loading...</p>
+                        <p id="user-role" class="text-xs text-islamic-gold">-</p>
                     </div>
-                    <button class="text-emerald-300 hover:text-white">
+                    <button onclick="logout()" class="text-emerald-300 hover:text-red-400 transition" title="Logout">
                         <i data-lucide="log-out" class="w-5 h-5"></i>
                     </button>
                 </div>
@@ -690,9 +692,84 @@
         let API_URL = localStorage.getItem('api_url') || '';
         let currentPage = 1;
         let currentReportId = null;
+        let authToken = null;
+        let currentUser = null;
+
+        // Authentication Check
+        function checkAuth() {
+            authToken = localStorage.getItem('wbs_token');
+            const userJson = localStorage.getItem('wbs_user');
+
+            if (!authToken || !userJson) {
+                window.location.href = '/login';
+                return false;
+            }
+
+            try {
+                currentUser = JSON.parse(userJson);
+                updateUserInfo();
+                return true;
+            } catch (e) {
+                localStorage.removeItem('wbs_token');
+                localStorage.removeItem('wbs_user');
+                window.location.href = '/login';
+                return false;
+            }
+        }
+
+        function updateUserInfo() {
+            const userNameEl = document.getElementById('user-name');
+            const userRoleEl = document.getElementById('user-role');
+            if (userNameEl) userNameEl.textContent = currentUser.full_name || currentUser.email;
+            if (userRoleEl) userRoleEl.textContent = formatRole(currentUser.role);
+        }
+
+        function formatRole(role) {
+            const roles = {
+                'ADMIN': 'Administrator',
+                'MANAGER': 'Pimpinan WBS',
+                'INVESTIGATOR': 'Tim Investigasi',
+                'INTAKE_OFFICER': 'Penerima Laporan'
+            };
+            return roles[role] || role;
+        }
+
+        function logout() {
+            localStorage.removeItem('wbs_token');
+            localStorage.removeItem('wbs_user');
+            localStorage.removeItem('wbs_refresh_token');
+            window.location.href = '/login';
+        }
+
+        // API Fetch with Auth
+        async function authFetch(url, options = {}) {
+            if (!authToken) {
+                window.location.href = '/login';
+                return null;
+            }
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`,
+                ...options.headers
+            };
+
+            const response = await fetch(url, { ...options, headers });
+
+            if (response.status === 401) {
+                // Token expired, try refresh or redirect to login
+                localStorage.removeItem('wbs_token');
+                window.location.href = '/login';
+                return null;
+            }
+
+            return response;
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            if (!checkAuth()) return;
+
             lucide.createIcons();
             loadDashboard();
             document.getElementById('api-url').value = API_URL;
@@ -729,8 +806,8 @@
         // Dashboard functions
         async function loadDashboard() {
             try {
-                const response = await fetch(`${API_URL}/api/v1/dashboard/stats`);
-                if (!response.ok) throw new Error('Failed to load stats');
+                const response = await authFetch(`${API_URL}/api/v1/dashboard/stats`);
+                if (!response || !response.ok) throw new Error('Failed to load stats');
                 const data = await response.json();
 
                 document.getElementById('stat-total').textContent = data.total_reports || 0;
@@ -882,7 +959,7 @@
             if (category) url += `&category=${category}`;
 
             try {
-                const response = await fetch(url);
+                const response = await authFetch(url);
                 if (!response.ok) throw new Error('Failed to load reports');
                 const data = await response.json();
                 renderReportsTable(data.reports || []);

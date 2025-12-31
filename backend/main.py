@@ -27,6 +27,8 @@ from models import (
     DashboardStats, StatusUpdate,
     TicketLookup, TicketStatusResponse
 )
+from routers import auth_router
+from auth import require_auth, require_role, require_min_role, UserRole, TokenData
 
 
 # ============== App Lifecycle ==============
@@ -82,6 +84,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include Routers
+app.include_router(auth_router)
 
 
 # ============== Health Check ==============
@@ -165,9 +170,10 @@ async def list_reports(
     status: Optional[str] = Query(None, description="Filter by status"),
     severity: Optional[str] = Query(None, description="Filter by severity"),
     page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100)
+    per_page: int = Query(20, ge=1, le=100),
+    current_user: TokenData = Depends(require_min_role(UserRole.INTAKE_OFFICER))
 ):
-    """List all reports (Admin only)"""
+    """List all reports (Intake Officer and above)"""
     try:
         offset = (page - 1) * per_page
         reports = await report_repo.list_all(
@@ -190,8 +196,11 @@ async def list_reports(
 
 
 @app.get("/api/v1/reports/{report_id}", response_model=ReportDetail, tags=["Reports"])
-async def get_report(report_id: str):
-    """Get report details (Admin only)"""
+async def get_report(
+    report_id: str,
+    current_user: TokenData = Depends(require_min_role(UserRole.INTAKE_OFFICER))
+):
+    """Get report details (Intake Officer and above)"""
     try:
         report = await report_repo.get_by_id(report_id)
         if not report:
@@ -215,14 +224,15 @@ async def get_report(report_id: str):
 @app.patch("/api/v1/reports/{report_id}/status", tags=["Reports"])
 async def update_report_status(
     report_id: str,
-    update: StatusUpdate
+    update: StatusUpdate,
+    current_user: TokenData = Depends(require_min_role(UserRole.INTAKE_OFFICER))
 ):
-    """Update report status (Admin only)"""
+    """Update report status (Intake Officer and above)"""
     try:
         report = await report_repo.update_status(
             report_id,
             update.new_status.value,
-            updated_by="ADMIN"
+            updated_by=current_user.email
         )
         
         if not report:
@@ -354,9 +364,12 @@ async def get_messages_by_ticket(ticket_id: str):
 # ============== Analysis Endpoints ==============
 
 @app.post("/api/v1/analysis/run", response_model=FullAnalysisResponse, tags=["Analysis"])
-async def run_analysis(request: AnalysisRequest):
+async def run_analysis(
+    request: AnalysisRequest,
+    current_user: TokenData = Depends(require_min_role(UserRole.INTAKE_OFFICER))
+):
     """
-    Manually trigger AI analysis for a report (Admin only)
+    Manually trigger AI analysis for a report (Intake Officer and above)
     """
     try:
         report = await report_repo.get_by_id(request.report_id)
@@ -400,8 +413,11 @@ async def run_analysis(request: AnalysisRequest):
 
 
 @app.get("/api/v1/analysis/{report_id}", tags=["Analysis"])
-async def get_analysis(report_id: str):
-    """Get analysis results for a report (Admin only)"""
+async def get_analysis(
+    report_id: str,
+    current_user: TokenData = Depends(require_min_role(UserRole.INTAKE_OFFICER))
+):
+    """Get analysis results for a report (Intake Officer and above)"""
     try:
         report = await report_repo.get_by_id(report_id)
         
@@ -423,8 +439,10 @@ async def get_analysis(report_id: str):
 # ============== Dashboard Endpoints ==============
 
 @app.get("/api/v1/dashboard/stats", response_model=DashboardStats, tags=["Dashboard"])
-async def get_dashboard_stats():
-    """Get dashboard statistics (Admin only)"""
+async def get_dashboard_stats(
+    current_user: TokenData = Depends(require_min_role(UserRole.INTAKE_OFFICER))
+):
+    """Get dashboard statistics (Intake Officer and above)"""
     try:
         stats = await report_repo.get_statistics()
         
@@ -466,7 +484,9 @@ async def get_categories():
 # ============== Knowledge Base Endpoints ==============
 
 @app.post("/api/v1/knowledge/load", tags=["Knowledge"])
-async def load_knowledge_base():
+async def load_knowledge_base(
+    current_user: TokenData = Depends(require_role(UserRole.ADMIN))
+):
     """Load all regulations into knowledge base (Admin only)"""
     try:
         results = await app.state.knowledge_loader.load_all()
@@ -536,6 +556,14 @@ async def serve_dashboard():
     if os.path.exists(file_path):
         return FileResponse(file_path)
     raise HTTPException(status_code=404, detail="Dashboard not found")
+
+@app.get("/login", tags=["Frontend"])
+async def serve_login():
+    """Serve login page"""
+    file_path = os.path.join(FRONTEND_PATH, "login.html")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="Login page not found")
 
 @app.get("/home", tags=["Frontend"])
 async def serve_home():
