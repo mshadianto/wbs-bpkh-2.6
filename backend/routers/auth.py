@@ -29,75 +29,96 @@ async def login(credentials: UserLogin, request: Request):
     Login with email and password.
     Returns JWT access token and refresh token.
     """
-    # Get user by email
-    user = await user_repo.get_by_email(credentials.email)
+    try:
+        # Get user by email
+        user = await user_repo.get_by_email(credentials.email)
+        logger.info(f"Login attempt for: {credentials.email}, user found: {user is not None}")
 
-    if not user:
-        logger.warning(f"Login attempt for non-existent user: {credentials.email}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email atau password salah"
-        )
-
-    # Check if account is locked
-    if await user_repo.is_account_locked(user["id"]):
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED,
-            detail="Akun terkunci karena terlalu banyak percobaan login. Coba lagi dalam 30 menit."
-        )
-
-    # Check if account is active
-    if user.get("status") != "ACTIVE":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Akun tidak aktif. Hubungi administrator."
-        )
-
-    # Verify password
-    if not verify_password(credentials.password, user["password_hash"]):
-        attempts = await user_repo.increment_login_attempts(user["id"])
-        remaining = 5 - attempts
-
-        if remaining > 0:
+        if not user:
+            logger.warning(f"Login attempt for non-existent user: {credentials.email}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Email atau password salah. {remaining} percobaan tersisa."
+                detail="Email atau password salah"
             )
-        else:
+
+        # Check if account is locked
+        if await user_repo.is_account_locked(user["id"]):
             raise HTTPException(
                 status_code=status.HTTP_423_LOCKED,
-                detail="Akun terkunci karena terlalu banyak percobaan login."
+                detail="Akun terkunci karena terlalu banyak percobaan login. Coba lagi dalam 30 menit."
             )
 
-    # Update last login
-    await user_repo.update_last_login(user["id"])
+        # Check if account is active
+        user_status = str(user.get("status", "")).upper()
+        if user_status != "ACTIVE":
+            logger.warning(f"Inactive account login attempt: {credentials.email}, status: {user_status}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Akun tidak aktif. Hubungi administrator."
+            )
 
-    # Create tokens
-    access_token = create_access_token(
-        user_id=user["id"],
-        email=user["email"],
-        role=UserRole(user["role"])
-    )
-    refresh_token = create_refresh_token(user_id=user["id"])
+        # Verify password
+        if not verify_password(credentials.password, user["password_hash"]):
+            attempts = await user_repo.increment_login_attempts(user["id"])
+            remaining = 5 - attempts
 
-    logger.info(f"User logged in: {user['email']} ({user['role']})")
+            if remaining > 0:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=f"Email atau password salah. {remaining} percobaan tersisa."
+                )
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_423_LOCKED,
+                    detail="Akun terkunci karena terlalu banyak percobaan login."
+                )
 
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        expires_in=settings.jwt_expiry_minutes * 60,
-        user=UserResponse(
-            id=user["id"],
+        # Update last login
+        await user_repo.update_last_login(user["id"])
+
+        # Create tokens - handle role safely
+        user_role_str = str(user.get("role", "INTAKE_OFFICER")).upper()
+        try:
+            user_role = UserRole(user_role_str)
+        except ValueError:
+            logger.warning(f"Unknown role {user_role_str}, defaulting to INTAKE_OFFICER")
+            user_role = UserRole.INTAKE_OFFICER
+
+        user_status_enum = UserStatus(user_status) if user_status in ["ACTIVE", "INACTIVE", "SUSPENDED"] else UserStatus.ACTIVE
+
+        access_token = create_access_token(
+            user_id=user["id"],
             email=user["email"],
-            full_name=user["full_name"],
-            employee_id=user.get("employee_id"),
-            department=user.get("department"),
-            role=UserRole(user["role"]),
-            status=UserStatus(user["status"]),
-            last_login=user.get("last_login"),
-            created_at=user["created_at"]
+            role=user_role
         )
-    )
+        refresh_token = create_refresh_token(user_id=user["id"])
+
+        logger.info(f"User logged in: {user['email']} ({user_role})")
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=settings.jwt_expiry_minutes * 60,
+            user=UserResponse(
+                id=user["id"],
+                email=user["email"],
+                full_name=user["full_name"],
+                employee_id=user.get("employee_id"),
+                department=user.get("department"),
+                role=user_role,
+                status=user_status_enum,
+                last_login=user.get("last_login"),
+                created_at=user["created_at"]
+            )
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Login gagal: {str(e)}"
+        )
 
 
 # ============== Register (Admin Only) ==============
