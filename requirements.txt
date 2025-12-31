@@ -11,10 +11,8 @@ python-dotenv==1.0.0
 # Groq AI
 groq==0.4.2
 
-# Supabase
-supabase==2.3.4
-postgrest-py==0.13.0
-realtime==1.0.2
+# Supabase (auto-manages postgrest-py and realtime)
+supabase>=2.0.0
 
 # Data Processing
 pydantic==2.5.3
@@ -40,7 +38,6 @@ httpx==0.26.0
 aiohttp==3.9.1
 
 # Utilities
-uuid==1.30
 python-dateutil==2.8.2
 pytz==2023.3
 
