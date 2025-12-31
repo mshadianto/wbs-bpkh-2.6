@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Process - WBS BPKH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #0c1929 0%, #1a365d 100%);
+            min-height: 100vh;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #60a5fa, #34d399);
+            transition: width 0.3s;
+        }
+        
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%;
+        }
+        
+        /* BPMN Flow Styles */
+        .bpmn-start {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #10b981;
+            border: 3px solid #34d399;
+        }
+        
+        .bpmn-end {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ef4444;
+            border: 3px solid #fca5a5;
+        }
+        
+        .bpmn-task {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 8px;
+            padding: 12px 20px;
+            color: white;
+            min-width: 160px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .bpmn-gateway {
+            width: 40px;
+            height: 40px;
+            transform: rotate(45deg);
+            background: #f59e0b;
+            border: 2px solid #fbbf24;
+        }
+        
+        .bpmn-gateway span {
+            transform: rotate(-45deg);
+            display: block;
+        }
+        
+        .bpmn-ai {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            border-radius: 8px;
+            padding: 12px 20px;
+            color: white;
+            min-width: 160px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        
+        .flow-arrow {
+            width: 40px;
+            height: 2px;
+            background: #64748b;
+            position: relative;
+        }
+        
+        .flow-arrow::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            border: 5px solid transparent;
+            border-left: 8px solid #64748b;
+        }
+        
+        .flow-arrow-down {
+            width: 2px;
+            height: 30px;
+            background: #64748b;
+            position: relative;
+        }
+        
+        .flow-arrow-down::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -4px;
+            border: 5px solid transparent;
+            border-top: 8px solid #64748b;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body { background: white !important; }
+            .glass-card { background: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
+            .no-print { display: none !important; }
+            .gradient-text { color: #1e40af !important; -webkit-text-fill-color: #1e40af !important; }
+        }
+        
+        /* Status Colors */
+        .status-new { background: #3b82f6; }
+        .status-review { background: #f59e0b; }
+        .status-info { background: #8b5cf6; }
+        .status-investigate { background: #ef4444; }
+        .status-escalate { background: #dc2626; }
+        .status-hold { background: #6b7280; }
+        .status-closed-proven { background: #10b981; }
+        .status-closed-not-proven { background: #64748b; }
+        
+        /* Severity Colors */
+        .severity-critical { background: #dc2626; }
+        .severity-high { background: #f97316; }
+        .severity-medium { background: #eab308; }
+        .severity-low { background: #22c55e; }
+        
+        /* Section animation */
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        
+        .section-content.open {
+            max-height: 5000px;
+        }
+        
+        /* Table styles */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .data-table th {
+            background: rgba(59, 130, 246, 0.2);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #93c5fd;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+        
+        .data-table tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="text-slate-200">
+    <!-- Header -->
+    <header class="glass-card sticky top-0 z-50 no-print">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-400 rounded-xl flex items-center justify-center">
+                        <i data-lucide="shield-check" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">BUSINESS PROCESS</h1>
+                        <p class="text-sm text-slate-400">Whistleblowing System BPKH</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm">
+                        Versi 1.1 | Desember 2025
+                    </span>
+                    <button onclick="window.print()" class="p-2 hover:bg-white/10 rounded-lg transition">
+                        <i data-lucide="printer" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="glass-card border-t-0 sticky top-20 z-40 no-print">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex space-x-6 overflow-x-auto py-3">
+                <a href="#overview" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">Overview</a>
+                <a href="#stakeholder" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">Stakeholder</a>
+                <a href="#channel" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">Channel</a>
+                <a href="#arsitektur" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">Arsitektur</a>
+                <a href="#alur-proses" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">Alur Proses</a>
+                <a href="#status" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">Status</a>
+                <a href="#kategori" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">Kategori</a>
+                <a href="#ai-engine" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">AI Engine</a>
+                <a href="#sla" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">SLA</a>
+                <a href="#eskalasi" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">Eskalasi</a>
+                <a href="#keamanan" class="nav-link text-sm font-medium text-slate-300 hover:text-white whitespace-nowrap">Keamanan</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <!-- Section 1: Overview -->
+        <section id="overview" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">1. Overview Sistem</h2>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-blue-300 mb-3">1.1 Tujuan Sistem</h3>
+                        <p class="text-slate-300 mb-4">
+                            Whistleblowing System (WBS) BPKH adalah platform pelaporan pelanggaran yang memungkinkan:
+                        </p>
+                        <ul class="space-y-2 text-slate-300">
+                            <li class="flex items-start space-x-2">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0"></i>
+                                <span>Pelaporan anonim dugaan pelanggaran/fraud</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0"></i>
+                                <span>Komunikasi dua arah antara pelapor dan pengelola</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0"></i>
+                                <span>Analisis otomatis menggunakan AI</span>
+                            </li>
+                            <li class="flex items-start space-x-2">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0"></i>
+                                <span>Melihat proses status laporan secara real-time</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-purple-300 mb-3">Standar Kepatuhan</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="shield" class="w-5 h-5 text-purple-400"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">ISO 37002:2021</p>
+                                    <p class="text-sm text-slate-400">Whistleblowing Management Systems</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="book-open" class="w-5 h-5 text-purple-400"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">PKBP 8/2022</p>
+                                    <p class="text-sm text-slate-400">Tata Cara Pengelolaan WBS BPKH</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="gavel" class="w-5 h-5 text-purple-400"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">UU No. 31/2014</p>
+                                    <p class="text-sm text-slate-400">Perlindungan Saksi dan Korban</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Stakeholders -->
+        <section id="stakeholder" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="users" class="w-5 h-5 text-green-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">2. Stakeholders</h2>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Stakeholder</th>
+                                <th>Peran</th>
+                                <th>Akses</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-medium">
+                                    <div class="flex items-center space-x-2">
+                                        <i data-lucide="user" class="w-4 h-4 text-blue-400"></i>
+                                        <span>Pelapor</span>
+                                    </div>
+                                </td>
+                                <td>Melaporkan dugaan pelanggaran</td>
+                                <td><span class="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-sm">Web Portal / WhatsApp / Email</span></td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium">
+                                    <div class="flex items-center space-x-2">
+                                        <i data-lucide="user-check" class="w-4 h-4 text-yellow-400"></i>
+                                        <span>Pengelola WBS (UP1)</span>
+                                    </div>
+                                </td>
+                                <td>Menindaklanjuti laporan</td>
+                                <td><span class="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-sm">Dashboard Admin</span></td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium">
+                                    <div class="flex items-center space-x-2">
+                                        <i data-lucide="search" class="w-4 h-4 text-red-400"></i>
+                                        <span>Bidang Audit Internal</span>
+                                    </div>
+                                </td>
+                                <td>Audit investigatif</td>
+                                <td><span class="px-2 py-1 bg-red-500/20 text-red-300 rounded text-sm">Dashboard AI</span></td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium">
+                                    <div class="flex items-center space-x-2">
+                                        <i data-lucide="settings" class="w-4 h-4 text-purple-400"></i>
+                                        <span>Super Admin</span>
+                                    </div>
+                                </td>
+                                <td>Manajemen sistem & user</td>
+                                <td><span class="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-sm">Dashboard Admin (Full)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium">
+                                    <div class="flex items-center space-x-2">
+                                        <i data-lucide="crown" class="w-4 h-4 text-green-400"></i>
+                                        <span>Pimpinan</span>
+                                    </div>
+                                </td>
+                                <td>Review hasil investigasi</td>
+                                <td><span class="px-2 py-1 bg-green-500/20 text-green-300 rounded text-sm">Dashboard / Report</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Channel Pelaporan -->
+        <section id="channel" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="message-circle" class="w-5 h-5 text-purple-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">3. Channel Pelaporan</h2>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Web Portal -->
+                    <div class="bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl p-5">
+                        <div class="w-12 h-12 bg-blue-500/30 rounded-xl flex items-center justify-center mb-4">
+                            <i data-lucide="globe" class="w-6 h-6 text-blue-400"></i>
+                        </div>
+                        <h3 class="font-semibold text-blue-300 mb-1">Web Portal</h3>
+                        <p class="text-white font-mono text-sm mb-2">wbs.bpkh.go.id</p>
+                        <p class="text-slate-400 text-sm">Form online dengan AI analysis</p>
+                    </div>
+                    
+                    <!-- WhatsApp Primary -->
+                    <div class="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl p-5">
+                        <div class="w-12 h-12 bg-green-500/30 rounded-xl flex items-center justify-center mb-4">
+                            <i data-lucide="message-square" class="w-6 h-6 text-green-400"></i>
+                        </div>
+                        <h3 class="font-semibold text-green-300 mb-1">WhatsApp (Utama)</h3>
+                        <p class="text-white font-mono text-sm mb-2">+62 853-19000-230</p>
+                        <p class="text-slate-400 text-sm">Chat langsung, auto-reply ID tiket</p>
+                    </div>
+                    
+                    <!-- WhatsApp Backup -->
+                    <div class="bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-xl p-5">
+                        <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4">
+                            <i data-lucide="message-square" class="w-6 h-6 text-green-400"></i>
+                        </div>
+                        <h3 class="font-semibold text-green-300 mb-1">WhatsApp (Cadangan)</h3>
+                        <p class="text-white font-mono text-sm mb-2">+62 853-19000-140</p>
+                        <p class="text-slate-400 text-sm">Nomor cadangan</p>
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="bg-gradient-to-br from-red-500/20 to-red-600/20 rounded-xl p-5">
+                        <div class="w-12 h-12 bg-red-500/30 rounded-xl flex items-center justify-center mb-4">
+                            <i data-lucide="mail" class="w-6 h-6 text-red-400"></i>
+                        </div>
+                        <h3 class="font-semibold text-red-300 mb-1">Email</h3>
+                        <p class="text-white font-mono text-sm mb-2">wbs@bpkh.go.id</p>
+                        <p class="text-slate-400 text-sm">Pelaporan via email</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Arsitektur Sistem -->
+        <section id="arsitektur" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="layers" class="w-5 h-5 text-cyan-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">4. Arsitektur Sistem</h2>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Komponen</th>
+                                <th>Deskripsi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-medium text-cyan-300">Web Portal (Streamlit)</td>
+                                <td>Interface untuk pelapor submit laporan dan tracking status</td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium text-green-300">WAHA Server</td>
+                                <td>WhatsApp HTTP API untuk integrasi pesan WhatsApp</td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium text-blue-300">Webhook Server</td>
+                                <td>FastAPI server untuk menerima & memproses pesan</td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium text-purple-300">Supabase Database</td>
+                                <td>PostgreSQL database untuk menyimpan laporan, pesan, dan metadata</td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium text-yellow-300">Groq LLM</td>
+                                <td>AI engine untuk analisis laporan (severity, fraud score, rekomendasi)</td>
+                            </tr>
+                            <tr>
+                                <td class="font-medium text-pink-300">ChromaDB / pgvector</td>
+                                <td>Vector database untuk RAG (knowledge base regulasi)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Alur Proses (BPMN-style) -->
+        <section id="alur-proses" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="git-branch" class="w-5 h-5 text-orange-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">5. Alur Proses Bisnis</h2>
+                </div>
+                
+                <!-- Process Flow Diagram -->
+                <div class="bg-slate-800/50 rounded-xl p-6 overflow-x-auto mb-6">
+                    <div class="min-w-[900px]">
+                        <!-- Row 1: Submission -->
+                        <div class="flex items-center space-x-4 mb-8">
+                            <div class="bpmn-start flex items-center justify-center">
+                                <i data-lucide="play" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-task">
+                                <i data-lucide="send" class="w-4 h-4 inline mr-2"></i>
+                                Penyampaian Laporan
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-task">
+                                <i data-lucide="database" class="w-4 h-4 inline mr-2"></i>
+                                Penerimaan & Pencatatan
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-task">
+                                <i data-lucide="ticket" class="w-4 h-4 inline mr-2"></i>
+                                Generate ID Tiket
+                            </div>
+                        </div>
+                        
+                        <!-- Row 2: AI Analysis -->
+                        <div class="flex items-center space-x-4 mb-8 ml-24">
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-ai">
+                                <i data-lucide="brain" class="w-4 h-4 inline mr-2"></i>
+                                AI Analysis Engine
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-gateway flex items-center justify-center">
+                                <span class="text-xs">?</span>
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-task">
+                                <i data-lucide="message-circle" class="w-4 h-4 inline mr-2"></i>
+                                Klarifikasi (Unified Inbox)
+                            </div>
+                        </div>
+                        
+                        <!-- Row 3: Review & Investigation -->
+                        <div class="flex items-center space-x-4 mb-8 ml-24">
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-task">
+                                <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                                Telaah UP1
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-gateway flex items-center justify-center">
+                                <span class="text-xs">?</span>
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-task bg-gradient-to-r from-red-500 to-red-700">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 inline mr-2"></i>
+                                Eskalasi Audit Internal
+                            </div>
+                        </div>
+                        
+                        <!-- Row 4: Resolution -->
+                        <div class="flex items-center space-x-4 ml-24">
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-task">
+                                <i data-lucide="file-search" class="w-4 h-4 inline mr-2"></i>
+                                Audit Investigatif
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-task">
+                                <i data-lucide="bell" class="w-4 h-4 inline mr-2"></i>
+                                Notifikasi Pelapor
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-task">
+                                <i data-lucide="check-circle" class="w-4 h-4 inline mr-2"></i>
+                                Tindak Lanjut & Feedback
+                            </div>
+                            <div class="flow-arrow"></div>
+                            <div class="bpmn-end flex items-center justify-center">
+                                <i data-lucide="square" class="w-4 h-4 text-white"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Process Steps Table -->
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Tahap</th>
+                                <th>Kegiatan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="w-12 text-center"><span class="w-6 h-6 bg-blue-500 rounded-full inline-flex items-center justify-center text-xs">1</span></td>
+                                <td class="font-medium">Penerimaan Laporan</td>
+                                <td>Sistem mencatat laporan dan menghasilkan ID Tiket unik (8 karakter)</td>
+                            </tr>
+                            <tr>
+                                <td class="w-12 text-center"><span class="w-6 h-6 bg-blue-500 rounded-full inline-flex items-center justify-center text-xs">2</span></td>
+                                <td class="font-medium">Review Awal</td>
+                                <td>UP1/Pengelola menelaah laporan & hasil analisis AI</td>
+                            </tr>
+                            <tr>
+                                <td class="w-12 text-center"><span class="w-6 h-6 bg-blue-500 rounded-full inline-flex items-center justify-center text-xs">3</span></td>
+                                <td class="font-medium">Update Status</td>
+                                <td>Status menjadi Sedang Ditinjau / Butuh Info</td>
+                            </tr>
+                            <tr>
+                                <td class="w-12 text-center"><span class="w-6 h-6 bg-blue-500 rounded-full inline-flex items-center justify-center text-xs">4</span></td>
+                                <td class="font-medium">Komunikasi</td>
+                                <td>Klarifikasi dengan pelapor via Web Portal / WhatsApp</td>
+                            </tr>
+                            <tr>
+                                <td class="w-12 text-center"><span class="w-6 h-6 bg-blue-500 rounded-full inline-flex items-center justify-center text-xs">5</span></td>
+                                <td class="font-medium">Eskalasi Investigasi</td>
+                                <td>Laporan layak diteruskan ke Bidang Audit Internal</td>
+                            </tr>
+                            <tr>
+                                <td class="w-12 text-center"><span class="w-6 h-6 bg-blue-500 rounded-full inline-flex items-center justify-center text-xs">6</span></td>
+                                <td class="font-medium">Investigasi</td>
+                                <td>Audit Internal melakukan audit investigatif</td>
+                            </tr>
+                            <tr>
+                                <td class="w-12 text-center"><span class="w-6 h-6 bg-blue-500 rounded-full inline-flex items-center justify-center text-xs">7</span></td>
+                                <td class="font-medium">Keputusan</td>
+                                <td>Hasil: Terbukti / Tidak Terbukti / Rekomendasi</td>
+                            </tr>
+                            <tr>
+                                <td class="w-12 text-center"><span class="w-6 h-6 bg-blue-500 rounded-full inline-flex items-center justify-center text-xs">8</span></td>
+                                <td class="font-medium">Notifikasi</td>
+                                <td>UP1 menyampaikan pokok hasil ke pelapor</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: Status Laporan -->
+        <section id="status" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="flag" class="w-5 h-5 text-yellow-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">6. Status Laporan</h2>
+                </div>
+                
+                <!-- Status Lifecycle -->
+                <div class="bg-slate-800/50 rounded-xl p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-yellow-300 mb-4">Status Lifecycle</h3>
+                    <div class="flex flex-wrap items-center gap-2 text-sm">
+                        <span class="px-3 py-2 bg-blue-500 rounded-lg">BARU</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        <span class="px-3 py-2 bg-yellow-500 text-slate-900 rounded-lg">SEDANG DITINJAU</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        <span class="px-3 py-2 bg-purple-500 rounded-lg">BUTUH INFO</span>
+                        <span class="text-slate-400">(opsional)</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        <span class="px-3 py-2 bg-red-500 rounded-lg">DALAM INVESTIGASI</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        <span class="px-3 py-2 bg-green-500 rounded-lg">SELESAI</span>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Deskripsi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="px-3 py-1 status-new rounded text-white text-sm">Baru - Via Web</span></td>
+                                <td>Laporan baru masuk dari portal web</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 status-new rounded text-white text-sm">Baru - Via WhatsApp</span></td>
+                                <td>Laporan baru masuk dari WhatsApp</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 status-review rounded text-slate-900 text-sm">Sedang Ditinjau</span></td>
+                                <td>Pengelola sedang mereview laporan</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 status-info rounded text-white text-sm">Butuh Informasi</span></td>
+                                <td>Menunggu informasi tambahan dari pelapor</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 status-investigate rounded text-white text-sm">Dalam Investigasi</span></td>
+                                <td>Proses investigasi sedang berjalan</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 status-escalate rounded text-white text-sm">Ditingkatkan</span></td>
+                                <td>Laporan dieskalasi ke level yang lebih tinggi</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 status-hold rounded text-white text-sm">Hold</span></td>
+                                <td>Laporan ditunda sementara (menunggu kondisi tertentu)</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 status-closed-proven rounded text-white text-sm">Selesai - Terbukti</span></td>
+                                <td>Pelanggaran terbukti, tindak lanjut dilakukan</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 status-closed-not-proven rounded text-white text-sm">Selesai - Tidak Terbukti</span></td>
+                                <td>Bukti tidak cukup, laporan diarsipkan</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: Kategori Pelanggaran -->
+        <section id="kategori" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">7. Jenis Pelanggaran</h2>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Kategori Table -->
+                    <div class="overflow-x-auto">
+                        <h3 class="text-lg font-semibold text-red-300 mb-4">7.1 Kategori Pelanggaran</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Jenis</th>
+                                    <th>Dasar Hukum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td class="font-medium">Korupsi</td>
+                                    <td class="text-sm">KUHP Pasal 2, 3 | UU Tipikor</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td class="font-medium">Gratifikasi / Penyuapan</td>
+                                    <td class="text-sm">UU No. 11 Tahun 1980</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td class="font-medium">Penggelapan</td>
+                                    <td class="text-sm">KUHP Pasal 372</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td class="font-medium">Penipuan</td>
+                                    <td class="text-sm">KUHP Pasal 378</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td class="font-medium">Pencurian</td>
+                                    <td class="text-sm">KUHP Pasal 362</td>
+                                </tr>
+                                <tr>
+                                    <td>6</td>
+                                    <td class="font-medium">Pemerasan</td>
+                                    <td class="text-sm">KUHP Pasal 368</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td class="font-medium">Benturan Kepentingan</td>
+                                    <td class="text-sm">UU No. 30/2014</td>
+                                </tr>
+                                <tr>
+                                    <td>8</td>
+                                    <td class="font-medium">Pelanggaran Kebijakan</td>
+                                    <td class="text-sm">SOP Internal BPKH</td>
+                                </tr>
+                                <tr>
+                                    <td>9</td>
+                                    <td class="font-medium">Tindakan Curang</td>
+                                    <td class="text-sm">Kode Etik BPKH</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Severity Table -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-orange-300 mb-4">7.2 Tingkat Keparahan (Severity)</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-4 bg-red-500/20 rounded-xl">
+                                <div>
+                                    <span class="px-3 py-1 bg-red-600 rounded text-white text-sm font-bold">CRITICAL</span>
+                                    <p class="text-sm text-slate-300 mt-2">Kerugian > Rp 1 Miliar, Pejabat tinggi</p>
+                                </div>
+                                <span class="text-red-300 font-mono">&lt; 4 jam</span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-orange-500/20 rounded-xl">
+                                <div>
+                                    <span class="px-3 py-1 bg-orange-500 rounded text-white text-sm font-bold">HIGH</span>
+                                    <p class="text-sm text-slate-300 mt-2">Kerugian Rp 100 Juta - 1 Miliar</p>
+                                </div>
+                                <span class="text-orange-300 font-mono">&lt; 24 jam</span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-yellow-500/20 rounded-xl">
+                                <div>
+                                    <span class="px-3 py-1 bg-yellow-500 rounded text-slate-900 text-sm font-bold">MEDIUM</span>
+                                    <p class="text-sm text-slate-300 mt-2">Kerugian Rp 10 - 100 Juta</p>
+                                </div>
+                                <span class="text-yellow-300 font-mono">&lt; 3 hari</span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-green-500/20 rounded-xl">
+                                <div>
+                                    <span class="px-3 py-1 bg-green-500 rounded text-white text-sm font-bold">LOW</span>
+                                    <p class="text-sm text-slate-300 mt-2">Kerugian < Rp 10 Juta</p>
+                                </div>
+                                <span class="text-green-300 font-mono">&lt; 7 hari</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 8: AI Analysis Engine -->
+        <section id="ai-engine" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-violet-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="brain" class="w-5 h-5 text-violet-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">8. AI Analysis Engine</h2>
+                </div>
+                
+                <!-- Multi-Agent Architecture -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-violet-300 mb-4">8.1 Multi-Agent Architecture</h3>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-xl p-4">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <div class="w-8 h-8 bg-violet-500/30 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="database" class="w-4 h-4 text-violet-400"></i>
+                                </div>
+                                <span class="font-semibold text-violet-300">Context Retriever</span>
+                            </div>
+                            <p class="text-sm text-slate-400">Mengambil konteks relevan dari knowledge base (regulasi, SOP, kasus sebelumnya)</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-xl p-4">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <div class="w-8 h-8 bg-red-500/30 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="gauge" class="w-4 h-4 text-red-400"></i>
+                                </div>
+                                <span class="font-semibold text-red-300">Severity Analyzer</span>
+                            </div>
+                            <p class="text-sm text-slate-400">Menilai tingkat keparahan laporan (Critical/High/Medium/Low)</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-yellow-500/20 to-amber-500/20 rounded-xl p-4">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <div class="w-8 h-8 bg-yellow-500/30 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="search" class="w-4 h-4 text-yellow-400"></i>
+                                </div>
+                                <span class="font-semibold text-yellow-300">Fraud Detector</span>
+                            </div>
+                            <p class="text-sm text-slate-400">Mendeteksi indikasi fraud berdasarkan pola yang dilaporkan</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl p-4">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <div class="w-8 h-8 bg-blue-500/30 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="copy" class="w-4 h-4 text-blue-400"></i>
+                                </div>
+                                <span class="font-semibold text-blue-300">Similar Finder</span>
+                            </div>
+                            <p class="text-sm text-slate-400">Mencari kasus serupa dari database laporan sebelumnya</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl p-4">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <div class="w-8 h-8 bg-green-500/30 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="shield-check" class="w-4 h-4 text-green-400"></i>
+                                </div>
+                                <span class="font-semibold text-green-300">Compliance Checker</span>
+                            </div>
+                            <p class="text-sm text-slate-400">Memeriksa kepatuhan terhadap regulasi dan kebijakan</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-xl p-4">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <div class="w-8 h-8 bg-pink-500/30 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="file-text" class="w-4 h-4 text-pink-400"></i>
+                                </div>
+                                <span class="font-semibold text-pink-300">Summary Generator</span>
+                            </div>
+                            <p class="text-sm text-slate-400">Merangkum hasil analisis dari semua agent</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Output Analisis -->
+                <div>
+                    <h3 class="text-lg font-semibold text-violet-300 mb-4">8.2 Output Analisis</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div class="p-4 bg-slate-800/50 rounded-xl">
+                                <h4 class="font-semibold text-blue-300 mb-2">Severity Level</h4>
+                                <p class="text-sm text-slate-400">AI menetapkan Severity Level berdasarkan estimasi kerugian dan pihak yang terlibat, dengan otomatis mengaitkan SLA respons awal.</p>
+                            </div>
+                            <div class="p-4 bg-slate-800/50 rounded-xl">
+                                <h4 class="font-semibold text-green-300 mb-2">Category</h4>
+                                <p class="text-sm text-slate-400">AI mengklasifikasikan laporan ke dalam kategori pelanggaran beserta dasar hukum yang relevan. Dapat menetapkan lebih dari satu kategori.</p>
+                            </div>
+                            <div class="p-4 bg-slate-800/50 rounded-xl">
+                                <h4 class="font-semibold text-yellow-300 mb-2">Fraud Score (0-1)</h4>
+                                <p class="text-sm text-slate-400">
+                                    <span class="inline-block px-2 py-0.5 bg-green-500/20 text-green-300 rounded text-xs mr-2">0.00-0.30: Rendah</span>
+                                    <span class="inline-block px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded text-xs mr-2">0.31-0.70: Sedang</span>
+                                    <span class="inline-block px-2 py-0.5 bg-red-500/20 text-red-300 rounded text-xs">0.71-1.00: Tinggi</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="p-4 bg-slate-800/50 rounded-xl">
+                                <h4 class="font-semibold text-purple-300 mb-2">Compliance Status</h4>
+                                <p class="text-sm text-slate-400">Regulasi atau kebijakan yang berpotensi dilanggar (UU Tipikor, KUHP, UU Administrasi Pemerintahan, SOP dan Kode Etik BPKH).</p>
+                            </div>
+                            <div class="p-4 bg-slate-800/50 rounded-xl">
+                                <h4 class="font-semibold text-cyan-300 mb-2">Similar Cases</h4>
+                                <p class="text-sm text-slate-400">Ringkasan singkat kasus terdahulu dengan jenis pelanggaran serupa, unit/proses yang sama, dan status penyelesaian.</p>
+                            </div>
+                            <div class="p-4 bg-slate-800/50 rounded-xl">
+                                <h4 class="font-semibold text-orange-300 mb-2">Recommended Actions</h4>
+                                <p class="text-sm text-slate-400">Usulan awal berbasis Severity dan Fraud Score (klarifikasi, eskalasi ke Audit, atau eskalasi khusus).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 9: SLA -->
+        <section id="sla" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="clock" class="w-5 h-5 text-emerald-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">9. Service Level Agreement (SLA)</h2>
+                </div>
+                
+                <div class="overflow-x-auto mb-6">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Severity</th>
+                                <th>Initial Response</th>
+                                <th>Investigation</th>
+                                <th>Resolution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="px-3 py-1 bg-red-600 rounded text-white text-sm font-bold">CRITICAL</span></td>
+                                <td class="font-mono text-red-300">&lt; 4 jam</td>
+                                <td class="font-mono text-red-300">&lt; 24 jam</td>
+                                <td class="font-mono text-red-300">&lt; 7 hari</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 bg-orange-500 rounded text-white text-sm font-bold">HIGH</span></td>
+                                <td class="font-mono text-orange-300">&lt; 24 jam</td>
+                                <td class="font-mono text-orange-300">&lt; 3 hari</td>
+                                <td class="font-mono text-orange-300">&lt; 14 hari</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 bg-yellow-500 rounded text-slate-900 text-sm font-bold">MEDIUM</span></td>
+                                <td class="font-mono text-yellow-300">&lt; 3 hari</td>
+                                <td class="font-mono text-yellow-300">&lt; 7 hari</td>
+                                <td class="font-mono text-yellow-300">&lt; 30 hari</td>
+                            </tr>
+                            <tr>
+                                <td><span class="px-3 py-1 bg-green-500 rounded text-white text-sm font-bold">LOW</span></td>
+                                <td class="font-mono text-green-300">&lt; 7 hari</td>
+                                <td class="font-mono text-green-300">&lt; 14 hari</td>
+                                <td class="font-mono text-green-300">&lt; 60 hari</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                    <div class="flex items-start space-x-3">
+                        <i data-lucide="info" class="w-5 h-5 text-yellow-400 mt-0.5"></i>
+                        <div>
+                            <h4 class="font-semibold text-yellow-300 mb-1">Catatan</h4>
+                            <ul class="text-sm text-slate-300 space-y-1">
+                                <li>• <strong>Initial Response</strong> = Konfirmasi penerimaan + aktivasi penanganan internal (bukan auto-reply)</li>
+                                <li>• <strong>Investigation SLA</strong> = waktu untuk memulai investigasi resmi, bukan menyelesaikan audit</li>
+                                <li>• SLA dapat dihentikan sementara (HOLD) dengan alasan terdokumentasi</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 10: Escalation Matrix -->
+        <section id="eskalasi" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-rose-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="trending-up" class="w-5 h-5 text-rose-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">10. Escalation Matrix</h2>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Level</th>
+                                <th>Pihak</th>
+                                <th>Kondisi Eskalasi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="w-8 h-8 bg-blue-500 rounded-full inline-flex items-center justify-center font-bold">1</span></td>
+                                <td class="font-medium">Pengelola WBS</td>
+                                <td>Penanganan standar</td>
+                            </tr>
+                            <tr>
+                                <td><span class="w-8 h-8 bg-yellow-500 text-slate-900 rounded-full inline-flex items-center justify-center font-bold">2</span></td>
+                                <td class="font-medium">Kepala Unit WBS</td>
+                                <td>SLA breach atau severity Critical</td>
+                            </tr>
+                            <tr>
+                                <td><span class="w-8 h-8 bg-orange-500 rounded-full inline-flex items-center justify-center font-bold">3</span></td>
+                                <td class="font-medium">Anggota Badan Pelaksana (Bidang Kepatuhan)</td>
+                                <td>Melibatkan pejabat eselon atau kerugian > 500 Juta</td>
+                            </tr>
+                            <tr>
+                                <td><span class="w-8 h-8 bg-red-500 rounded-full inline-flex items-center justify-center font-bold">4</span></td>
+                                <td class="font-medium">Dewan Pengawas</td>
+                                <td>Melibatkan Direksi atau kerugian > 1 Miliar</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 11: Security -->
+        <section id="keamanan" class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="lock" class="w-5 h-5 text-indigo-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">11. Keamanan & Kerahasiaan</h2>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-indigo-300 mb-4">11.1 Prinsip Keamanan</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start space-x-3 p-4 bg-slate-800/50 rounded-xl">
+                                <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="user-x" class="w-5 h-5 text-indigo-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">Anonimitas</h4>
+                                    <p class="text-sm text-slate-400">Identitas pelapor dilindungi, nomor WA di-mask</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3 p-4 bg-slate-800/50 rounded-xl">
+                                <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="key" class="w-5 h-5 text-indigo-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">Enkripsi</h4>
+                                    <p class="text-sm text-slate-400">HTTPS untuk semua komunikasi, database encrypted at rest</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3 p-4 bg-slate-800/50 rounded-xl">
+                                <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="shield" class="w-5 h-5 text-indigo-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">Access Control</h4>
+                                    <p class="text-sm text-slate-400">Role-based access (Pelapor, Pengelola, Admin), logging akses</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-3 p-4 bg-slate-800/50 rounded-xl">
+                                <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="umbrella" class="w-5 h-5 text-indigo-400"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">Perlindungan Pelapor</h4>
+                                    <p class="text-sm text-slate-400">UU No. 31/2014, non-retaliation policy, kanal confidential</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold text-indigo-300 mb-4">11.2 User Roles</h3>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Role</th>
+                                        <th>Akses</th>
+                                        <th>Kemampuan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-medium text-blue-300">PELAPOR</td>
+                                        <td>Web Portal, WhatsApp</td>
+                                        <td>Buat laporan, tracking, chat</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium text-yellow-300">PENGELOLA</td>
+                                        <td>Dashboard Admin</td>
+                                        <td>Kelola laporan, update, balas</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium text-purple-300">SUPER_ADMIN</td>
+                                        <td>Full Access</td>
+                                        <td>Semua + user management</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
+                            <div class="flex items-start space-x-2">
+                                <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-400 mt-0.5"></i>
+                                <div>
+                                    <h4 class="font-semibold text-yellow-300 text-sm">Rekomendasi</h4>
+                                    <p class="text-xs text-slate-400 mt-1">Pecah peran SUPER_ADMIN menjadi System Admin (infrastruktur, tanpa akses isi laporan) dan WBS Admin (proses laporan, tanpa akses identitas teknis)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Legal References -->
+        <section class="mb-12">
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-slate-500/20 rounded-xl flex items-center justify-center">
+                        <i data-lucide="book" class="w-5 h-5 text-slate-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">Dokumen Terkait</h2>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="p-4 bg-slate-800/50 rounded-xl">
+                        <i data-lucide="file-text" class="w-5 h-5 text-blue-400 mb-2"></i>
+                        <h4 class="font-medium">Kode Etik BPKH</h4>
+                    </div>
+                    <div class="p-4 bg-slate-800/50 rounded-xl">
+                        <i data-lucide="file-text" class="w-5 h-5 text-blue-400 mb-2"></i>
+                        <h4 class="font-medium">SOP Penanganan Pengaduan</h4>
+                    </div>
+                    <div class="p-4 bg-slate-800/50 rounded-xl">
+                        <i data-lucide="gavel" class="w-5 h-5 text-purple-400 mb-2"></i>
+                        <h4 class="font-medium">UU No. 31/2014</h4>
+                        <p class="text-xs text-slate-400 mt-1">Perlindungan Saksi Dan Korban</p>
+                    </div>
+                    <div class="p-4 bg-slate-800/50 rounded-xl">
+                        <i data-lucide="gavel" class="w-5 h-5 text-purple-400 mb-2"></i>
+                        <h4 class="font-medium">UU No. 20/2001</h4>
+                        <p class="text-xs text-slate-400 mt-1">Pemberantasan Tindak Pidana Korupsi</p>
+                    </div>
+                    <div class="p-4 bg-slate-800/50 rounded-xl">
+                        <i data-lucide="scroll" class="w-5 h-5 text-green-400 mb-2"></i>
+                        <h4 class="font-medium">PKBP 8/2022</h4>
+                        <p class="text-xs text-slate-400 mt-1">Tata Cara Pengelolaan WBS BPKH</p>
+                    </div>
+                    <div class="p-4 bg-slate-800/50 rounded-xl">
+                        <i data-lucide="scroll" class="w-5 h-5 text-green-400 mb-2"></i>
+                        <h4 class="font-medium">PKBP 13/2024</h4>
+                        <p class="text-xs text-slate-400 mt-1">Pedoman Audit Khusus BPKH</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="glass-card rounded-2xl p-6 text-center">
+            <div class="flex items-center justify-center space-x-2 mb-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-400 rounded-xl flex items-center justify-center">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+                </div>
+                <span class="text-lg font-bold gradient-text">WBS BPKH</span>
+            </div>
+            
+            <p class="text-slate-400 mb-4">Dokumen ini adalah properti BPKH</p>
+            
+            <div class="flex items-center justify-center space-x-8 text-sm text-slate-500 mb-4">
+                <span>Jakarta, Desember 2025</span>
+                <span>Versi 1.1</span>
+            </div>
+            
+            <div class="border-t border-slate-700 pt-4 mt-4">
+                <p class="text-sm text-slate-400 mb-2">Disusun oleh:</p>
+                <div class="flex items-center justify-center space-x-8 text-sm">
+                    <span class="text-blue-300">M. Sopian Hadianto</span>
+                    <span class="text-blue-300">Irham Yusnadi</span>
+                    <span class="text-blue-300">Ismail</span>
+                </div>
+                <p class="text-sm text-slate-400 mt-4">Disetujui oleh:</p>
+                <p class="text-green-300 font-semibold">ROJIKIN</p>
+                <p class="text-xs text-slate-500">Ketua Komite Audit</p>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Active nav link highlight
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

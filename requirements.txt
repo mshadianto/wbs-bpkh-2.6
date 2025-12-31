@@ -1,0 +1,61 @@
+# ============================================
+# WBS BPKH AI - Python Dependencies
+# ============================================
+
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+python-dotenv==1.0.0
+
+# Groq AI
+groq==0.4.2
+
+# Supabase
+supabase==2.3.4
+postgrest-py==0.13.0
+realtime==1.0.2
+
+# Data Processing
+pydantic==2.5.3
+pydantic-settings==2.1.0
+numpy==1.26.3
+pandas==2.1.4
+
+# Text Processing & NLP
+tiktoken==0.5.2
+langchain==0.1.0
+langchain-community==0.0.10
+
+# Vector Store & Embeddings
+sentence-transformers==2.2.2
+
+# Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+cryptography==41.0.7
+
+# HTTP Client
+httpx==0.26.0
+aiohttp==3.9.1
+
+# Utilities
+uuid==1.30
+python-dateutil==2.8.2
+pytz==2023.3
+
+# File Processing
+python-magic==0.4.27
+pillow==10.2.0
+
+# Logging
+loguru==0.7.2
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+
+# Development
+black==23.12.1
+isort==5.13.2
+flake8==7.0.0
