@@ -925,8 +925,8 @@
 
         async function loadRecentReports() {
             try {
-                const response = await fetch(`${API_URL}/api/v1/reports?per_page=5`);
-                if (!response.ok) throw new Error('Failed to load');
+                const response = await authFetch(`${API_URL}/api/v1/reports?per_page=5`);
+                if (!response || !response.ok) throw new Error('Failed to load');
                 const data = await response.json();
                 const container = document.getElementById('recent-reports');
                 if (data.reports && data.reports.length > 0) {
@@ -1006,8 +1006,8 @@
             document.getElementById('modal-content').innerHTML = '<div class="text-center py-8"><div class="animate-spin w-8 h-8 border-4 border-islamic-green border-t-transparent rounded-full mx-auto"></div><p class="mt-4 text-slate-600">Memuat data...</p></div>';
 
             try {
-                const response = await fetch(`${API_URL}/api/v1/reports/${reportId}`);
-                if (!response.ok) throw new Error('Failed to load report');
+                const response = await authFetch(`${API_URL}/api/v1/reports/${reportId}`);
+                if (!response || !response.ok) throw new Error('Failed to load report');
                 const report = await response.json();
                 renderReportDetail(report);
             } catch (error) { console.log('Using sample report detail'); renderSampleReportDetail(); }
@@ -1055,8 +1055,8 @@
             if (!currentReportId) return;
             document.getElementById('modal-content').innerHTML = `<div class="text-center py-8"><div class="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto"></div><p class="mt-4 text-slate-600">Menjalankan AI Analysis...</p></div>`;
             try {
-                const response = await fetch(`${API_URL}/api/v1/analysis/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ report_id: currentReportId, use_full_analysis: true }) });
-                if (!response.ok) throw new Error('Analysis failed');
+                const response = await authFetch(`${API_URL}/api/v1/analysis/run`, { method: 'POST', body: JSON.stringify({ report_id: currentReportId, use_full_analysis: true }) });
+                if (!response || !response.ok) throw new Error('Analysis failed');
                 const result = await response.json();
                 alert('Analisis selesai! Fraud Score: ' + (result.fraud_score * 100).toFixed(0) + '%');
                 viewReport(currentReportId);
@@ -1070,8 +1070,8 @@
             resultContainer.classList.remove('hidden');
             resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10"><div class="text-center py-8"><div class="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto"></div><p class="mt-4 text-slate-600">Menjalankan AI Analysis...</p></div></div>`;
             try {
-                const response = await fetch(`${API_URL}/api/v1/analysis/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ report_id: reportId, use_full_analysis: true }) });
-                if (!response.ok) throw new Error('Analysis failed');
+                const response = await authFetch(`${API_URL}/api/v1/analysis/run`, { method: 'POST', body: JSON.stringify({ report_id: reportId, use_full_analysis: true }) });
+                if (!response || !response.ok) throw new Error('Analysis failed');
                 const result = await response.json();
                 resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10"><h3 class="font-semibold text-islamic-dark mb-4">Hasil Analisis</h3><div class="grid grid-cols-4 gap-4"><div class="p-4 bg-islamic-light rounded-lg text-center"><p class="text-2xl font-bold ${result.fraud_score > 0.7 ? 'text-red-600' : 'text-islamic-green'}">${(result.fraud_score * 100).toFixed(0)}%</p><p class="text-sm text-slate-600">Fraud Score</p></div><div class="p-4 bg-islamic-light rounded-lg text-center"><p class="text-xl font-bold text-islamic-dark">${result.category}</p><p class="text-sm text-slate-600">Kategori</p></div><div class="p-4 bg-islamic-light rounded-lg text-center"><p class="text-xl font-bold text-islamic-dark">${result.severity}</p><p class="text-sm text-slate-600">Severity</p></div></div></div>`;
             } catch (error) { resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-red-200"><p class="text-red-600">Gagal menjalankan analisis</p></div>`; }
@@ -1081,8 +1081,8 @@
             if (!currentReportId) return;
             const newStatus = document.getElementById('modal-status').value;
             try {
-                const response = await fetch(`${API_URL}/api/v1/reports/${currentReportId}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ new_status: newStatus }) });
-                if (!response.ok) throw new Error('Update failed');
+                const response = await authFetch(`${API_URL}/api/v1/reports/${currentReportId}/status`, { method: 'PATCH', body: JSON.stringify({ new_status: newStatus }) });
+                if (!response || !response.ok) throw new Error('Update failed');
                 alert('Status berhasil diupdate');
                 closeModal();
                 loadReports();
@@ -1091,8 +1091,8 @@
 
         async function loadKnowledgeBase() {
             try {
-                const response = await fetch(`${API_URL}/api/v1/knowledge/load`, { method: 'POST' });
-                if (!response.ok) throw new Error('Failed');
+                const response = await authFetch(`${API_URL}/api/v1/knowledge/load`, { method: 'POST' });
+                if (!response || !response.ok) throw new Error('Failed');
                 const result = await response.json();
                 alert(`Knowledge base loaded: ${result.documents_loaded} documents`);
             } catch (error) { alert('Gagal load knowledge base'); }
