@@ -6,12 +6,59 @@ Supabase database client and operations.
 
 from supabase import create_client, Client
 from typing import Optional, Dict, Any, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import uuid
 import json
+import re
 from loguru import logger
 
 from config import settings
+
+
+def parse_date_safe(date_str: str) -> str | None:
+    """
+    Safely parse date string to ISO format.
+    Handles various formats: YYYY-MM-DD, YYYY-MM, YYYY, etc.
+    Returns None if invalid.
+    """
+    if not date_str or date_str in ["Unknown", "Tidak disebutkan", "N/A", "-"]:
+        return None
+
+    date_str = str(date_str).strip()
+
+    # Try exact date format YYYY-MM-DD
+    try:
+        parsed = datetime.strptime(date_str, "%Y-%m-%d")
+        return parsed.date().isoformat()
+    except ValueError:
+        pass
+
+    # Try YYYY-MM format -> default to first day
+    try:
+        parsed = datetime.strptime(date_str, "%Y-%m")
+        return parsed.date().isoformat()
+    except ValueError:
+        pass
+
+    # Try just year YYYY -> default to Jan 1
+    if re.match(r"^\d{4}$", date_str):
+        try:
+            year = int(date_str)
+            if 1900 <= year <= 2100:
+                return f"{year}-01-01"
+        except ValueError:
+            pass
+
+    # Try DD/MM/YYYY or DD-MM-YYYY
+    for fmt in ["%d/%m/%Y", "%d-%m-%Y"]:
+        try:
+            parsed = datetime.strptime(date_str, fmt)
+            return parsed.date().isoformat()
+        except ValueError:
+            pass
+
+    logger.warning(f"Could not parse date: {date_str}")
+    return None
 
 
 class SupabaseDB:
@@ -62,7 +109,7 @@ class ReportRepository:
             "is_anonymous": report_data.get("is_anonymous", True),
             "title": report_data.get("subject", ""),
             "description": report_data.get("description", ""),
-            "incident_date": report_data.get("incident_date"),
+            "incident_date": parse_date_safe(report_data.get("incident_date")),
             "incident_location": report_data.get("incident_location"),
             "involved_parties": report_data.get("parties_involved", []),
             "status": "NEW",
