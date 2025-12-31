@@ -7,7 +7,9 @@ ISO 37002:2021 Compliant
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+import os
 from contextlib import asynccontextmanager
 from typing import Optional, List
 from datetime import datetime
@@ -504,6 +506,32 @@ async def run_ai_analysis(
         
     except Exception as e:
         logger.error(f"Background analysis failed for {report_id}: {e}")
+
+
+# ============== Static Files & Frontend ==============
+
+# Get frontend path (relative to backend folder)
+FRONTEND_PATH = os.path.join(os.path.dirname(__file__), "..", "frontend")
+
+# Serve frontend static files
+if os.path.exists(FRONTEND_PATH):
+    app.mount("/static", StaticFiles(directory=FRONTEND_PATH), name="static")
+
+@app.get("/portal", tags=["Frontend"])
+async def serve_portal():
+    """Serve public reporting portal"""
+    file_path = os.path.join(FRONTEND_PATH, "portal_pelaporan.html")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="Portal not found")
+
+@app.get("/dashboard", tags=["Frontend"])
+async def serve_dashboard():
+    """Serve admin dashboard"""
+    file_path = os.path.join(FRONTEND_PATH, "wbs_dashboard.html")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="Dashboard not found")
 
 
 # ============== Main ==============
