@@ -3,30 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WBS BPKH - Portal Pelaporan</title>
+    <title>WBS BPKH - Portal Pelaporan Amanah</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        islamic: {
+                            green: '#006B3F',
+                            gold: '#C9A227',
+                            dark: '#1A3A2F',
+                            light: '#E8F5E9',
+                            cream: '#FDF8E7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        .font-arabic { font-family: 'Amiri', serif; }
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .gradient-bg { background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%); }
-        .input-focus:focus { box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
+
+        /* Islamic Geometric Pattern */
+        .islamic-pattern {
+            background-color: #006B3F;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M40 0l40 40-40 40L0 40 40 0zm0 10L10 40l30 30 30-30-30-30zm0 10l20 20-20 20-20-20 20-20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        /* Gold Ornament Border */
+        .ornament-border {
+            border: 2px solid #C9A227;
+            position: relative;
+        }
+        .ornament-border::before,
+        .ornament-border::after {
+            content: '✦';
+            position: absolute;
+            color: #C9A227;
+            font-size: 1rem;
+        }
+        .ornament-border::before { top: -0.6rem; left: 50%; transform: translateX(-50%); }
+        .ornament-border::after { bottom: -0.6rem; left: 50%; transform: translateX(-50%); }
+
+        .input-focus:focus { box-shadow: 0 0 0 3px rgba(0, 107, 63, 0.2); }
+
+        /* Crescent Moon */
+        .crescent {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            box-shadow: 10px 0 0 0 currentColor;
+        }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
-    <!-- Header -->
-    <header class="gradient-bg text-white">
-        <div class="max-w-4xl mx-auto px-4 py-6">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur">
-                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+<body class="bg-islamic-cream min-h-screen">
+    <!-- Header with Islamic Design -->
+    <header class="islamic-pattern text-white relative overflow-hidden">
+        <!-- Decorative Elements -->
+        <div class="absolute top-0 left-0 w-full h-full opacity-10">
+            <div class="absolute top-4 right-10 text-islamic-gold text-6xl font-arabic">۞</div>
+            <div class="absolute bottom-4 left-10 text-islamic-gold text-6xl font-arabic">۞</div>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-4 py-8 relative">
+            <!-- Bismillah -->
+            <div class="text-center mb-4">
+                <p class="font-arabic text-2xl text-islamic-gold">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</p>
+                <p class="text-emerald-200 text-xs mt-1">Dengan Nama Allah Yang Maha Pengasih Lagi Maha Penyayang</p>
+            </div>
+
+            <div class="flex items-center justify-center gap-4">
+                <div class="w-16 h-16 bg-islamic-gold/20 rounded-2xl flex items-center justify-center backdrop-blur border border-islamic-gold/30">
+                    <svg class="w-10 h-10 text-islamic-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <!-- Mosque Icon -->
+                        <path d="M12 2C8 2 4 6 4 10v10h16V10c0-4-4-8-8-8z"/>
+                        <path d="M12 2v4"/>
+                        <circle cx="12" cy="1" r="1" fill="currentColor"/>
+                        <path d="M8 22v-6a4 4 0 018 0v6"/>
+                        <path d="M4 12h2M18 12h2"/>
+                        <path d="M4 16h2M18 16h2"/>
+                    </svg>
                 </div>
-                <div>
-                    <h1 class="text-2xl font-bold">WBS BPKH</h1>
-                    <p class="text-emerald-100">Whistleblowing System - Portal Pelaporan</p>
+                <div class="text-center">
+                    <h1 class="text-3xl font-bold">WBS BPKH</h1>
+                    <p class="text-islamic-gold font-medium">Portal Pelaporan Amanah</p>
+                    <p class="text-emerald-200 text-sm">Menjaga Integritas Pengelolaan Dana Haji</p>
                 </div>
+            </div>
+
+            <!-- Decorative Line -->
+            <div class="flex items-center justify-center gap-3 mt-6">
+                <div class="h-px w-20 bg-gradient-to-r from-transparent to-islamic-gold"></div>
+                <span class="text-islamic-gold">☪</span>
+                <div class="h-px w-20 bg-gradient-to-l from-transparent to-islamic-gold"></div>
             </div>
         </div>
     </header>
@@ -34,11 +111,11 @@
     <main class="max-w-4xl mx-auto px-4 py-8">
         <!-- Navigation Tabs -->
         <div class="flex gap-2 mb-6">
-            <button onclick="showTab('submit')" id="tab-submit" class="tab-btn px-6 py-3 rounded-lg font-medium bg-emerald-600 text-white">
+            <button onclick="showTab('submit')" id="tab-submit" class="tab-btn px-6 py-3 rounded-lg font-medium bg-islamic-green text-white shadow-lg">
                 <i data-lucide="file-plus" class="w-4 h-4 inline mr-2"></i>
-                Buat Laporan
+                Sampaikan Laporan
             </button>
-            <button onclick="showTab('track')" id="tab-track" class="tab-btn px-6 py-3 rounded-lg font-medium bg-white text-slate-600 hover:bg-slate-100">
+            <button onclick="showTab('track')" id="tab-track" class="tab-btn px-6 py-3 rounded-lg font-medium bg-white text-islamic-dark hover:bg-islamic-light border border-islamic-green/20">
                 <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
                 Lacak Laporan
             </button>
@@ -46,113 +123,128 @@
 
         <!-- Submit Report Tab -->
         <div id="content-submit" class="tab-content fade-in">
-            <!-- Info Card -->
-            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+            <!-- Islamic Info Card -->
+            <div class="bg-gradient-to-r from-islamic-green/10 to-islamic-gold/10 border border-islamic-green/20 rounded-xl p-6 mb-6 ornament-border">
                 <div class="flex gap-4">
-                    <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
-                        <i data-lucide="info" class="w-6 h-6 text-emerald-600"></i>
+                    <div class="w-14 h-14 bg-islamic-green/10 rounded-xl flex items-center justify-center shrink-0">
+                        <span class="text-islamic-green text-2xl font-arabic">أ</span>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-emerald-800 mb-2">Jaminan Kerahasiaan</h3>
-                        <p class="text-emerald-700 text-sm">
-                            Identitas pelapor dijamin kerahasiaannya sesuai ISO 37002:2021. 
-                            Anda dapat melaporkan secara anonim tanpa mencantumkan data diri.
-                            Semua laporan akan ditangani secara profesional dan independen.
+                        <h3 class="font-semibold text-islamic-dark mb-2 flex items-center gap-2">
+                            <span>Amanah & Kerahasiaan</span>
+                            <span class="text-islamic-gold">۝</span>
+                        </h3>
+                        <p class="text-islamic-dark/80 text-sm leading-relaxed">
+                            <em class="font-arabic text-islamic-green">"Sesungguhnya Allah menyuruh kamu menyampaikan amanah kepada yang berhak menerimanya"</em>
+                            <span class="text-xs text-slate-500 block mt-1">(QS. An-Nisa: 58)</span>
+                        </p>
+                        <p class="text-islamic-dark/70 text-sm mt-2">
+                            Identitas pelapor dijamin kerahasiaannya sesuai ISO 37002:2021.
+                            Laporkan secara anonim untuk menjaga amanah bersama.
                         </p>
                     </div>
                 </div>
             </div>
 
             <!-- Report Form -->
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <h2 class="text-xl font-semibold text-slate-800 mb-6">Formulir Pengaduan</h2>
-                
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-islamic-green/10">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-islamic-gold/20 rounded-lg flex items-center justify-center">
+                        <i data-lucide="edit-3" class="w-5 h-5 text-islamic-gold"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-islamic-dark">Formulir Pengaduan</h2>
+                        <p class="text-sm text-slate-500">Sampaikan dengan jujur dan bertanggung jawab</p>
+                    </div>
+                </div>
+
                 <form id="report-form" onsubmit="submitReport(event)">
                     <!-- Anonymous Option -->
-                    <div class="mb-6">
+                    <div class="mb-6 p-4 bg-islamic-light/50 rounded-lg border border-islamic-green/10">
                         <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" id="is_anonymous" checked class="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                            <span class="font-medium text-slate-700">Laporkan secara anonim</span>
+                            <input type="checkbox" id="is_anonymous" checked class="w-5 h-5 rounded border-islamic-green/30 text-islamic-green focus:ring-islamic-green">
+                            <span class="font-medium text-islamic-dark">Laporkan secara anonim</span>
+                            <span class="text-islamic-gold">۝</span>
                         </label>
-                        <p class="text-sm text-slate-500 mt-1 ml-8">Identitas Anda tidak akan dicatat jika opsi ini dipilih</p>
+                        <p class="text-sm text-islamic-dark/60 mt-1 ml-8">Identitas Anda tidak akan dicatat - dijamin kerahasiaannya</p>
                     </div>
 
                     <!-- Contact Info (conditional) -->
                     <div id="contact-section" class="mb-6 hidden">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                        <label class="block text-sm font-medium text-islamic-dark mb-2">
                             Kontak (Email/No. HP)
                             <span class="text-slate-400 font-normal">- untuk komunikasi tindak lanjut</span>
                         </label>
-                        <input type="text" id="reporter_contact" placeholder="email@example.com atau 08xxxxxxxxxx" 
-                            class="w-full px-4 py-3 border border-slate-200 rounded-lg input-focus focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="reporter_contact" placeholder="email@example.com atau 08xxxxxxxxxx"
+                            class="w-full px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green bg-white">
                     </div>
 
                     <!-- Subject -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                        <label class="block text-sm font-medium text-islamic-dark mb-2">
                             Judul Laporan <span class="text-red-500">*</span>
                         </label>
                         <input type="text" id="subject" required minlength="10" maxlength="200"
                             placeholder="Contoh: Dugaan penyimpangan pengadaan barang di unit XYZ"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-lg input-focus focus:outline-none focus:border-emerald-500">
+                            class="w-full px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green">
                         <p class="text-xs text-slate-400 mt-1">Minimal 10 karakter, maksimal 200 karakter</p>
                     </div>
 
                     <!-- Description -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                        <label class="block text-sm font-medium text-islamic-dark mb-2">
                             Uraian Lengkap <span class="text-red-500">*</span>
                         </label>
                         <textarea id="description" required minlength="50" rows="6"
-                            placeholder="Jelaskan secara detail:
+                            placeholder="Jelaskan secara detail dengan jujur:
 • Apa yang terjadi?
 • Siapa yang terlibat?
 • Kapan kejadian berlangsung?
 • Di mana lokasi kejadian?
 • Bagaimana kronologinya?"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-lg input-focus focus:outline-none focus:border-emerald-500 resize-none"></textarea>
-                        <p class="text-xs text-slate-400 mt-1">Minimal 50 karakter. Semakin detail, semakin mudah ditindaklanjuti.</p>
+                            class="w-full px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green resize-none"></textarea>
+                        <p class="text-xs text-slate-400 mt-1">Minimal 50 karakter. Sampaikan dengan jujur dan detail.</p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <!-- Incident Date -->
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                            <label class="block text-sm font-medium text-islamic-dark mb-2">
                                 Tanggal/Periode Kejadian
                             </label>
-                            <input type="text" id="incident_date" 
+                            <input type="text" id="incident_date"
                                 placeholder="Contoh: Desember 2024, atau 15-20 Nov 2024"
-                                class="w-full px-4 py-3 border border-slate-200 rounded-lg input-focus focus:outline-none focus:border-emerald-500">
+                                class="w-full px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green">
                         </div>
 
                         <!-- Location -->
                         <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                            <label class="block text-sm font-medium text-islamic-dark mb-2">
                                 Lokasi Kejadian
                             </label>
-                            <input type="text" id="incident_location" 
+                            <input type="text" id="incident_location"
                                 placeholder="Contoh: Kantor Pusat BPKH, Gedung A Lt.3"
-                                class="w-full px-4 py-3 border border-slate-200 rounded-lg input-focus focus:outline-none focus:border-emerald-500">
+                                class="w-full px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green">
                         </div>
                     </div>
 
                     <!-- Parties Involved -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                        <label class="block text-sm font-medium text-islamic-dark mb-2">
                             Pihak yang Terlibat
                         </label>
-                        <input type="text" id="parties_involved" 
+                        <input type="text" id="parties_involved"
                             placeholder="Contoh: Kepala Bagian Pengadaan, Vendor ABC (pisahkan dengan koma)"
-                            class="w-full px-4 py-3 border border-slate-200 rounded-lg input-focus focus:outline-none focus:border-emerald-500">
+                            class="w-full px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green">
                         <p class="text-xs text-slate-400 mt-1">Sebutkan nama, jabatan, atau entitas yang diduga terlibat</p>
                     </div>
 
                     <!-- Category Hint -->
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                        <label class="block text-sm font-medium text-islamic-dark mb-2">
                             Jenis Pelanggaran (opsional)
                         </label>
-                        <select id="category_hint" class="w-full px-4 py-3 border border-slate-200 rounded-lg input-focus focus:outline-none focus:border-emerald-500">
+                        <select id="category_hint" class="w-full px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green bg-white">
                             <option value="">-- Pilih jika diketahui --</option>
                             <option value="FRAUD">Fraud / Penipuan</option>
                             <option value="CORRUPTION">Korupsi</option>
@@ -167,12 +259,12 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <div class="flex items-center justify-between pt-4 border-t border-slate-100">
-                        <p class="text-sm text-slate-500">
-                            <i data-lucide="lock" class="w-4 h-4 inline"></i>
+                    <div class="flex items-center justify-between pt-4 border-t border-islamic-green/10">
+                        <p class="text-sm text-islamic-dark/60 flex items-center gap-2">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
                             Data terenkripsi & dilindungi
                         </p>
-                        <button type="submit" id="submit-btn" class="px-8 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                        <button type="submit" id="submit-btn" class="px-8 py-3 bg-islamic-green text-white font-medium rounded-lg hover:bg-islamic-dark transition shadow-lg flex items-center gap-2">
                             <i data-lucide="send" class="w-5 h-5"></i>
                             Kirim Laporan
                         </button>
@@ -183,17 +275,25 @@
 
         <!-- Track Report Tab -->
         <div id="content-track" class="tab-content hidden fade-in">
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <h2 class="text-xl font-semibold text-slate-800 mb-6">Lacak Status Laporan</h2>
-                
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-islamic-green/10">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-islamic-gold/20 rounded-lg flex items-center justify-center">
+                        <i data-lucide="search" class="w-5 h-5 text-islamic-gold"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-islamic-dark">Lacak Status Laporan</h2>
+                        <p class="text-sm text-slate-500">Pantau perkembangan laporan Anda</p>
+                    </div>
+                </div>
+
                 <div class="max-w-md">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                    <label class="block text-sm font-medium text-islamic-dark mb-2">
                         Nomor Tiket
                     </label>
                     <div class="flex gap-3">
-                        <input type="text" id="ticket_id" placeholder="WBS-XXXXXXXX" maxlength="12"
-                            class="flex-1 px-4 py-3 border border-slate-200 rounded-lg input-focus focus:outline-none focus:border-emerald-500 font-mono uppercase">
-                        <button onclick="trackReport()" class="px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition">
+                        <input type="text" id="ticket_id" placeholder="XXXXXXXX" maxlength="12"
+                            class="flex-1 px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green font-mono uppercase">
+                        <button onclick="trackReport()" class="px-6 py-3 bg-islamic-green text-white font-medium rounded-lg hover:bg-islamic-dark transition shadow-lg">
                             Lacak
                         </button>
                     </div>
@@ -206,17 +306,20 @@
                 </div>
 
                 <!-- Message Section -->
-                <div id="message-section" class="mt-8 hidden border-t border-slate-100 pt-6">
-                    <h3 class="font-semibold text-slate-800 mb-4">Kirim Pesan / Informasi Tambahan</h3>
-                    
+                <div id="message-section" class="mt-8 hidden border-t border-islamic-green/10 pt-6">
+                    <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                        <i data-lucide="message-circle" class="w-5 h-5 text-islamic-gold"></i>
+                        Kirim Pesan / Informasi Tambahan
+                    </h3>
+
                     <div id="message-history" class="space-y-3 mb-4 max-h-64 overflow-y-auto">
                         <!-- Messages will be loaded here -->
                     </div>
 
                     <div class="flex gap-3">
                         <textarea id="new_message" rows="2" placeholder="Tulis pesan atau informasi tambahan..."
-                            class="flex-1 px-4 py-3 border border-slate-200 rounded-lg input-focus focus:outline-none focus:border-emerald-500 resize-none"></textarea>
-                        <button onclick="sendMessage()" class="px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">
+                            class="flex-1 px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green resize-none"></textarea>
+                        <button onclick="sendMessage()" class="px-4 py-3 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition shadow-lg">
                             <i data-lucide="send" class="w-5 h-5"></i>
                         </button>
                     </div>
@@ -226,47 +329,59 @@
 
         <!-- Success Modal -->
         <div id="success-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-md w-full p-8 text-center fade-in">
-                <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i data-lucide="check-circle" class="w-10 h-10 text-emerald-600"></i>
+            <div class="bg-white rounded-2xl max-w-md w-full p-8 text-center fade-in border-2 border-islamic-gold/30">
+                <!-- Islamic Ornament -->
+                <div class="text-islamic-gold text-3xl font-arabic mb-4">۞</div>
+
+                <div class="w-20 h-20 bg-islamic-green/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="check-circle" class="w-10 h-10 text-islamic-green"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-slate-800 mb-2">Laporan Terkirim!</h3>
+                <h3 class="text-2xl font-bold text-islamic-dark mb-2">Alhamdulillah, Laporan Terkirim!</h3>
                 <p class="text-slate-600 mb-6">Simpan nomor tiket berikut untuk melacak status laporan Anda:</p>
-                <div class="bg-slate-100 rounded-lg p-4 mb-6">
-                    <p class="text-sm text-slate-500 mb-1">Nomor Tiket</p>
-                    <p id="result-ticket-id" class="text-2xl font-mono font-bold text-emerald-600">WBS-XXXXXXXX</p>
+                <div class="bg-islamic-light rounded-lg p-4 mb-6 border border-islamic-green/20">
+                    <p class="text-sm text-islamic-dark/60 mb-1">Nomor Tiket</p>
+                    <p id="result-ticket-id" class="text-2xl font-mono font-bold text-islamic-green">XXXXXXXX</p>
                 </div>
                 <p class="text-sm text-slate-500 mb-6">
                     <i data-lucide="alert-circle" class="w-4 h-4 inline"></i>
                     Catat nomor ini! Anda membutuhkannya untuk mengecek status laporan.
                 </p>
                 <div class="flex gap-3 justify-center">
-                    <button onclick="copyTicketId()" class="px-6 py-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition flex items-center gap-2">
+                    <button onclick="copyTicketId()" class="px-6 py-3 border border-islamic-green/30 text-islamic-green rounded-lg hover:bg-islamic-light transition flex items-center gap-2">
                         <i data-lucide="copy" class="w-4 h-4"></i>
                         Salin
                     </button>
-                    <button onclick="closeSuccessModal()" class="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">
+                    <button onclick="closeSuccessModal()" class="px-6 py-3 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition">
                         Tutup
                     </button>
                 </div>
+
+                <!-- Islamic Ornament Bottom -->
+                <div class="text-islamic-gold text-3xl font-arabic mt-4">۞</div>
             </div>
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-slate-800 text-white mt-12">
+    <!-- Footer with Islamic Design -->
+    <footer class="islamic-pattern text-white mt-12">
         <div class="max-w-4xl mx-auto px-4 py-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
-                    <h4 class="font-semibold mb-3">Tentang WBS BPKH</h4>
-                    <p class="text-slate-400 text-sm">
-                        Sistem Pelaporan Pelanggaran (Whistleblowing System) BPKH 
-                        sesuai ISO 37002:2021 untuk mendukung tata kelola yang baik.
+                    <h4 class="font-semibold mb-3 flex items-center gap-2">
+                        <span class="text-islamic-gold">۝</span>
+                        Tentang WBS BPKH
+                    </h4>
+                    <p class="text-emerald-100 text-sm">
+                        Sistem Pelaporan Pelanggaran (Whistleblowing System) BPKH
+                        sesuai ISO 37002:2021 untuk menjaga amanah pengelolaan dana haji.
                     </p>
                 </div>
                 <div>
-                    <h4 class="font-semibold mb-3">Jenis Pelanggaran</h4>
-                    <ul class="text-slate-400 text-sm space-y-1">
+                    <h4 class="font-semibold mb-3 flex items-center gap-2">
+                        <span class="text-islamic-gold">۝</span>
+                        Jenis Pelanggaran
+                    </h4>
+                    <ul class="text-emerald-100 text-sm space-y-1">
                         <li>• Korupsi & Gratifikasi</li>
                         <li>• Fraud & Penipuan</li>
                         <li>• Penyimpangan Pengadaan</li>
@@ -274,8 +389,11 @@
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-semibold mb-3">Perlindungan Pelapor</h4>
-                    <ul class="text-slate-400 text-sm space-y-1">
+                    <h4 class="font-semibold mb-3 flex items-center gap-2">
+                        <span class="text-islamic-gold">۝</span>
+                        Perlindungan Pelapor
+                    </h4>
+                    <ul class="text-emerald-100 text-sm space-y-1">
                         <li>✓ Kerahasiaan identitas</li>
                         <li>✓ Perlindungan dari retaliasi</li>
                         <li>✓ Komunikasi dua arah aman</li>
@@ -283,8 +401,18 @@
                     </ul>
                 </div>
             </div>
-            <div class="border-t border-slate-700 mt-8 pt-6 text-center text-slate-400 text-sm">
-                © 2024 BPKH - Badan Pengelola Keuangan Haji. All rights reserved.
+
+            <!-- Decorative Line -->
+            <div class="flex items-center justify-center gap-3 my-6">
+                <div class="h-px w-20 bg-gradient-to-r from-transparent to-islamic-gold"></div>
+                <span class="text-islamic-gold">☪</span>
+                <div class="h-px w-20 bg-gradient-to-l from-transparent to-islamic-gold"></div>
+            </div>
+
+            <div class="text-center text-emerald-200 text-sm">
+                <p class="font-arabic text-islamic-gold text-lg mb-2">وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ</p>
+                <p class="text-xs text-emerald-300 mb-3">"Dan tolong-menolonglah dalam kebaikan dan takwa" (QS. Al-Maidah: 2)</p>
+                <p>© 2024 BPKH - Badan Pengelola Keuangan Haji. Amanah untuk Umat.</p>
             </div>
         </div>
     </footer>
@@ -297,7 +425,7 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            
+
             // Toggle contact section based on anonymous checkbox
             document.getElementById('is_anonymous').addEventListener('change', (e) => {
                 const contactSection = document.getElementById('contact-section');
@@ -311,28 +439,22 @@
 
         // Tab Navigation
         function showTab(tab) {
-            // Hide all content
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            
-            // Reset tab buttons
             document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('bg-emerald-600', 'text-white');
-                el.classList.add('bg-white', 'text-slate-600');
+                el.classList.remove('bg-islamic-green', 'text-white', 'shadow-lg');
+                el.classList.add('bg-white', 'text-islamic-dark', 'border', 'border-islamic-green/20');
             });
 
-            // Show selected content
             document.getElementById(`content-${tab}`).classList.remove('hidden');
-            
-            // Highlight selected tab
             const activeTab = document.getElementById(`tab-${tab}`);
-            activeTab.classList.remove('bg-white', 'text-slate-600');
-            activeTab.classList.add('bg-emerald-600', 'text-white');
+            activeTab.classList.remove('bg-white', 'text-islamic-dark', 'border', 'border-islamic-green/20');
+            activeTab.classList.add('bg-islamic-green', 'text-white', 'shadow-lg');
         }
 
         // Submit Report
         async function submitReport(event) {
             event.preventDefault();
-            
+
             const submitBtn = document.getElementById('submit-btn');
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> Mengirim...';
@@ -346,7 +468,7 @@
                 description: document.getElementById('description').value,
                 incident_date: document.getElementById('incident_date').value || null,
                 incident_location: document.getElementById('incident_location').value || null,
-                parties_involved: document.getElementById('parties_involved').value 
+                parties_involved: document.getElementById('parties_involved').value
                     ? document.getElementById('parties_involved').value.split(',').map(s => s.trim())
                     : []
             };
@@ -364,13 +486,11 @@
                 }
 
                 const result = await response.json();
-                
-                // Show success modal
+
                 document.getElementById('result-ticket-id').textContent = result.ticket_id;
                 currentTicketId = result.ticket_id;
                 document.getElementById('success-modal').classList.remove('hidden');
-                
-                // Reset form
+
                 document.getElementById('report-form').reset();
                 document.getElementById('is_anonymous').checked = true;
                 document.getElementById('contact-section').classList.add('hidden');
@@ -387,7 +507,7 @@
         // Track Report
         async function trackReport() {
             const ticketId = document.getElementById('ticket_id').value.trim().toUpperCase();
-            
+
             if (!ticketId || ticketId.length < 8) {
                 alert('Masukkan nomor tiket yang valid');
                 return;
@@ -397,7 +517,7 @@
             resultDiv.classList.remove('hidden');
             resultDiv.innerHTML = `
                 <div class="text-center py-8">
-                    <div class="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <div class="w-8 h-8 border-4 border-islamic-green border-t-transparent rounded-full animate-spin mx-auto"></div>
                     <p class="mt-4 text-slate-600">Mencari laporan...</p>
                 </div>
             `;
@@ -410,21 +530,19 @@
                 });
 
                 if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error('Nomor tiket tidak ditemukan');
-                    }
+                    if (response.status === 404) throw new Error('Nomor tiket tidak ditemukan');
                     throw new Error('Gagal mencari laporan');
                 }
 
                 const result = await response.json();
                 currentTicketId = ticketId;
-                
+
                 resultDiv.innerHTML = `
-                    <div class="bg-slate-50 rounded-lg p-6">
+                    <div class="bg-islamic-light/50 rounded-lg p-6 border border-islamic-green/20">
                         <div class="flex items-start justify-between mb-4">
                             <div>
                                 <p class="text-sm text-slate-500">Nomor Tiket</p>
-                                <p class="text-xl font-mono font-bold text-slate-800">${result.ticket_id}</p>
+                                <p class="text-xl font-mono font-bold text-islamic-dark">${result.ticket_id}</p>
                             </div>
                             <span class="px-4 py-2 rounded-full text-sm font-medium ${getStatusClass(result.status)}">
                                 ${result.status}
@@ -433,17 +551,16 @@
                         <div class="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <p class="text-slate-500">Status</p>
-                                <p class="text-slate-800 font-medium">${result.status_description || getStatusDescription(result.status)}</p>
+                                <p class="text-islamic-dark font-medium">${result.status_description || getStatusDescription(result.status)}</p>
                             </div>
                             <div>
                                 <p class="text-slate-500">Terakhir Diperbarui</p>
-                                <p class="text-slate-800">${formatDate(result.last_updated)}</p>
+                                <p class="text-islamic-dark">${formatDate(result.last_updated)}</p>
                             </div>
                         </div>
                     </div>
                 `;
 
-                // Show message section if report is open
                 if (result.can_add_info) {
                     document.getElementById('message-section').classList.remove('hidden');
                     loadMessages(ticketId);
@@ -467,13 +584,11 @@
         // Load Messages
         async function loadMessages(ticketId) {
             const historyDiv = document.getElementById('message-history');
-            
             try {
                 const response = await fetch(`${API_URL}/api/v1/tickets/${ticketId}/messages`);
                 if (!response.ok) throw new Error('Gagal memuat pesan');
-                
                 const messages = await response.json();
-                
+
                 if (messages.length === 0) {
                     historyDiv.innerHTML = '<p class="text-slate-500 text-sm text-center py-4">Belum ada pesan</p>';
                     return;
@@ -481,15 +596,12 @@
 
                 historyDiv.innerHTML = messages.map(msg => `
                     <div class="flex ${msg.sender_type === 'REPORTER' ? 'justify-end' : 'justify-start'}">
-                        <div class="max-w-[80%] px-4 py-2 rounded-lg ${msg.sender_type === 'REPORTER' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-800'}">
+                        <div class="max-w-[80%] px-4 py-2 rounded-lg ${msg.sender_type === 'REPORTER' ? 'bg-islamic-green text-white' : 'bg-islamic-light text-islamic-dark'}">
                             <p class="text-sm">${msg.content}</p>
-                            <p class="text-xs ${msg.sender_type === 'REPORTER' ? 'text-emerald-100' : 'text-slate-400'} mt-1">
-                                ${formatDateTime(msg.created_at)}
-                            </p>
+                            <p class="text-xs ${msg.sender_type === 'REPORTER' ? 'text-emerald-200' : 'text-slate-400'} mt-1">${formatDateTime(msg.created_at)}</p>
                         </div>
                     </div>
                 `).join('');
-
             } catch (error) {
                 historyDiv.innerHTML = '<p class="text-red-500 text-sm text-center py-4">Gagal memuat pesan</p>';
             }
@@ -499,7 +611,6 @@
         async function sendMessage() {
             const messageInput = document.getElementById('new_message');
             const content = messageInput.value.trim();
-            
             if (!content || !currentTicketId) return;
 
             try {
@@ -508,12 +619,9 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content })
                 });
-
                 if (!response.ok) throw new Error('Gagal mengirim pesan');
-
                 messageInput.value = '';
                 loadMessages(currentTicketId);
-
             } catch (error) {
                 alert('Gagal mengirim pesan: ' + error.message);
             }
@@ -527,7 +635,7 @@
                 'NEED_INFO': 'bg-yellow-100 text-yellow-700',
                 'INVESTIGATING': 'bg-indigo-100 text-indigo-700',
                 'ESCALATED': 'bg-red-100 text-red-700',
-                'CLOSED_PROVEN': 'bg-green-100 text-green-700',
+                'CLOSED_PROVEN': 'bg-islamic-green/20 text-islamic-green',
                 'CLOSED_NOT_PROVEN': 'bg-slate-100 text-slate-700',
                 'CLOSED_INVALID': 'bg-slate-100 text-slate-700'
             };
@@ -550,21 +658,12 @@
 
         function formatDate(dateStr) {
             if (!dateStr) return '-';
-            return new Date(dateStr).toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
+            return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
         function formatDateTime(dateStr) {
             if (!dateStr) return '-';
-            return new Date(dateStr).toLocaleString('id-ID', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            return new Date(dateStr).toLocaleString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
         }
 
         function closeSuccessModal() {
@@ -573,9 +672,7 @@
 
         function copyTicketId() {
             const ticketId = document.getElementById('result-ticket-id').textContent;
-            navigator.clipboard.writeText(ticketId).then(() => {
-                alert('Nomor tiket disalin!');
-            });
+            navigator.clipboard.writeText(ticketId).then(() => alert('Nomor tiket disalin!'));
         }
     </script>
 </body>

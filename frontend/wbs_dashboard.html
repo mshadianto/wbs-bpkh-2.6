@@ -3,210 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WBS BPKH - Whistleblowing System Dashboard</title>
+    <title>WBS BPKH - Dashboard Amanah</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        islamic: {
+                            green: '#006B3F',
+                            gold: '#C9A227',
+                            dark: '#1A3A2F',
+                            light: '#E8F5E9',
+                            cream: '#FDF8E7',
+                            sidebar: '#0D2818'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        .font-arabic { font-family: 'Amiri', serif; }
         .sidebar { transition: width 0.3s ease; }
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,107,63,0.15); }
         .severity-critical { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
         .severity-high { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); }
         .severity-medium { background: linear-gradient(135deg, #ca8a04 0%, #a16207 100%); }
-        .severity-low { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
+        .severity-low { background: linear-gradient(135deg, #006B3F 0%, #004D2C 100%); }
         .status-badge { padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
         .scrollbar-thin::-webkit-scrollbar { width: 6px; }
-        .scrollbar-thin::-webkit-scrollbar-track { background: #f1f5f9; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #E8F5E9; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #006B3F; border-radius: 3px; }
+
+        /* Islamic Pattern for Sidebar */
+        .islamic-sidebar {
+            background: linear-gradient(180deg, #0D2818 0%, #1A3A2F 100%);
+            position: relative;
+        }
+        .islamic-sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A227' fill-opacity='0.05'%3E%3Cpath d='M30 0l30 30-30 30L0 30 30 0zm0 10L10 30l20 20 20-20-20-20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .gold-border { border-color: #C9A227; }
     </style>
 </head>
-<body class="bg-slate-50">
+<body class="bg-islamic-cream">
     <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar w-64 bg-slate-900 text-white flex flex-col">
+        <!-- Sidebar with Islamic Design -->
+        <aside id="sidebar" class="sidebar w-64 islamic-sidebar text-white flex flex-col relative z-10">
             <!-- Logo -->
-            <div class="p-6 border-b border-slate-700">
+            <div class="p-6 border-b border-islamic-gold/20 relative">
+                <div class="text-center mb-2">
+                    <span class="text-islamic-gold font-arabic text-lg">بِسْمِ اللَّهِ</span>
+                </div>
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
-                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                    <div class="w-12 h-12 bg-islamic-gold/20 rounded-xl flex items-center justify-center border border-islamic-gold/30">
+                        <svg class="w-7 h-7 text-islamic-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2C8 2 4 6 4 10v10h16V10c0-4-4-8-8-8z"/>
+                            <path d="M12 2v4"/>
+                            <circle cx="12" cy="1" r="1" fill="currentColor"/>
+                            <path d="M8 22v-6a4 4 0 018 0v6"/>
+                        </svg>
                     </div>
                     <div>
                         <h1 class="font-bold text-lg">WBS BPKH</h1>
-                        <p class="text-xs text-slate-400">Whistleblowing System</p>
+                        <p class="text-xs text-islamic-gold">Dashboard Amanah</p>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Navigation -->
-            <nav class="flex-1 p-4 space-y-2">
-                <a href="#" onclick="showPage('dashboard')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg bg-slate-800 text-white">
+            <nav class="flex-1 p-4 space-y-2 relative">
+                <a href="#" onclick="showPage('dashboard')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg bg-islamic-gold/20 text-white border border-islamic-gold/30">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" onclick="showPage('reports')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <a href="#" onclick="showPage('reports')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
                     <i data-lucide="file-text" class="w-5 h-5"></i>
                     <span>Laporan</span>
                     <span id="report-badge" class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full hidden">0</span>
                 </a>
-                <a href="#" onclick="showPage('inbox')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <a href="#" onclick="showPage('inbox')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
                     <i data-lucide="inbox" class="w-5 h-5"></i>
                     <span>Inbox</span>
                 </a>
-                <a href="#" onclick="showPage('analysis')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <a href="#" onclick="showPage('analysis')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
                     <i data-lucide="brain" class="w-5 h-5"></i>
                     <span>AI Analysis</span>
                 </a>
-                <a href="#" onclick="showPage('knowledge')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <a href="#" onclick="showPage('knowledge')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
                     <i data-lucide="database" class="w-5 h-5"></i>
                     <span>Knowledge Base</span>
                 </a>
-                
-                <div class="pt-4 mt-4 border-t border-slate-700">
-                    <p class="px-4 text-xs text-slate-500 uppercase tracking-wider mb-2">Dokumentasi</p>
-                    <a href="../docs/business_process_wbs_bpkh.html" target="_blank" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
-                        <i data-lucide="book-open" class="w-5 h-5"></i>
-                        <span>Business Process</span>
-                        <i data-lucide="external-link" class="w-4 h-4 ml-auto opacity-50"></i>
-                    </a>
-                </div>
-                
-                <div class="pt-4 mt-4 border-t border-slate-700">
-                    <p class="px-4 text-xs text-slate-500 uppercase tracking-wider mb-2">Settings</p>
-                    <a href="#" onclick="showPage('settings')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+
+                <div class="pt-4 mt-4 border-t border-islamic-gold/20">
+                    <p class="px-4 text-xs text-islamic-gold uppercase tracking-wider mb-2">۝ Settings</p>
+                    <a href="#" onclick="showPage('settings')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
                         <i data-lucide="settings" class="w-5 h-5"></i>
                         <span>Pengaturan</span>
                     </a>
-                    <a href="#" onclick="showPage('audit')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <a href="#" onclick="showPage('audit')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
                         <i data-lucide="history" class="w-5 h-5"></i>
                         <span>Audit Log</span>
                     </a>
                 </div>
             </nav>
-            
+
             <!-- User -->
-            <div class="p-4 border-t border-slate-700">
+            <div class="p-4 border-t border-islamic-gold/20 relative">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center">
-                        <span class="font-semibold">UP</span>
+                    <div class="w-10 h-10 bg-islamic-gold/20 rounded-full flex items-center justify-center border border-islamic-gold/30">
+                        <span class="font-semibold text-islamic-gold">UP</span>
                     </div>
                     <div class="flex-1">
                         <p class="font-medium text-sm">UP1 Admin</p>
-                        <p class="text-xs text-slate-400">Unit Pengelola</p>
+                        <p class="text-xs text-islamic-gold">Unit Pengelola</p>
                     </div>
-                    <button class="text-slate-400 hover:text-white">
+                    <button class="text-emerald-300 hover:text-white">
                         <i data-lucide="log-out" class="w-5 h-5"></i>
                     </button>
                 </div>
             </div>
         </aside>
-        
+
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto">
             <!-- Header -->
-            <header class="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-10">
+            <header class="bg-white border-b border-islamic-green/20 px-6 py-4 sticky top-0 z-10">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
-                        <button onclick="toggleSidebar()" class="lg:hidden text-slate-600">
+                        <button onclick="toggleSidebar()" class="lg:hidden text-islamic-dark">
                             <i data-lucide="menu" class="w-6 h-6"></i>
                         </button>
-                        <h2 id="page-title" class="text-xl font-semibold text-slate-800">Dashboard</h2>
+                        <div>
+                            <h2 id="page-title" class="text-xl font-semibold text-islamic-dark">Dashboard</h2>
+                            <p class="text-xs text-islamic-gold font-arabic">إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ</p>
+                        </div>
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="relative">
-                            <input type="text" placeholder="Cari laporan..." class="pl-10 pr-4 py-2 border border-slate-200 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                            <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-3 top-2.5"></i>
+                            <input type="text" placeholder="Cari laporan..." class="pl-10 pr-4 py-2 border border-islamic-green/20 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-islamic-green focus:border-transparent">
+                            <i data-lucide="search" class="w-5 h-5 text-islamic-green/50 absolute left-3 top-2.5"></i>
                         </div>
-                        <button class="relative p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+                        <button class="relative p-2 text-islamic-dark hover:bg-islamic-light rounded-lg">
                             <i data-lucide="bell" class="w-5 h-5"></i>
                             <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
                     </div>
                 </div>
             </header>
-            
+
             <!-- Page Content -->
             <div class="p-6">
                 <!-- Dashboard Page -->
                 <div id="page-dashboard" class="page-content fade-in">
+                    <!-- Ayat Banner -->
+                    <div class="bg-gradient-to-r from-islamic-green to-islamic-dark text-white rounded-xl p-4 mb-6 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <span class="text-islamic-gold text-3xl font-arabic">۞</span>
+                            <div>
+                                <p class="font-arabic text-lg text-islamic-gold">"وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ"</p>
+                                <p class="text-emerald-100 text-sm">Tolong-menolonglah dalam kebaikan dan takwa - QS. Al-Maidah: 2</p>
+                            </div>
+                        </div>
+                        <span class="text-islamic-gold text-3xl font-arabic">۞</span>
+                    </div>
+
                     <!-- Stats Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all">
+                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all border border-islamic-green/10">
                             <div class="flex items-center justify-between mb-4">
-                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="file-text" class="w-6 h-6 text-blue-600"></i>
+                                <div class="w-12 h-12 bg-islamic-green/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="file-text" class="w-6 h-6 text-islamic-green"></i>
                                 </div>
-                                <span class="text-emerald-600 text-sm font-medium flex items-center gap-1">
+                                <span class="text-islamic-green text-sm font-medium flex items-center gap-1">
                                     <i data-lucide="trending-up" class="w-4 h-4"></i> +12%
                                 </span>
                             </div>
-                            <h3 id="stat-total" class="text-3xl font-bold text-slate-800">0</h3>
+                            <h3 id="stat-total" class="text-3xl font-bold text-islamic-dark">0</h3>
                             <p class="text-slate-500 text-sm">Total Laporan</p>
                         </div>
-                        
-                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all">
+
+                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all border border-islamic-gold/20">
                             <div class="flex items-center justify-between mb-4">
-                                <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="clock" class="w-6 h-6 text-amber-600"></i>
+                                <div class="w-12 h-12 bg-islamic-gold/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="clock" class="w-6 h-6 text-islamic-gold"></i>
                                 </div>
                             </div>
-                            <h3 id="stat-pending" class="text-3xl font-bold text-slate-800">0</h3>
+                            <h3 id="stat-pending" class="text-3xl font-bold text-islamic-dark">0</h3>
                             <p class="text-slate-500 text-sm">Menunggu Review</p>
                         </div>
-                        
-                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all">
+
+                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all border border-red-200">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
                                     <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
                                 </div>
                             </div>
-                            <h3 id="stat-sla-risk" class="text-3xl font-bold text-slate-800">0</h3>
+                            <h3 id="stat-sla-risk" class="text-3xl font-bold text-islamic-dark">0</h3>
                             <p class="text-slate-500 text-sm">SLA Berisiko</p>
                         </div>
-                        
-                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all">
+
+                        <div class="bg-white rounded-xl p-6 shadow-sm card-hover transition-all border border-islamic-green/20">
                             <div class="flex items-center justify-between mb-4">
-                                <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                                    <i data-lucide="check-circle" class="w-6 h-6 text-emerald-600"></i>
+                                <div class="w-12 h-12 bg-islamic-green/10 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="check-circle" class="w-6 h-6 text-islamic-green"></i>
                                 </div>
                             </div>
-                            <h3 id="stat-closed" class="text-3xl font-bold text-slate-800">0</h3>
+                            <h3 id="stat-closed" class="text-3xl font-bold text-islamic-dark">0</h3>
                             <p class="text-slate-500 text-sm">Selesai Bulan Ini</p>
                         </div>
                     </div>
-                    
+
                     <!-- Charts Row -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        <div class="bg-white rounded-xl p-6 shadow-sm">
-                            <h3 class="font-semibold text-slate-800 mb-4">Laporan per Kategori</h3>
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Laporan per Kategori
+                            </h3>
                             <canvas id="categoryChart" height="200"></canvas>
                         </div>
-                        <div class="bg-white rounded-xl p-6 shadow-sm">
-                            <h3 class="font-semibold text-slate-800 mb-4">Laporan per Severity</h3>
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Laporan per Severity
+                            </h3>
                             <canvas id="severityChart" height="200"></canvas>
                         </div>
                     </div>
-                    
+
                     <!-- Recent Reports & Activity -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm">
-                            <div class="p-6 border-b border-slate-100">
+                        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-islamic-green/10">
+                            <div class="p-6 border-b border-islamic-green/10">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="font-semibold text-slate-800">Laporan Terbaru</h3>
-                                    <button onclick="showPage('reports')" class="text-emerald-600 text-sm font-medium hover:underline">Lihat Semua</button>
+                                    <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                        <span class="text-islamic-gold">۝</span>
+                                        Laporan Terbaru
+                                    </h3>
+                                    <button onclick="showPage('reports')" class="text-islamic-green text-sm font-medium hover:underline">Lihat Semua</button>
                                 </div>
                             </div>
-                            <div id="recent-reports" class="divide-y divide-slate-100">
+                            <div id="recent-reports" class="divide-y divide-islamic-green/10">
                                 <!-- Reports will be loaded here -->
                             </div>
                         </div>
-                        
-                        <div class="bg-white rounded-xl shadow-sm">
-                            <div class="p-6 border-b border-slate-100">
-                                <h3 class="font-semibold text-slate-800">Aktivitas Terkini</h3>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-islamic-green/10">
+                            <div class="p-6 border-b border-islamic-green/10">
+                                <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                    <span class="text-islamic-gold">۝</span>
+                                    Aktivitas Terkini
+                                </h3>
                             </div>
                             <div id="recent-activity" class="p-4 space-y-4 max-h-96 overflow-y-auto scrollbar-thin">
                                 <!-- Activity will be loaded here -->
@@ -214,13 +279,13 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Reports Page -->
                 <div id="page-reports" class="page-content hidden fade-in">
                     <!-- Filters -->
-                    <div class="bg-white rounded-xl p-4 shadow-sm mb-6">
+                    <div class="bg-white rounded-xl p-4 shadow-sm mb-6 border border-islamic-green/10">
                         <div class="flex flex-wrap items-center gap-4">
-                            <select id="filter-status" class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <select id="filter-status" class="px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
                                 <option value="">Semua Status</option>
                                 <option value="NEW">Baru</option>
                                 <option value="REVIEWING">Sedang Direview</option>
@@ -228,14 +293,14 @@
                                 <option value="INVESTIGATING">Investigasi</option>
                                 <option value="ESCALATED">Dieskalasi</option>
                             </select>
-                            <select id="filter-severity" class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <select id="filter-severity" class="px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
                                 <option value="">Semua Severity</option>
                                 <option value="CRITICAL">Critical</option>
                                 <option value="HIGH">High</option>
                                 <option value="MEDIUM">Medium</option>
                                 <option value="LOW">Low</option>
                             </select>
-                            <select id="filter-category" class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <select id="filter-category" class="px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
                                 <option value="">Semua Kategori</option>
                                 <option value="FRAUD">Fraud</option>
                                 <option value="CORRUPTION">Korupsi</option>
@@ -243,59 +308,62 @@
                                 <option value="COI">Conflict of Interest</option>
                                 <option value="PROCUREMENT">Pengadaan</option>
                             </select>
-                            <button onclick="loadReports()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                            <button onclick="loadReports()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition flex items-center gap-2">
                                 <i data-lucide="filter" class="w-4 h-4"></i>
                                 Filter
                             </button>
-                            <button onclick="exportReports()" class="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition flex items-center gap-2">
+                            <button onclick="exportReports()" class="px-4 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light transition flex items-center gap-2">
                                 <i data-lucide="download" class="w-4 h-4"></i>
                                 Export
                             </button>
                         </div>
                     </div>
-                    
+
                     <!-- Reports Table -->
-                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-islamic-green/10">
                         <table class="w-full">
-                            <thead class="bg-slate-50 border-b border-slate-200">
+                            <thead class="bg-islamic-light border-b border-islamic-green/20">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Ticket ID</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Subject</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Kategori</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Severity</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Fraud Score</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Tanggal</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Aksi</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Ticket ID</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Subject</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Kategori</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Severity</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Fraud Score</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Tanggal</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="reports-table" class="divide-y divide-slate-100">
+                            <tbody id="reports-table" class="divide-y divide-islamic-green/10">
                                 <!-- Reports will be loaded here -->
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <!-- Pagination -->
                     <div class="flex items-center justify-between mt-4">
                         <p class="text-sm text-slate-600">Menampilkan <span id="showing-count">0</span> dari <span id="total-count">0</span> laporan</p>
                         <div class="flex items-center gap-2">
-                            <button onclick="prevPage()" class="px-3 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50">
+                            <button onclick="prevPage()" class="px-3 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light disabled:opacity-50">
                                 <i data-lucide="chevron-left" class="w-5 h-5"></i>
                             </button>
                             <span id="page-info" class="px-4 py-2 text-sm">Halaman 1</span>
-                            <button onclick="nextPage()" class="px-3 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50">
+                            <button onclick="nextPage()" class="px-3 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light disabled:opacity-50">
                                 <i data-lucide="chevron-right" class="w-5 h-5"></i>
                             </button>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Report Detail Modal -->
                 <div id="report-detail-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-                        <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+                    <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border-2 border-islamic-gold/30">
+                        <div class="p-6 border-b border-islamic-green/20 flex items-center justify-between bg-islamic-light">
                             <div>
-                                <h3 class="text-xl font-semibold text-slate-800">Detail Laporan</h3>
+                                <h3 class="text-xl font-semibold text-islamic-dark flex items-center gap-2">
+                                    <span class="text-islamic-gold">۝</span>
+                                    Detail Laporan
+                                </h3>
                                 <p id="modal-ticket-id" class="text-sm text-slate-500">Ticket: -</p>
                             </div>
                             <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
@@ -307,7 +375,7 @@
                                 <!-- Content will be loaded here -->
                             </div>
                         </div>
-                        <div class="p-6 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+                        <div class="p-6 border-t border-islamic-green/20 flex items-center justify-between bg-islamic-light">
                             <div class="flex items-center gap-2">
                                 <button onclick="runAnalysis()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2">
                                     <i data-lucide="brain" class="w-4 h-4"></i>
@@ -315,7 +383,7 @@
                                 </button>
                             </div>
                             <div class="flex items-center gap-2">
-                                <select id="modal-status" class="px-4 py-2 border border-slate-200 rounded-lg">
+                                <select id="modal-status" class="px-4 py-2 border border-islamic-green/20 rounded-lg">
                                     <option value="REVIEWING">Sedang Direview</option>
                                     <option value="NEED_INFO">Butuh Info Tambahan</option>
                                     <option value="INVESTIGATING">Lanjut Investigasi</option>
@@ -324,169 +392,163 @@
                                     <option value="CLOSED_NOT_PROVEN">Tutup - Tidak Terbukti</option>
                                     <option value="CLOSED_INVALID">Tutup - Invalid</option>
                                 </select>
-                                <button onclick="updateStatus()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">
+                                <button onclick="updateStatus()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition">
                                     Update Status
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Analysis Page -->
                 <div id="page-analysis" class="page-content hidden fade-in">
-                    <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
-                        <h3 class="font-semibold text-slate-800 mb-4">AI Analysis Engine</h3>
+                    <div class="bg-white rounded-xl p-6 shadow-sm mb-6 border border-islamic-green/10">
+                        <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                            <span class="text-islamic-gold">۝</span>
+                            AI Analysis Engine
+                        </h3>
                         <p class="text-slate-600 mb-4">Sistem multi-agent AI untuk menganalisis laporan pengaduan dengan framework 4W+1H, Fraud Triangle Analysis, dan Compliance Check.</p>
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                            <div class="p-4 bg-slate-50 rounded-lg">
+                            <div class="p-4 bg-islamic-light rounded-lg border border-islamic-green/20">
                                 <div class="flex items-center gap-3 mb-2">
-                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                        <i data-lucide="scan" class="w-5 h-5 text-blue-600"></i>
+                                    <div class="w-10 h-10 bg-islamic-green/20 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="scan" class="w-5 h-5 text-islamic-green"></i>
                                     </div>
-                                    <h4 class="font-medium">Intake Agent</h4>
+                                    <h4 class="font-medium text-islamic-dark">Intake Agent</h4>
                                 </div>
                                 <p class="text-sm text-slate-600">Parsing laporan dengan framework 4W+1H (What, Who, When, Where, How)</p>
                             </div>
-                            <div class="p-4 bg-slate-50 rounded-lg">
+                            <div class="p-4 bg-islamic-light rounded-lg border border-islamic-green/20">
                                 <div class="flex items-center gap-3 mb-2">
                                     <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                                         <i data-lucide="search" class="w-5 h-5 text-red-600"></i>
                                     </div>
-                                    <h4 class="font-medium">Analysis Agent</h4>
+                                    <h4 class="font-medium text-islamic-dark">Analysis Agent</h4>
                                 </div>
                                 <p class="text-sm text-slate-600">Fraud Triangle Analysis: Opportunity, Pressure, Rationalization</p>
                             </div>
-                            <div class="p-4 bg-slate-50 rounded-lg">
+                            <div class="p-4 bg-islamic-light rounded-lg border border-islamic-green/20">
                                 <div class="flex items-center gap-3 mb-2">
-                                    <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                                        <i data-lucide="shield" class="w-5 h-5 text-emerald-600"></i>
+                                    <div class="w-10 h-10 bg-islamic-gold/20 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="shield" class="w-5 h-5 text-islamic-gold"></i>
                                     </div>
-                                    <h4 class="font-medium">Compliance Agent</h4>
+                                    <h4 class="font-medium text-islamic-dark">Compliance Agent</h4>
                                 </div>
                                 <p class="text-sm text-slate-600">Pengecekan regulasi: UU Tipikor, PP PNS, Perpres PBJ, UU PDP</p>
                             </div>
                         </div>
-                        
+
                         <div class="flex items-center gap-4">
-                            <input type="text" id="analysis-report-id" placeholder="Masukkan Report ID" class="flex-1 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <input type="text" id="analysis-report-id" placeholder="Masukkan Report ID" class="flex-1 px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
                             <button onclick="runAnalysisById()" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2">
                                 <i data-lucide="play" class="w-4 h-4"></i>
                                 Jalankan Analisis
                             </button>
                         </div>
                     </div>
-                    
+
                     <div id="analysis-result" class="hidden">
                         <!-- Analysis result will be shown here -->
                     </div>
                 </div>
-                
+
                 <!-- Knowledge Base Page -->
                 <div id="page-knowledge" class="page-content hidden fade-in">
-                    <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
+                    <div class="bg-white rounded-xl p-6 shadow-sm mb-6 border border-islamic-green/10">
                         <div class="flex items-center justify-between mb-4">
                             <div>
-                                <h3 class="font-semibold text-slate-800">Knowledge Base</h3>
+                                <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                    <span class="text-islamic-gold">۝</span>
+                                    Knowledge Base
+                                </h3>
                                 <p class="text-sm text-slate-600">Regulasi dan dokumen referensi untuk RAG system</p>
                             </div>
-                            <button onclick="loadKnowledgeBase()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-2">
+                            <button onclick="loadKnowledgeBase()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition flex items-center gap-2">
                                 <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                                 Load Default Knowledge
                             </button>
                         </div>
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="knowledge-list">
-                            <div class="p-4 border border-slate-200 rounded-lg">
+                            <div class="p-4 border border-islamic-green/20 rounded-lg bg-islamic-light/50">
                                 <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                                        <i data-lucide="scale" class="w-5 h-5 text-blue-600"></i>
+                                    <div class="w-10 h-10 bg-islamic-green/20 rounded-lg flex items-center justify-center shrink-0">
+                                        <i data-lucide="scale" class="w-5 h-5 text-islamic-green"></i>
                                     </div>
                                     <div>
-                                        <h4 class="font-medium text-slate-800">UU 31/1999 jo UU 20/2001</h4>
+                                        <h4 class="font-medium text-islamic-dark">UU 31/1999 jo UU 20/2001</h4>
                                         <p class="text-sm text-slate-600">Tindak Pidana Korupsi</p>
-                                        <span class="text-xs text-emerald-600">✓ Loaded</span>
+                                        <span class="text-xs text-islamic-green">✓ Loaded</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-4 border border-slate-200 rounded-lg">
+                            <div class="p-4 border border-islamic-green/20 rounded-lg bg-islamic-light/50">
                                 <div class="flex items-start gap-3">
                                     <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
                                         <i data-lucide="users" class="w-5 h-5 text-purple-600"></i>
                                     </div>
                                     <div>
-                                        <h4 class="font-medium text-slate-800">PP 94/2021</h4>
+                                        <h4 class="font-medium text-islamic-dark">PP 94/2021</h4>
                                         <p class="text-sm text-slate-600">Disiplin PNS</p>
-                                        <span class="text-xs text-emerald-600">✓ Loaded</span>
+                                        <span class="text-xs text-islamic-green">✓ Loaded</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-4 border border-slate-200 rounded-lg">
+                            <div class="p-4 border border-islamic-green/20 rounded-lg bg-islamic-light/50">
                                 <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center shrink-0">
-                                        <i data-lucide="shopping-cart" class="w-5 h-5 text-amber-600"></i>
+                                    <div class="w-10 h-10 bg-islamic-gold/20 rounded-lg flex items-center justify-center shrink-0">
+                                        <i data-lucide="shopping-cart" class="w-5 h-5 text-islamic-gold"></i>
                                     </div>
                                     <div>
-                                        <h4 class="font-medium text-slate-800">Perpres 16/2018</h4>
+                                        <h4 class="font-medium text-islamic-dark">Perpres 16/2018</h4>
                                         <p class="text-sm text-slate-600">Pengadaan Barang/Jasa</p>
-                                        <span class="text-xs text-emerald-600">✓ Loaded</span>
+                                        <span class="text-xs text-islamic-green">✓ Loaded</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-4 border border-slate-200 rounded-lg">
+                            <div class="p-4 border border-islamic-green/20 rounded-lg bg-islamic-light/50">
                                 <div class="flex items-start gap-3">
                                     <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
                                         <i data-lucide="lock" class="w-5 h-5 text-red-600"></i>
                                     </div>
                                     <div>
-                                        <h4 class="font-medium text-slate-800">UU 27/2022</h4>
+                                        <h4 class="font-medium text-islamic-dark">UU 27/2022</h4>
                                         <p class="text-sm text-slate-600">Perlindungan Data Pribadi</p>
-                                        <span class="text-xs text-emerald-600">✓ Loaded</span>
+                                        <span class="text-xs text-islamic-green">✓ Loaded</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-4 border border-slate-200 rounded-lg">
+                            <div class="p-4 border border-islamic-green/20 rounded-lg bg-islamic-light/50">
                                 <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
-                                        <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600"></i>
+                                    <div class="w-10 h-10 bg-islamic-green/20 rounded-lg flex items-center justify-center shrink-0">
+                                        <i data-lucide="shield-check" class="w-5 h-5 text-islamic-green"></i>
                                     </div>
                                     <div>
-                                        <h4 class="font-medium text-slate-800">ISO 37002:2021</h4>
+                                        <h4 class="font-medium text-islamic-dark">ISO 37002:2021</h4>
                                         <p class="text-sm text-slate-600">Whistleblowing Management</p>
-                                        <span class="text-xs text-emerald-600">✓ Loaded</span>
+                                        <span class="text-xs text-islamic-green">✓ Loaded</span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Upload Custom Document -->
-                    <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <h3 class="font-semibold text-slate-800 mb-4">Upload Dokumen Tambahan</h3>
-                        <div class="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center">
-                            <i data-lucide="upload-cloud" class="w-12 h-12 text-slate-400 mx-auto mb-4"></i>
-                            <p class="text-slate-600 mb-2">Drag & drop file di sini atau</p>
-                            <button class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">
-                                Pilih File
-                            </button>
-                            <p class="text-xs text-slate-400 mt-2">PDF, TXT, DOCX (max 10MB)</p>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Inbox Page -->
                 <div id="page-inbox" class="page-content hidden fade-in">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
-                        <!-- Conversation List -->
-                        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                            <div class="p-4 border-b border-slate-200">
-                                <h3 class="font-semibold text-slate-800">Percakapan</h3>
+                        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-islamic-green/10">
+                            <div class="p-4 border-b border-islamic-green/10 bg-islamic-light">
+                                <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                    <span class="text-islamic-gold">۝</span>
+                                    Percakapan
+                                </h3>
                             </div>
-                            <div id="inbox-list" class="divide-y divide-slate-100 overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
-                                <!-- Inbox items will be loaded here -->
-                                <div class="p-4 hover:bg-slate-50 cursor-pointer border-l-4 border-emerald-500">
+                            <div id="inbox-list" class="divide-y divide-islamic-green/10 overflow-y-auto max-h-[calc(100vh-280px)] scrollbar-thin">
+                                <div class="p-4 hover:bg-islamic-light cursor-pointer border-l-4 border-islamic-green">
                                     <div class="flex items-center justify-between mb-1">
-                                        <span class="font-medium text-slate-800">WBS-A1B2C3D4</span>
+                                        <span class="font-medium text-islamic-dark">WBS-A1B2C3D4</span>
                                         <span class="text-xs text-slate-400">2 jam lalu</span>
                                     </div>
                                     <p class="text-sm text-slate-600 truncate">Mohon update status laporan saya...</p>
@@ -494,32 +556,30 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Chat Area -->
-                        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
-                            <div class="p-4 border-b border-slate-200">
-                                <h3 class="font-semibold text-slate-800">Chat dengan Pelapor</h3>
+
+                        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col border border-islamic-green/10">
+                            <div class="p-4 border-b border-islamic-green/10 bg-islamic-light">
+                                <h3 class="font-semibold text-islamic-dark">Chat dengan Pelapor</h3>
                                 <p class="text-sm text-slate-500">Ticket: WBS-A1B2C3D4</p>
                             </div>
                             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 scrollbar-thin">
-                                <!-- Messages will be loaded here -->
                                 <div class="flex justify-start">
-                                    <div class="bg-slate-100 rounded-lg px-4 py-2 max-w-[70%]">
-                                        <p class="text-slate-800">Selamat pagi, mohon informasi status laporan saya.</p>
+                                    <div class="bg-islamic-light rounded-lg px-4 py-2 max-w-[70%]">
+                                        <p class="text-islamic-dark">Selamat pagi, mohon informasi status laporan saya.</p>
                                         <span class="text-xs text-slate-400">10:30</span>
                                     </div>
                                 </div>
                                 <div class="flex justify-end">
-                                    <div class="bg-emerald-500 text-white rounded-lg px-4 py-2 max-w-[70%]">
+                                    <div class="bg-islamic-green text-white rounded-lg px-4 py-2 max-w-[70%]">
                                         <p>Laporan Anda sedang dalam proses review oleh tim UP1.</p>
-                                        <span class="text-xs text-emerald-100">10:35</span>
+                                        <span class="text-xs text-emerald-200">10:35</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-4 border-t border-slate-200">
+                            <div class="p-4 border-t border-islamic-green/10">
                                 <div class="flex items-center gap-2">
-                                    <input type="text" id="chat-input" placeholder="Ketik pesan..." class="flex-1 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                    <button onclick="sendMessage()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">
+                                    <input type="text" id="chat-input" placeholder="Ketik pesan..." class="flex-1 px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                    <button onclick="sendChatMessage()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition">
                                         <i data-lucide="send" class="w-5 h-5"></i>
                                     </button>
                                 </div>
@@ -527,27 +587,33 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Settings Page -->
                 <div id="page-settings" class="page-content hidden fade-in">
                     <div class="max-w-2xl">
-                        <div class="bg-white rounded-xl p-6 shadow-sm mb-6">
-                            <h3 class="font-semibold text-slate-800 mb-4">Pengaturan API</h3>
+                        <div class="bg-white rounded-xl p-6 shadow-sm mb-6 border border-islamic-green/10">
+                            <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Pengaturan API
+                            </h3>
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-1">API Base URL</label>
-                                    <input type="text" id="api-url" value="" placeholder="Kosongkan untuk relative URL" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">API Base URL</label>
+                                    <input type="text" id="api-url" value="" placeholder="Kosongkan untuk relative URL" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
                                 </div>
-                                <button onclick="saveSettings()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">
+                                <button onclick="saveSettings()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition">
                                     Simpan Pengaturan
                                 </button>
                             </div>
                         </div>
-                        
-                        <div class="bg-white rounded-xl p-6 shadow-sm">
-                            <h3 class="font-semibold text-slate-800 mb-4">Pengaturan SLA</h3>
+
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Pengaturan SLA
+                            </h3>
                             <div class="space-y-4">
-                                <div class="grid grid-cols-4 gap-4 text-sm font-medium text-slate-600 pb-2 border-b">
+                                <div class="grid grid-cols-4 gap-4 text-sm font-medium text-islamic-dark pb-2 border-b border-islamic-green/20">
                                     <div>Severity</div>
                                     <div>Response</div>
                                     <div>Review</div>
@@ -572,7 +638,7 @@
                                     <div>30 hari</div>
                                 </div>
                                 <div class="grid grid-cols-4 gap-4 text-sm">
-                                    <div class="font-medium text-green-600">LOW</div>
+                                    <div class="font-medium text-islamic-green">LOW</div>
                                     <div>168 jam</div>
                                     <div>14 hari</div>
                                     <div>90 hari</div>
@@ -581,29 +647,32 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Audit Log Page -->
                 <div id="page-audit" class="page-content hidden fade-in">
-                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                        <div class="p-4 border-b border-slate-200">
-                            <h3 class="font-semibold text-slate-800">Audit Trail</h3>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-islamic-green/10">
+                        <div class="p-4 border-b border-islamic-green/10 bg-islamic-light">
+                            <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Audit Trail
+                            </h3>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full">
-                                <thead class="bg-slate-50">
+                                <thead class="bg-islamic-light">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600">Timestamp</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600">User</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600">Action</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600">Resource</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600">Details</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">Timestamp</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">User</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">Action</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">Resource</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">Details</th>
                                     </tr>
                                 </thead>
-                                <tbody id="audit-table" class="divide-y divide-slate-100">
+                                <tbody id="audit-table" class="divide-y divide-islamic-green/10">
                                     <tr>
                                         <td class="px-6 py-4 text-sm text-slate-600">2024-12-30 14:30:00</td>
-                                        <td class="px-6 py-4 text-sm text-slate-800">admin@bpkh.go.id</td>
-                                        <td class="px-6 py-4"><span class="status-badge bg-blue-100 text-blue-700">STATUS_UPDATE</span></td>
+                                        <td class="px-6 py-4 text-sm text-islamic-dark">admin@bpkh.go.id</td>
+                                        <td class="px-6 py-4"><span class="status-badge bg-islamic-green/20 text-islamic-green">STATUS_UPDATE</span></td>
                                         <td class="px-6 py-4 text-sm text-slate-600">WBS-A1B2C3D4</td>
                                         <td class="px-6 py-4 text-sm text-slate-500">NEW → REVIEWING</td>
                                     </tr>
@@ -621,28 +690,25 @@
         let API_URL = localStorage.getItem('api_url') || '';
         let currentPage = 1;
         let currentReportId = null;
-        
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             loadDashboard();
             document.getElementById('api-url').value = API_URL;
         });
-        
+
         // Navigation
         function showPage(page) {
             document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('bg-slate-800', 'text-white');
-                el.classList.add('text-slate-300');
+                el.classList.remove('bg-islamic-gold/20', 'text-white', 'border', 'border-islamic-gold/30');
+                el.classList.add('text-emerald-100');
             });
-            
+
             const pageEl = document.getElementById(`page-${page}`);
-            if (pageEl) {
-                pageEl.classList.remove('hidden');
-            }
-            
-            // Update title
+            if (pageEl) pageEl.classList.remove('hidden');
+
             const titles = {
                 'dashboard': 'Dashboard',
                 'reports': 'Daftar Laporan',
@@ -653,76 +719,55 @@
                 'audit': 'Audit Log'
             };
             document.getElementById('page-title').textContent = titles[page] || 'Dashboard';
-            
-            // Load page-specific data
+
             if (page === 'dashboard') loadDashboard();
             if (page === 'reports') loadReports();
-            
+
             lucide.createIcons();
         }
-        
-        // Dashboard
+
+        // Dashboard functions
         async function loadDashboard() {
             try {
                 const response = await fetch(`${API_URL}/api/v1/dashboard/stats`);
                 if (!response.ok) throw new Error('Failed to load stats');
-                
                 const data = await response.json();
-                
+
                 document.getElementById('stat-total').textContent = data.total_reports || 0;
                 document.getElementById('stat-pending').textContent = data.pending_review || 0;
                 document.getElementById('stat-sla-risk').textContent = data.sla_at_risk || 0;
-                
-                const closedCount = (data.by_status?.CLOSED_PROVEN || 0) + 
-                                   (data.by_status?.CLOSED_NOT_PROVEN || 0) + 
-                                   (data.by_status?.CLOSED_INVALID || 0);
+
+                const closedCount = (data.by_status?.CLOSED_PROVEN || 0) + (data.by_status?.CLOSED_NOT_PROVEN || 0) + (data.by_status?.CLOSED_INVALID || 0);
                 document.getElementById('stat-closed').textContent = closedCount;
-                
-                // Update badge
+
                 if (data.pending_review > 0) {
                     document.getElementById('report-badge').textContent = data.pending_review;
                     document.getElementById('report-badge').classList.remove('hidden');
                 }
-                
-                // Charts
+
                 renderCategoryChart(data.by_category || {});
                 renderSeverityChart(data.by_severity || {});
-                
-                // Load recent reports
                 loadRecentReports();
-                
             } catch (error) {
                 console.log('Dashboard: Using sample data');
                 renderSampleDashboard();
             }
         }
-        
+
         function renderSampleDashboard() {
             document.getElementById('stat-total').textContent = '24';
             document.getElementById('stat-pending').textContent = '8';
             document.getElementById('stat-sla-risk').textContent = '2';
             document.getElementById('stat-closed').textContent = '12';
-            
-            renderCategoryChart({
-                'FRAUD': 5,
-                'CORRUPTION': 8,
-                'GRATIFICATION': 3,
-                'PROCUREMENT': 6,
-                'OTHER': 2
-            });
-            
-            renderSeverityChart({
-                'CRITICAL': 2,
-                'HIGH': 6,
-                'MEDIUM': 10,
-                'LOW': 6
-            });
-            
+
+            renderCategoryChart({ 'FRAUD': 5, 'CORRUPTION': 8, 'GRATIFICATION': 3, 'PROCUREMENT': 6, 'OTHER': 2 });
+            renderSeverityChart({ 'CRITICAL': 2, 'HIGH': 6, 'MEDIUM': 10, 'LOW': 6 });
+
             document.getElementById('recent-reports').innerHTML = `
-                <div class="p-4 hover:bg-slate-50 cursor-pointer" onclick="viewReport('sample-1')">
+                <div class="p-4 hover:bg-islamic-light cursor-pointer" onclick="viewReport('sample-1')">
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="font-medium text-slate-800">WBS-X7K9M2N4</span>
+                            <span class="font-medium text-islamic-dark">WBS-X7K9M2N4</span>
                             <p class="text-sm text-slate-600">Dugaan penyimpangan pengadaan barang</p>
                         </div>
                         <div class="text-right">
@@ -731,10 +776,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="p-4 hover:bg-slate-50 cursor-pointer" onclick="viewReport('sample-2')">
+                <div class="p-4 hover:bg-islamic-light cursor-pointer" onclick="viewReport('sample-2')">
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="font-medium text-slate-800">WBS-P3Q5R8S1</span>
+                            <span class="font-medium text-islamic-dark">WBS-P3Q5R8S1</span>
                             <p class="text-sm text-slate-600">Laporan gratifikasi pejabat</p>
                         </div>
                         <div class="text-right">
@@ -744,14 +789,14 @@
                     </div>
                 </div>
             `;
-            
+
             document.getElementById('recent-activity').innerHTML = `
                 <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                        <i data-lucide="file-plus" class="w-4 h-4 text-blue-600"></i>
+                    <div class="w-8 h-8 bg-islamic-green/20 rounded-full flex items-center justify-center shrink-0">
+                        <i data-lucide="file-plus" class="w-4 h-4 text-islamic-green"></i>
                     </div>
                     <div>
-                        <p class="text-sm text-slate-800">Laporan baru diterima</p>
+                        <p class="text-sm text-islamic-dark">Laporan baru diterima</p>
                         <p class="text-xs text-slate-400">WBS-X7K9M2N4 • 2 jam lalu</p>
                     </div>
                 </div>
@@ -760,82 +805,59 @@
                         <i data-lucide="brain" class="w-4 h-4 text-purple-600"></i>
                     </div>
                     <div>
-                        <p class="text-sm text-slate-800">AI Analysis selesai</p>
+                        <p class="text-sm text-islamic-dark">AI Analysis selesai</p>
                         <p class="text-xs text-slate-400">WBS-P3Q5R8S1 • 3 jam lalu</p>
                     </div>
                 </div>
                 <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                        <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i>
+                    <div class="w-8 h-8 bg-islamic-gold/20 rounded-full flex items-center justify-center shrink-0">
+                        <i data-lucide="check" class="w-4 h-4 text-islamic-gold"></i>
                     </div>
                     <div>
-                        <p class="text-sm text-slate-800">Kasus ditutup</p>
+                        <p class="text-sm text-islamic-dark">Kasus ditutup</p>
                         <p class="text-xs text-slate-400">WBS-A1B2C3D4 • 1 hari lalu</p>
                     </div>
                 </div>
             `;
-            
             lucide.createIcons();
         }
-        
+
         function renderCategoryChart(data) {
             const ctx = document.getElementById('categoryChart').getContext('2d');
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(data),
-                    datasets: [{
-                        data: Object.values(data),
-                        backgroundColor: ['#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899']
-                    }]
+                    datasets: [{ data: Object.values(data), backgroundColor: ['#006B3F', '#C9A227', '#dc2626', '#8b5cf6', '#3b82f6', '#ec4899'] }]
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
-                }
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
             });
         }
-        
+
         function renderSeverityChart(data) {
             const ctx = document.getElementById('severityChart').getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: Object.keys(data),
-                    datasets: [{
-                        label: 'Jumlah Laporan',
-                        data: Object.values(data),
-                        backgroundColor: ['#dc2626', '#ea580c', '#ca8a04', '#16a34a']
-                    }]
+                    datasets: [{ label: 'Jumlah Laporan', data: Object.values(data), backgroundColor: ['#dc2626', '#ea580c', '#C9A227', '#006B3F'] }]
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
             });
         }
-        
+
         async function loadRecentReports() {
             try {
                 const response = await fetch(`${API_URL}/api/v1/reports?per_page=5`);
                 if (!response.ok) throw new Error('Failed to load');
-                
                 const data = await response.json();
                 const container = document.getElementById('recent-reports');
-                
                 if (data.reports && data.reports.length > 0) {
                     container.innerHTML = data.reports.map(report => `
-                        <div class="p-4 hover:bg-slate-50 cursor-pointer" onclick="viewReport('${report.id}')">
+                        <div class="p-4 hover:bg-islamic-light cursor-pointer" onclick="viewReport('${report.id}')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <span class="font-medium text-slate-800">${report.ticket_id}</span>
+                                    <span class="font-medium text-islamic-dark">${report.ticket_id}</span>
                                     <p class="text-sm text-slate-600 truncate max-w-xs">${report.subject}</p>
                                 </div>
                                 <div class="text-right">
@@ -846,533 +868,187 @@
                         </div>
                     `).join('');
                 }
-            } catch (error) {
-                console.log('Using sample recent reports');
-            }
+            } catch (error) { console.log('Using sample recent reports'); }
         }
-        
-        // Reports Page
+
+        // Reports functions
         async function loadReports() {
             const status = document.getElementById('filter-status').value;
             const severity = document.getElementById('filter-severity').value;
             const category = document.getElementById('filter-category').value;
-            
             let url = `${API_URL}/api/v1/reports?page=${currentPage}&per_page=10`;
             if (status) url += `&status=${status}`;
             if (severity) url += `&severity=${severity}`;
             if (category) url += `&category=${category}`;
-            
+
             try {
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Failed to load reports');
-                
                 const data = await response.json();
                 renderReportsTable(data.reports || []);
-                
                 document.getElementById('showing-count').textContent = data.reports?.length || 0;
                 document.getElementById('total-count').textContent = data.total || 0;
                 document.getElementById('page-info').textContent = `Halaman ${currentPage}`;
-                
-            } catch (error) {
-                console.log('Using sample reports');
-                renderSampleReports();
-            }
+            } catch (error) { console.log('Using sample reports'); renderSampleReports(); }
         }
-        
+
         function renderReportsTable(reports) {
             const tbody = document.getElementById('reports-table');
-            
             if (reports.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="px-6 py-8 text-center text-slate-500">
-                            Tidak ada laporan ditemukan
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-8 text-center text-slate-500">Tidak ada laporan ditemukan</td></tr>`;
                 return;
             }
-            
             tbody.innerHTML = reports.map(report => `
-                <tr class="hover:bg-slate-50">
-                    <td class="px-6 py-4">
-                        <span class="font-mono text-sm font-medium text-slate-800">${report.ticket_id}</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <p class="text-sm text-slate-800 truncate max-w-xs">${report.subject}</p>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="status-badge bg-slate-100 text-slate-700">${report.category || '-'}</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="status-badge ${getSeverityClass(report.severity)}">${report.severity || '-'}</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="status-badge ${getStatusClass(report.status)}">${report.status}</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        ${report.fraud_score ? `
-                            <div class="flex items-center gap-2">
-                                <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
-                                    <div class="h-full ${getFraudScoreColor(report.fraud_score)}" style="width: ${report.fraud_score * 100}%"></div>
-                                </div>
-                                <span class="text-sm text-slate-600">${(report.fraud_score * 100).toFixed(0)}%</span>
-                            </div>
-                        ` : '-'}
-                    </td>
+                <tr class="hover:bg-islamic-light">
+                    <td class="px-6 py-4"><span class="font-mono text-sm font-medium text-islamic-dark">${report.ticket_id}</span></td>
+                    <td class="px-6 py-4"><p class="text-sm text-islamic-dark truncate max-w-xs">${report.subject}</p></td>
+                    <td class="px-6 py-4"><span class="status-badge bg-islamic-light text-islamic-dark">${report.category || '-'}</span></td>
+                    <td class="px-6 py-4"><span class="status-badge ${getSeverityClass(report.severity)}">${report.severity || '-'}</span></td>
+                    <td class="px-6 py-4"><span class="status-badge ${getStatusClass(report.status)}">${report.status}</span></td>
+                    <td class="px-6 py-4">${report.fraud_score ? `<div class="flex items-center gap-2"><div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden"><div class="h-full ${getFraudScoreColor(report.fraud_score)}" style="width: ${report.fraud_score * 100}%"></div></div><span class="text-sm text-slate-600">${(report.fraud_score * 100).toFixed(0)}%</span></div>` : '-'}</td>
                     <td class="px-6 py-4 text-sm text-slate-600">${formatDate(report.created_at)}</td>
-                    <td class="px-6 py-4">
-                        <button onclick="viewReport('${report.id}')" class="text-emerald-600 hover:text-emerald-700">
-                            <i data-lucide="eye" class="w-5 h-5"></i>
-                        </button>
-                    </td>
+                    <td class="px-6 py-4"><button onclick="viewReport('${report.id}')" class="text-islamic-green hover:text-islamic-dark"><i data-lucide="eye" class="w-5 h-5"></i></button></td>
                 </tr>
             `).join('');
-            
             lucide.createIcons();
         }
-        
+
         function renderSampleReports() {
             const sampleReports = [
                 { ticket_id: 'WBS-X7K9M2N4', subject: 'Dugaan penyimpangan pengadaan barang', category: 'PROCUREMENT', severity: 'CRITICAL', status: 'NEW', fraud_score: 0.85, created_at: new Date().toISOString() },
-                { ticket_id: 'WBS-P3Q5R8S1', subject: 'Laporan gratifikasi pejabat', category: 'GRATIFICATION', severity: 'HIGH', status: 'REVIEWING', fraud_score: 0.72, created_at: new Date().toISOString() },
-                { ticket_id: 'WBS-A1B2C3D4', subject: 'Conflict of interest tender', category: 'COI', severity: 'MEDIUM', status: 'INVESTIGATING', fraud_score: 0.55, created_at: new Date().toISOString() }
+                { ticket_id: 'WBS-P3Q5R8S1', subject: 'Laporan gratifikasi pejabat', category: 'GRATIFICATION', severity: 'HIGH', status: 'REVIEWING', fraud_score: 0.72, created_at: new Date().toISOString() }
             ];
             renderReportsTable(sampleReports);
-            document.getElementById('showing-count').textContent = '3';
-            document.getElementById('total-count').textContent = '3';
+            document.getElementById('showing-count').textContent = '2';
+            document.getElementById('total-count').textContent = '2';
         }
-        
-        // View Report Detail
+
         async function viewReport(reportId) {
             currentReportId = reportId;
             document.getElementById('report-detail-modal').classList.remove('hidden');
-            document.getElementById('modal-content').innerHTML = '<div class="text-center py-8"><div class="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto"></div><p class="mt-4 text-slate-600">Memuat data...</p></div>';
-            
+            document.getElementById('modal-content').innerHTML = '<div class="text-center py-8"><div class="animate-spin w-8 h-8 border-4 border-islamic-green border-t-transparent rounded-full mx-auto"></div><p class="mt-4 text-slate-600">Memuat data...</p></div>';
+
             try {
                 const response = await fetch(`${API_URL}/api/v1/reports/${reportId}`);
                 if (!response.ok) throw new Error('Failed to load report');
-                
                 const report = await response.json();
                 renderReportDetail(report);
-                
-            } catch (error) {
-                console.log('Using sample report detail');
-                renderSampleReportDetail();
-            }
+            } catch (error) { console.log('Using sample report detail'); renderSampleReportDetail(); }
         }
-        
+
         function renderReportDetail(report) {
             document.getElementById('modal-ticket-id').textContent = `Ticket: ${report.ticket_id}`;
-            
             document.getElementById('modal-content').innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <h4 class="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-2">Informasi Laporan</h4>
+                        <h4 class="text-sm font-semibold text-islamic-dark uppercase tracking-wider mb-2">Informasi Laporan</h4>
                         <div class="space-y-3">
-                            <div>
-                                <p class="text-xs text-slate-500">Subject</p>
-                                <p class="text-slate-800">${report.subject}</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-slate-500">Deskripsi</p>
-                                <p class="text-slate-800 text-sm">${report.description}</p>
-                            </div>
+                            <div><p class="text-xs text-slate-500">Subject</p><p class="text-islamic-dark">${report.subject}</p></div>
+                            <div><p class="text-xs text-slate-500">Deskripsi</p><p class="text-islamic-dark text-sm">${report.description}</p></div>
                             <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p class="text-xs text-slate-500">Tanggal Kejadian</p>
-                                    <p class="text-slate-800">${report.incident_date || '-'}</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-slate-500">Lokasi</p>
-                                    <p class="text-slate-800">${report.incident_location || '-'}</p>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-xs text-slate-500">Pihak Terkait</p>
-                                <p class="text-slate-800">${report.parties_involved?.join(', ') || '-'}</p>
+                                <div><p class="text-xs text-slate-500">Tanggal Kejadian</p><p class="text-islamic-dark">${report.incident_date || '-'}</p></div>
+                                <div><p class="text-xs text-slate-500">Lokasi</p><p class="text-islamic-dark">${report.incident_location || '-'}</p></div>
                             </div>
                         </div>
                     </div>
-                    
                     <div>
-                        <h4 class="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-2">Status & Analisis</h4>
+                        <h4 class="text-sm font-semibold text-islamic-dark uppercase tracking-wider mb-2">Status & Analisis</h4>
                         <div class="space-y-3">
                             <div class="flex items-center gap-4">
-                                <div>
-                                    <p class="text-xs text-slate-500">Status</p>
-                                    <span class="status-badge ${getStatusClass(report.status)}">${report.status}</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-slate-500">Severity</p>
-                                    <span class="status-badge ${getSeverityClass(report.severity)}">${report.severity || 'PENDING'}</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-slate-500">Kategori</p>
-                                    <span class="status-badge bg-slate-100 text-slate-700">${report.category || 'PENDING'}</span>
-                                </div>
+                                <div><p class="text-xs text-slate-500">Status</p><span class="status-badge ${getStatusClass(report.status)}">${report.status}</span></div>
+                                <div><p class="text-xs text-slate-500">Severity</p><span class="status-badge ${getSeverityClass(report.severity)}">${report.severity || 'PENDING'}</span></div>
+                                <div><p class="text-xs text-slate-500">Kategori</p><span class="status-badge bg-islamic-light text-islamic-dark">${report.category || 'PENDING'}</span></div>
                             </div>
-                            
-                            ${report.fraud_score ? `
-                            <div>
-                                <p class="text-xs text-slate-500 mb-1">Fraud Score</p>
-                                <div class="flex items-center gap-3">
-                                    <div class="flex-1 h-3 bg-slate-200 rounded-full overflow-hidden">
-                                        <div class="h-full ${getFraudScoreColor(report.fraud_score)}" style="width: ${report.fraud_score * 100}%"></div>
-                                    </div>
-                                    <span class="font-semibold ${report.fraud_score > 0.7 ? 'text-red-600' : report.fraud_score > 0.4 ? 'text-amber-600' : 'text-emerald-600'}">${(report.fraud_score * 100).toFixed(0)}%</span>
-                                </div>
-                            </div>
-                            ` : ''}
+                            ${report.fraud_score ? `<div><p class="text-xs text-slate-500 mb-1">Fraud Score</p><div class="flex items-center gap-3"><div class="flex-1 h-3 bg-slate-200 rounded-full overflow-hidden"><div class="h-full ${getFraudScoreColor(report.fraud_score)}" style="width: ${report.fraud_score * 100}%"></div></div><span class="font-semibold ${report.fraud_score > 0.7 ? 'text-red-600' : report.fraud_score > 0.4 ? 'text-amber-600' : 'text-islamic-green'}">${(report.fraud_score * 100).toFixed(0)}%</span></div></div>` : ''}
                         </div>
-                        
-                        ${report.ai_analysis ? `
-                        <div class="mt-6">
-                            <h4 class="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-2">AI Analysis Summary</h4>
-                            <div class="bg-slate-50 rounded-lg p-4 text-sm text-slate-700">
-                                ${report.ai_analysis.executive_summary?.executive_summary || 'Belum ada analisis'}
-                            </div>
-                        </div>
-                        ` : ''}
                     </div>
                 </div>
             `;
-            
             document.getElementById('modal-status').value = report.status;
         }
-        
+
         function renderSampleReportDetail() {
             document.getElementById('modal-ticket-id').textContent = 'Ticket: WBS-X7K9M2N4';
-            document.getElementById('modal-content').innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 class="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-2">Informasi Laporan</h4>
-                        <div class="space-y-3">
-                            <div>
-                                <p class="text-xs text-slate-500">Subject</p>
-                                <p class="text-slate-800">Dugaan penyimpangan pengadaan barang</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-slate-500">Deskripsi</p>
-                                <p class="text-slate-800 text-sm">Saya melaporkan adanya dugaan penyimpangan dalam proses pengadaan barang di unit XYZ. Tender dilakukan tanpa pengumuman yang memadai dan pemenang sudah ditentukan sebelumnya.</p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p class="text-xs text-slate-500">Tanggal Kejadian</p>
-                                    <p class="text-slate-800">Desember 2024</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-slate-500">Lokasi</p>
-                                    <p class="text-slate-800">Kantor Pusat BPKH</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-2">Status & Analisis</h4>
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-4">
-                                <div>
-                                    <p class="text-xs text-slate-500">Status</p>
-                                    <span class="status-badge bg-blue-100 text-blue-700">NEW</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-slate-500">Severity</p>
-                                    <span class="status-badge bg-red-100 text-red-700">CRITICAL</span>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-slate-500">Kategori</p>
-                                    <span class="status-badge bg-slate-100 text-slate-700">PROCUREMENT</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-xs text-slate-500 mb-1">Fraud Score</p>
-                                <div class="flex items-center gap-3">
-                                    <div class="flex-1 h-3 bg-slate-200 rounded-full overflow-hidden">
-                                        <div class="h-full bg-red-500" style="width: 85%"></div>
-                                    </div>
-                                    <span class="font-semibold text-red-600">85%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            document.getElementById('modal-content').innerHTML = `<div class="text-center py-8 text-slate-600">Sample report detail</div>`;
         }
-        
-        function closeModal() {
-            document.getElementById('report-detail-modal').classList.add('hidden');
-            currentReportId = null;
-        }
-        
-        // Run AI Analysis
+
+        function closeModal() { document.getElementById('report-detail-modal').classList.add('hidden'); currentReportId = null; }
+
         async function runAnalysis() {
             if (!currentReportId) return;
-            
-            document.getElementById('modal-content').innerHTML = `
-                <div class="text-center py-8">
-                    <div class="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto"></div>
-                    <p class="mt-4 text-slate-600">Menjalankan AI Analysis...</p>
-                    <p class="text-sm text-slate-400">Multi-agent processing sedang berjalan</p>
-                </div>
-            `;
-            
+            document.getElementById('modal-content').innerHTML = `<div class="text-center py-8"><div class="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto"></div><p class="mt-4 text-slate-600">Menjalankan AI Analysis...</p></div>`;
             try {
-                const response = await fetch(`${API_URL}/api/v1/analysis/run`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ report_id: currentReportId, use_full_analysis: true })
-                });
-                
+                const response = await fetch(`${API_URL}/api/v1/analysis/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ report_id: currentReportId, use_full_analysis: true }) });
                 if (!response.ok) throw new Error('Analysis failed');
-                
                 const result = await response.json();
-                renderAnalysisResult(result);
-                
-            } catch (error) {
-                console.error('Analysis error:', error);
-                document.getElementById('modal-content').innerHTML = `
-                    <div class="text-center py-8">
-                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                            <i data-lucide="alert-circle" class="w-6 h-6 text-red-600"></i>
-                        </div>
-                        <p class="mt-4 text-slate-600">Gagal menjalankan analisis</p>
-                        <p class="text-sm text-slate-400">Pastikan backend server berjalan</p>
-                    </div>
-                `;
-                lucide.createIcons();
-            }
+                alert('Analisis selesai! Fraud Score: ' + (result.fraud_score * 100).toFixed(0) + '%');
+                viewReport(currentReportId);
+            } catch (error) { alert('Gagal menjalankan analisis'); }
         }
-        
+
         async function runAnalysisById() {
             const reportId = document.getElementById('analysis-report-id').value;
-            if (!reportId) {
-                alert('Masukkan Report ID');
-                return;
-            }
-            
+            if (!reportId) { alert('Masukkan Report ID'); return; }
             const resultContainer = document.getElementById('analysis-result');
             resultContainer.classList.remove('hidden');
-            resultContainer.innerHTML = `
-                <div class="bg-white rounded-xl p-6 shadow-sm">
-                    <div class="text-center py-8">
-                        <div class="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto"></div>
-                        <p class="mt-4 text-slate-600">Menjalankan AI Analysis...</p>
-                    </div>
-                </div>
-            `;
-            
+            resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10"><div class="text-center py-8"><div class="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto"></div><p class="mt-4 text-slate-600">Menjalankan AI Analysis...</p></div></div>`;
             try {
-                const response = await fetch(`${API_URL}/api/v1/analysis/run`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ report_id: reportId, use_full_analysis: true })
-                });
-                
+                const response = await fetch(`${API_URL}/api/v1/analysis/run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ report_id: reportId, use_full_analysis: true }) });
                 if (!response.ok) throw new Error('Analysis failed');
-                
                 const result = await response.json();
-                renderFullAnalysisResult(result);
-                
-            } catch (error) {
-                resultContainer.innerHTML = `
-                    <div class="bg-white rounded-xl p-6 shadow-sm">
-                        <div class="text-center py-8">
-                            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                                <i data-lucide="alert-circle" class="w-6 h-6 text-red-600"></i>
-                            </div>
-                            <p class="mt-4 text-slate-600">Gagal menjalankan analisis</p>
-                        </div>
-                    </div>
-                `;
-                lucide.createIcons();
-            }
+                resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10"><h3 class="font-semibold text-islamic-dark mb-4">Hasil Analisis</h3><div class="grid grid-cols-4 gap-4"><div class="p-4 bg-islamic-light rounded-lg text-center"><p class="text-2xl font-bold ${result.fraud_score > 0.7 ? 'text-red-600' : 'text-islamic-green'}">${(result.fraud_score * 100).toFixed(0)}%</p><p class="text-sm text-slate-600">Fraud Score</p></div><div class="p-4 bg-islamic-light rounded-lg text-center"><p class="text-xl font-bold text-islamic-dark">${result.category}</p><p class="text-sm text-slate-600">Kategori</p></div><div class="p-4 bg-islamic-light rounded-lg text-center"><p class="text-xl font-bold text-islamic-dark">${result.severity}</p><p class="text-sm text-slate-600">Severity</p></div></div></div>`;
+            } catch (error) { resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-red-200"><p class="text-red-600">Gagal menjalankan analisis</p></div>`; }
         }
-        
-        function renderFullAnalysisResult(result) {
-            const container = document.getElementById('analysis-result');
-            container.innerHTML = `
-                <div class="bg-white rounded-xl p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="font-semibold text-slate-800">Hasil Analisis AI</h3>
-                        <span class="status-badge ${getSeverityClass(result.severity)}">${result.severity}</span>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="p-4 bg-slate-50 rounded-lg text-center">
-                            <p class="text-2xl font-bold ${result.fraud_score > 0.7 ? 'text-red-600' : result.fraud_score > 0.4 ? 'text-amber-600' : 'text-emerald-600'}">${(result.fraud_score * 100).toFixed(0)}%</p>
-                            <p class="text-sm text-slate-600">Fraud Score</p>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-lg text-center">
-                            <p class="text-2xl font-bold text-slate-800">${result.category}</p>
-                            <p class="text-sm text-slate-600">Kategori</p>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-lg text-center">
-                            <p class="text-2xl font-bold text-slate-800">${result.priority}</p>
-                            <p class="text-sm text-slate-600">Priority</p>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-lg text-center">
-                            <p class="text-2xl font-bold text-slate-800">${result.agents_used?.length || 0}</p>
-                            <p class="text-sm text-slate-600">Agents Used</p>
-                        </div>
-                    </div>
-                    
-                    ${result.executive_summary ? `
-                    <div class="mb-6">
-                        <h4 class="font-medium text-slate-800 mb-2">Executive Summary</h4>
-                        <div class="bg-slate-50 rounded-lg p-4 text-sm text-slate-700">
-                            ${result.executive_summary.executive_summary || '-'}
-                        </div>
-                    </div>
-                    ` : ''}
-                    
-                    ${result.recommendations ? `
-                    <div>
-                        <h4 class="font-medium text-slate-800 mb-2">Rekomendasi</h4>
-                        <div class="space-y-2">
-                            ${result.recommendations.immediate_actions?.map(a => `
-                                <div class="flex items-start gap-2 text-sm">
-                                    <span class="text-red-500">●</span>
-                                    <span>${a.action || a}</span>
-                                </div>
-                            `).join('') || ''}
-                        </div>
-                    </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-        
-        // Update Status
+
         async function updateStatus() {
             if (!currentReportId) return;
-            
             const newStatus = document.getElementById('modal-status').value;
-            
             try {
-                const response = await fetch(`${API_URL}/api/v1/reports/${currentReportId}/status`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ new_status: newStatus })
-                });
-                
+                const response = await fetch(`${API_URL}/api/v1/reports/${currentReportId}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ new_status: newStatus }) });
                 if (!response.ok) throw new Error('Update failed');
-                
                 alert('Status berhasil diupdate');
                 closeModal();
                 loadReports();
-                
-            } catch (error) {
-                alert('Gagal update status');
-            }
+            } catch (error) { alert('Gagal update status'); }
         }
-        
-        // Knowledge Base
+
         async function loadKnowledgeBase() {
             try {
-                const response = await fetch(`${API_URL}/api/v1/knowledge/load`, {
-                    method: 'POST'
-                });
-                
+                const response = await fetch(`${API_URL}/api/v1/knowledge/load`, { method: 'POST' });
                 if (!response.ok) throw new Error('Failed');
-                
                 const result = await response.json();
-                alert(`Knowledge base loaded: ${result.documents_loaded} documents, ${result.chunks_created} chunks`);
-                
-            } catch (error) {
-                alert('Gagal load knowledge base. Pastikan backend berjalan.');
-            }
+                alert(`Knowledge base loaded: ${result.documents_loaded} documents`);
+            } catch (error) { alert('Gagal load knowledge base'); }
         }
-        
-        // Chat
-        async function sendMessage() {
+
+        function sendChatMessage() {
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
             if (!message) return;
-            
-            // Add to UI
             const container = document.getElementById('chat-messages');
-            container.innerHTML += `
-                <div class="flex justify-end">
-                    <div class="bg-emerald-500 text-white rounded-lg px-4 py-2 max-w-[70%]">
-                        <p>${message}</p>
-                        <span class="text-xs text-emerald-100">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                </div>
-            `;
-            
+            container.innerHTML += `<div class="flex justify-end"><div class="bg-islamic-green text-white rounded-lg px-4 py-2 max-w-[70%]"><p>${message}</p><span class="text-xs text-emerald-200">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span></div></div>`;
             input.value = '';
             container.scrollTop = container.scrollHeight;
         }
-        
-        // Settings
-        function saveSettings() {
-            const apiUrl = document.getElementById('api-url').value;
-            localStorage.setItem('api_url', apiUrl);
-            API_URL = apiUrl;
-            alert('Pengaturan disimpan');
-        }
-        
-        // Pagination
-        function prevPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                loadReports();
-            }
-        }
-        
-        function nextPage() {
-            currentPage++;
-            loadReports();
-        }
-        
-        // Helpers
+
+        function saveSettings() { const apiUrl = document.getElementById('api-url').value; localStorage.setItem('api_url', apiUrl); API_URL = apiUrl; alert('Pengaturan disimpan'); }
+        function prevPage() { if (currentPage > 1) { currentPage--; loadReports(); } }
+        function nextPage() { currentPage++; loadReports(); }
+
         function getSeverityClass(severity) {
-            const classes = {
-                'CRITICAL': 'bg-red-100 text-red-700',
-                'HIGH': 'bg-orange-100 text-orange-700',
-                'MEDIUM': 'bg-yellow-100 text-yellow-700',
-                'LOW': 'bg-green-100 text-green-700'
-            };
-            return classes[severity] || 'bg-slate-100 text-slate-700';
+            const classes = { 'CRITICAL': 'bg-red-100 text-red-700', 'HIGH': 'bg-orange-100 text-orange-700', 'MEDIUM': 'bg-yellow-100 text-yellow-700', 'LOW': 'bg-islamic-green/20 text-islamic-green' };
+            return classes[severity] || 'bg-islamic-light text-islamic-dark';
         }
-        
+
         function getStatusClass(status) {
-            const classes = {
-                'NEW': 'bg-blue-100 text-blue-700',
-                'REVIEWING': 'bg-purple-100 text-purple-700',
-                'NEED_INFO': 'bg-yellow-100 text-yellow-700',
-                'INVESTIGATING': 'bg-indigo-100 text-indigo-700',
-                'ESCALATED': 'bg-red-100 text-red-700',
-                'HOLD': 'bg-slate-100 text-slate-700',
-                'CLOSED_PROVEN': 'bg-green-100 text-green-700',
-                'CLOSED_NOT_PROVEN': 'bg-slate-100 text-slate-700',
-                'CLOSED_INVALID': 'bg-slate-100 text-slate-700'
-            };
-            return classes[status] || 'bg-slate-100 text-slate-700';
+            const classes = { 'NEW': 'bg-blue-100 text-blue-700', 'REVIEWING': 'bg-purple-100 text-purple-700', 'NEED_INFO': 'bg-yellow-100 text-yellow-700', 'INVESTIGATING': 'bg-indigo-100 text-indigo-700', 'ESCALATED': 'bg-red-100 text-red-700', 'CLOSED_PROVEN': 'bg-islamic-green/20 text-islamic-green', 'CLOSED_NOT_PROVEN': 'bg-slate-100 text-slate-700', 'CLOSED_INVALID': 'bg-slate-100 text-slate-700' };
+            return classes[status] || 'bg-islamic-light text-islamic-dark';
         }
-        
-        function getFraudScoreColor(score) {
-            if (score >= 0.7) return 'bg-red-500';
-            if (score >= 0.4) return 'bg-amber-500';
-            return 'bg-emerald-500';
-        }
-        
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-        }
-        
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('w-64');
-            sidebar.classList.toggle('w-0');
-        }
-        
-        function exportReports() {
-            alert('Fitur export dalam pengembangan');
-        }
+
+        function getFraudScoreColor(score) { if (score >= 0.7) return 'bg-red-500'; if (score >= 0.4) return 'bg-amber-500'; return 'bg-islamic-green'; }
+        function formatDate(dateStr) { if (!dateStr) return '-'; return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); }
+        function toggleSidebar() { const sidebar = document.getElementById('sidebar'); sidebar.classList.toggle('w-64'); sidebar.classList.toggle('w-0'); }
+        function exportReports() { alert('Fitur export dalam pengembangan'); }
     </script>
 </body>
 </html>
