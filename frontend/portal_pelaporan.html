@@ -587,7 +587,8 @@
             try {
                 const response = await fetch(`${API_URL}/api/v1/tickets/${ticketId}/messages`);
                 if (!response.ok) throw new Error('Gagal memuat pesan');
-                const messages = await response.json();
+                const data = await response.json();
+                const messages = data.messages || [];
 
                 if (messages.length === 0) {
                     historyDiv.innerHTML = '<p class="text-slate-500 text-sm text-center py-4">Belum ada pesan</p>';
@@ -595,10 +596,10 @@
                 }
 
                 historyDiv.innerHTML = messages.map(msg => `
-                    <div class="flex ${msg.sender_type === 'REPORTER' ? 'justify-end' : 'justify-start'}">
-                        <div class="max-w-[80%] px-4 py-2 rounded-lg ${msg.sender_type === 'REPORTER' ? 'bg-islamic-green text-white' : 'bg-islamic-light text-islamic-dark'}">
+                    <div class="flex ${msg.sender === 'Anda' ? 'justify-end' : 'justify-start'}">
+                        <div class="max-w-[80%] px-4 py-2 rounded-lg ${msg.sender === 'Anda' ? 'bg-islamic-green text-white' : 'bg-islamic-light text-islamic-dark'}">
                             <p class="text-sm">${msg.content}</p>
-                            <p class="text-xs ${msg.sender_type === 'REPORTER' ? 'text-emerald-200' : 'text-slate-400'} mt-1">${formatDateTime(msg.created_at)}</p>
+                            <p class="text-xs ${msg.sender === 'Anda' ? 'text-emerald-200' : 'text-slate-400'} mt-1">${msg.sender} - ${formatDateTime(msg.created_at)}</p>
                         </div>
                     </div>
                 `).join('');
