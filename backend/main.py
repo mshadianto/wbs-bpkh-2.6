@@ -86,9 +86,13 @@ app.add_middleware(
 
 # ============== Health Check ==============
 
-@app.get("/", tags=["Health"])
+@app.get("/", tags=["Frontend"], include_in_schema=False)
 async def root():
-    """Health check endpoint"""
+    """Serve landing page at root"""
+    file_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "index.html")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    # Fallback to health check if landing page not found
     return {
         "name": settings.app_name,
         "version": settings.app_version,
@@ -532,6 +536,14 @@ async def serve_dashboard():
     if os.path.exists(file_path):
         return FileResponse(file_path)
     raise HTTPException(status_code=404, detail="Dashboard not found")
+
+@app.get("/home", tags=["Frontend"])
+async def serve_home():
+    """Serve landing page"""
+    file_path = os.path.join(FRONTEND_PATH, "index.html")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="Home not found")
 
 
 # ============== Main ==============
