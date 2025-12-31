@@ -142,7 +142,7 @@ async def create_report(
             ticket_id=created_report["ticket_id"],
             channel=created_report["channel"],
             status=created_report["status"],
-            subject=created_report["subject"],
+            subject=created_report.get("title", ""),
             description=created_report["description"][:200] + "...",
             is_anonymous=created_report["is_anonymous"],
             created_at=created_report["created_at"],

@@ -4,7 +4,7 @@ WBS BPKH AI - Multi-Agent System
 ISO 37002:2021 compliant whistleblowing analysis agents.
 """
 
-from .orchestrator import OrchestratorAgent
+from .orchestrator import OrchestratorAgent, QuickAnalyzer
 from .intake_agent import IntakeAgent
 from .analysis_agent import AnalysisAgent
 from .compliance_agent import ComplianceAgent
@@ -14,6 +14,7 @@ from .summary_agent import SummaryAgent
 
 __all__ = [
     "OrchestratorAgent",
+    "QuickAnalyzer",
     "IntakeAgent",
     "AnalysisAgent",
     "ComplianceAgent",
