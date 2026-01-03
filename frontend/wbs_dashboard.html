@@ -1058,7 +1058,9 @@
                 const response = await authFetch(`${API_URL}/api/v1/analysis/run`, { method: 'POST', body: JSON.stringify({ report_id: currentReportId, use_full_analysis: true }) });
                 if (!response || !response.ok) throw new Error('Analysis failed');
                 const result = await response.json();
-                alert('Analisis selesai! Fraud Score: ' + (result.fraud_score * 100).toFixed(0) + '%');
+                const fraudInterp = getFraudScoreInterpretation(result.fraud_score);
+                const severityInterp = getSeverityInterpretation(result.severity);
+                alert(`✅ Analisis Selesai!\n\n📊 Fraud Score: ${(result.fraud_score * 100).toFixed(0)}% (${fraudInterp.label})\n${fraudInterp.description}\n\n⚠️ Severity: ${result.severity} (${severityInterp.label})\n${severityInterp.description}\n\n📁 Kategori: ${result.category}\n🎯 Prioritas: ${result.priority}`);
                 viewReport(currentReportId);
             } catch (error) { alert('Gagal menjalankan analisis'); }
         }
@@ -1073,8 +1075,101 @@
                 const response = await authFetch(`${API_URL}/api/v1/analysis/run`, { method: 'POST', body: JSON.stringify({ report_id: reportId, use_full_analysis: true }) });
                 if (!response || !response.ok) throw new Error('Analysis failed');
                 const result = await response.json();
-                resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10"><h3 class="font-semibold text-islamic-dark mb-4">Hasil Analisis</h3><div class="grid grid-cols-4 gap-4"><div class="p-4 bg-islamic-light rounded-lg text-center"><p class="text-2xl font-bold ${result.fraud_score > 0.7 ? 'text-red-600' : 'text-islamic-green'}">${(result.fraud_score * 100).toFixed(0)}%</p><p class="text-sm text-slate-600">Fraud Score</p></div><div class="p-4 bg-islamic-light rounded-lg text-center"><p class="text-xl font-bold text-islamic-dark">${result.category}</p><p class="text-sm text-slate-600">Kategori</p></div><div class="p-4 bg-islamic-light rounded-lg text-center"><p class="text-xl font-bold text-islamic-dark">${result.severity}</p><p class="text-sm text-slate-600">Severity</p></div></div></div>`;
-            } catch (error) { resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-red-200"><p class="text-red-600">Gagal menjalankan analisis</p></div>`; }
+                const fraudInterp = getFraudScoreInterpretation(result.fraud_score);
+                const severityInterp = getSeverityInterpretation(result.severity);
+                const priorityInterp = getPriorityInterpretation(result.priority);
+
+                resultContainer.innerHTML = `
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                    <h3 class="font-semibold text-islamic-dark mb-6 text-lg flex items-center gap-2">
+                        <i data-lucide="brain" class="w-5 h-5 text-purple-600"></i>
+                        Hasil Analisis AI
+                    </h3>
+
+                    <!-- Score Cards with Explanations -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <!-- Fraud Score -->
+                        <div class="p-4 rounded-lg border ${fraudInterp.bgColor}">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm font-medium text-slate-600">Fraud Score</p>
+                                <span class="text-2xl font-bold ${fraudInterp.color}">${(result.fraud_score * 100).toFixed(0)}%</span>
+                            </div>
+                            <p class="font-semibold ${fraudInterp.color}">${fraudInterp.label}</p>
+                            <p class="text-xs text-slate-500 mt-1">${fraudInterp.description}</p>
+                        </div>
+
+                        <!-- Severity -->
+                        <div class="p-4 rounded-lg border ${severityInterp.bgColor}">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm font-medium text-slate-600">Severity</p>
+                                <span class="text-xl font-bold ${severityInterp.color}">${result.severity}</span>
+                            </div>
+                            <p class="font-semibold ${severityInterp.color}">${severityInterp.label}</p>
+                            <p class="text-xs text-slate-500 mt-1">${severityInterp.description}</p>
+                        </div>
+
+                        <!-- Priority -->
+                        <div class="p-4 rounded-lg border bg-purple-50 border-purple-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm font-medium text-slate-600">Prioritas</p>
+                                <span class="text-xl font-bold text-purple-600">${result.priority}</span>
+                            </div>
+                            <p class="font-semibold text-purple-600">${priorityInterp.label}</p>
+                            <p class="text-xs text-slate-500 mt-1">${priorityInterp.description}</p>
+                        </div>
+                    </div>
+
+                    <!-- Category & Status -->
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="px-4 py-2 bg-islamic-light rounded-lg">
+                            <p class="text-xs text-slate-500">Kategori</p>
+                            <p class="font-semibold text-islamic-dark">${result.category || '-'}</p>
+                        </div>
+                        <div class="px-4 py-2 bg-islamic-light rounded-lg">
+                            <p class="text-xs text-slate-500">Status</p>
+                            <p class="font-semibold text-islamic-green">${result.status}</p>
+                        </div>
+                    </div>
+
+                    <!-- Executive Summary -->
+                    ${result.executive_summary ? `
+                    <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-islamic-dark mb-2 flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                            Ringkasan Eksekutif
+                        </h4>
+                        <p class="text-sm text-slate-600">${result.executive_summary.executive_summary || '-'}</p>
+                    </div>
+                    ` : ''}
+
+                    <!-- Key Findings -->
+                    ${result.executive_summary?.key_findings?.length ? `
+                    <div class="bg-amber-50 rounded-lg p-4 mb-4 border border-amber-200">
+                        <h4 class="font-semibold text-amber-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                            Temuan Utama
+                        </h4>
+                        <ul class="text-sm text-slate-600 list-disc list-inside">
+                            ${result.executive_summary.key_findings.map(f => `<li>${f}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+
+                    <!-- Recommended Actions -->
+                    ${result.recommendations?.immediate_actions?.length ? `
+                    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <h4 class="font-semibold text-blue-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="list-checks" class="w-4 h-4"></i>
+                            Tindakan Segera
+                        </h4>
+                        <ul class="text-sm text-slate-600 space-y-1">
+                            ${result.recommendations.immediate_actions.map(a => `<li class="flex items-start gap-2"><span class="text-blue-500">•</span>${a.action}</li>`).join('')}
+                        </ul>
+                    </div>
+                    ` : ''}
+                </div>`;
+                lucide.createIcons();
+            } catch (error) { resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-red-200"><p class="text-red-600">Gagal menjalankan analisis: ${error.message}</p></div>`; }
         }
 
         async function updateStatus() {
@@ -1124,6 +1219,33 @@
 
         function getFraudScoreColor(score) { if (score >= 0.7) return 'bg-red-500'; if (score >= 0.4) return 'bg-amber-500'; return 'bg-islamic-green'; }
         function formatDate(dateStr) { if (!dateStr) return '-'; return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); }
+
+        // Score interpretation functions
+        function getFraudScoreInterpretation(score) {
+            if (score <= 0.30) return { level: 'LOW', label: 'Indikasi Rendah', description: 'Risiko fraud minimal, perlu monitoring standar', color: 'text-green-600', bgColor: 'bg-green-50 border-green-200' };
+            if (score <= 0.70) return { level: 'MEDIUM', label: 'Indikasi Sedang', description: 'Risiko fraud moderat, perlu investigasi lebih lanjut', color: 'text-amber-600', bgColor: 'bg-amber-50 border-amber-200' };
+            return { level: 'HIGH', label: 'Indikasi Tinggi', description: 'Risiko fraud tinggi, prioritas investigasi', color: 'text-red-600', bgColor: 'bg-red-50 border-red-200' };
+        }
+
+        function getSeverityInterpretation(severity) {
+            const levels = {
+                'CRITICAL': { label: 'Kritis', description: 'Kerugian > Rp 1 Miliar atau melibatkan pejabat tinggi. SLA: Respons < 4 jam.', color: 'text-red-700', bgColor: 'bg-red-50 border-red-200' },
+                'HIGH': { label: 'Tinggi', description: 'Kerugian Rp 100 Juta - 1 Miliar. SLA: Respons < 24 jam.', color: 'text-orange-600', bgColor: 'bg-orange-50 border-orange-200' },
+                'MEDIUM': { label: 'Sedang', description: 'Kerugian Rp 10 - 100 Juta. SLA: Respons < 3 hari.', color: 'text-yellow-600', bgColor: 'bg-yellow-50 border-yellow-200' },
+                'LOW': { label: 'Rendah', description: 'Kerugian < Rp 10 Juta. SLA: Respons < 7 hari.', color: 'text-green-600', bgColor: 'bg-green-50 border-green-200' }
+            };
+            return levels[severity] || levels['MEDIUM'];
+        }
+
+        function getPriorityInterpretation(priority) {
+            const priorities = {
+                'P1 - Critical': { label: 'Sangat Tinggi', description: 'Tindakan segera diperlukan' },
+                'P2 - Urgent': { label: 'Tinggi', description: 'Perhatian mendesak diperlukan' },
+                'P3 - Normal': { label: 'Sedang', description: 'Prioritas normal' },
+                'P4 - Low': { label: 'Rendah', description: 'Prioritas rendah' }
+            };
+            return priorities[priority] || { label: priority, description: '' };
+        }
         function toggleSidebar() { const sidebar = document.getElementById('sidebar'); sidebar.classList.toggle('w-64'); sidebar.classList.toggle('w-0'); }
         function exportReports() { alert('Fitur export dalam pengembangan'); }
     </script>
