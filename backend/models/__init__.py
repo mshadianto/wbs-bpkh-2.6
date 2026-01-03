@@ -116,17 +116,18 @@ class ReportResponse(BaseModel):
     ticket_id: str
     channel: str
     status: str
-    subject: str
+    subject: Optional[str] = Field(None, alias="title")
     description: str
     severity: Optional[str] = None
     category: Optional[str] = None
     fraud_score: Optional[float] = None
-    is_anonymous: bool
+    is_anonymous: bool = False
     created_at: str
     updated_at: str
-    
+
     class Config:
         from_attributes = True
+        populate_by_name = True
 
 
 class ReportDetail(ReportResponse):
