@@ -11,7 +11,7 @@ from enum import Enum
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from pydantic import BaseModel, EmailStr
 from loguru import logger
 
@@ -97,17 +97,30 @@ class PasswordChange(BaseModel):
 
 # ============== Password Hashing ==============
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 def hash_password(password: str) -> str:
     """Hash password using bcrypt"""
-    return pwd_context.hash(password)
+    # bcrypt has 72 byte limit - truncate to be safe
+    truncated_password = (password[:72] if password else "").encode('utf-8')
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(truncated_password, salt).decode('utf-8')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify password against hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        # bcrypt has 72 byte limit - truncate to be safe
+        truncated_password = (plain_password[:72] if plain_password else "").encode('utf-8')
+
+        # Validate hash format
+        if not hashed_password or not hashed_password.startswith('$2'):
+            logger.error(f"Invalid hash format")
+            return False
+
+        hashed_bytes = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(truncated_password, hashed_bytes)
+    except Exception as e:
+        logger.error(f"Password verification error: {e}")
+        return False
 
 
 # ============== JWT Token ==============
