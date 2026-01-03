@@ -317,7 +317,8 @@ async def add_message_by_ticket(
             report_id=report["id"],
             content=message.content,
             sender_type="REPORTER",
-            attachments=message.attachments
+            attachments=message.attachments,
+            ticket_id=ticket_id
         )
         
         return {"message": "Informasi berhasil ditambahkan", "message_id": msg["id"]}

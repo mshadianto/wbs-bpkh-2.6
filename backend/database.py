@@ -275,19 +275,21 @@ class MessageRepository:
         report_id: str,
         content: str,
         sender_type: str = "REPORTER",
-        attachments: List[str] = None
+        attachments: List[str] = None,
+        ticket_id: str = None
     ) -> Dict[str, Any]:
         """Create new message"""
         record = {
             "id": str(uuid.uuid4()),
             "report_id": report_id,
+            "ticket_id": ticket_id,
             "content": content,
             "sender_type": sender_type,  # REPORTER, ADMIN, SYSTEM
-            "attachments": attachments or [],
+            "has_attachments": bool(attachments),
             "is_read": False,
             "created_at": datetime.utcnow().isoformat()
         }
-        
+
         result = self.db.table(self.table).insert(record).execute()
         return result.data[0] if result.data else record
     
