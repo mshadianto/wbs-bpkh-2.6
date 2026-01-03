@@ -10,11 +10,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import os
+import logging
 from contextlib import asynccontextmanager
 from typing import Optional, List
 from datetime import datetime
 import uvicorn
 from loguru import logger
+
+# Suppress noisy HTTP client logs from Groq/httpx
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("groq").setLevel(logging.WARNING)
 
 from config import settings, REPORT_STATUS, SEVERITY_LEVELS, VIOLATION_CATEGORIES
 from database import report_repo, message_repo
