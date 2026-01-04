@@ -69,11 +69,16 @@ KRITERIA PENILAIAN:
    - 0.3 - 0.7: Medium indicator
    - > 0.7: High indicator
 
-SEVERITY MATRIX:
-- LOW: Dampak terbatas, tidak melibatkan pejabat senior, fraud score < 0.3
-- MEDIUM: Dampak moderat, atau melibatkan manager, fraud score 0.3-0.5
-- HIGH: Dampak signifikan, melibatkan direktur, fraud score 0.5-0.7
-- CRITICAL: Dampak besar, melibatkan pimpinan, fraud score > 0.7, atau kerugian > 1M
+SEVERITY MATRIX (berdasarkan DAMPAK FINANSIAL sebagai faktor utama):
+- LOW: Kerugian < Rp 10 juta, tidak melibatkan pejabat senior
+- MEDIUM: Kerugian Rp 10 - 100 juta, atau melibatkan manager
+- HIGH: Kerugian Rp 100 juta - 1 milyar, atau melibatkan direktur
+- CRITICAL: Kerugian > Rp 1 milyar, ATAU melibatkan pimpinan tinggi (Badan Pelaksana/Direksi)
+
+PENTING: Gunakan DAMPAK FINANSIAL yang disebutkan dalam laporan sebagai faktor UTAMA untuk menentukan severity.
+- Jika laporan menyebutkan nilai kerugian spesifik, gunakan itu sebagai acuan utama
+- Fraud score adalah faktor pendukung, BUKAN penentu utama severity
+- Contoh: Kerugian Rp 500 juta = HIGH (bukan CRITICAL meskipun fraud score tinggi)
 
 Output dalam format JSON:
 {
