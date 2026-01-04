@@ -153,12 +153,35 @@ HASIL ANALISIS SEBELUMNYA:
             result = json.loads(response.choices[0].message.content)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
-            
+
             # Ensure valid severity level
             valid_levels = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
             if result.get("level") not in valid_levels:
                 result["level"] = "MEDIUM"
-            
+
+            # VALIDATION: Enforce severity based on financial impact assessment
+            # This overrides LLM decision if it doesn't match criteria
+            financial_assessment = result.get("factors", {}).get("financial_impact", {}).get("assessment", "")
+            original_level = result.get("level")
+
+            severity_by_financial = {
+                "MINOR": "LOW",        # < Rp 10 juta
+                "MODERATE": "MEDIUM",  # Rp 10 - 100 juta
+                "SIGNIFICANT": "HIGH", # Rp 100 juta - 1 milyar
+                "SEVERE": "CRITICAL"   # > Rp 1 milyar
+            }
+
+            if financial_assessment in severity_by_financial:
+                expected_level = severity_by_financial[financial_assessment]
+                # Only downgrade if LLM overestimated (e.g., CRITICAL when should be HIGH)
+                level_order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2, "CRITICAL": 3}
+                if level_order.get(original_level, 0) > level_order.get(expected_level, 0):
+                    result["level"] = expected_level
+                    result["level_adjusted"] = True
+                    result["original_level"] = original_level
+                    result["adjustment_reason"] = f"Disesuaikan dari {original_level} ke {expected_level} berdasarkan dampak finansial {financial_assessment}"
+                    logger.info(f"{self.name}: Adjusted severity from {original_level} to {expected_level} based on financial impact")
+
             # Set default SLA if not provided
             if "sla" not in result:
                 result["sla"] = self._get_default_sla(result.get("level", "MEDIUM"))
