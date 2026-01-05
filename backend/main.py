@@ -33,8 +33,9 @@ from models import (
     DashboardStats, StatusUpdate,
     TicketLookup, TicketStatusResponse
 )
-from routers import auth_router
+from routers import auth_router, webhooks_router
 from auth import require_auth, require_role, require_min_role, UserRole, TokenData
+from services import NotificationService
 
 
 # ============== App Lifecycle ==============
@@ -132,6 +133,7 @@ async def add_security_headers(request, call_next):
 
 # Include Routers
 app.include_router(auth_router)
+app.include_router(webhooks_router)
 
 
 # ============== Health Check ==============
