@@ -70,21 +70,44 @@ Vector similarity search uses Supabase's pgvector via RPC functions (`match_docu
 Uses Supabase with these main tables:
 - `reports` - Whistleblowing reports with ticket IDs, status, AI analysis results
 - `messages` - Two-way communication between reporters and admins
+- `users` - Admin users with roles and authentication
+- `user_sessions` - JWT session management
 - `audit_logs` - Complete audit trail of all actions
 - `knowledge_vectors` - RAG document embeddings
 - `case_history` - Historical cases for similar case matching
 
-Repository classes in `backend/database.py`: `ReportRepository`, `MessageRepository`, `VectorRepository`.
+Repository classes in `backend/database.py`: `ReportRepository`, `MessageRepository`, `VectorRepository`, `UserRepository`, `SessionRepository`.
+
+### Authentication & Authorization
+
+JWT-based authentication in `backend/auth.py`:
+- Role hierarchy: `REPORTER < INTAKE_OFFICER < INVESTIGATOR < MANAGER < ADMIN`
+- Use `require_auth` for authenticated endpoints
+- Use `require_role(UserRole.ADMIN)` for specific role
+- Use `require_min_role(UserRole.INTAKE_OFFICER)` for minimum role level
+- Account lockout after 5 failed login attempts (30 min)
+- Password requirements: 8+ chars, uppercase, lowercase, digit, special char
 
 ### API Structure
 
 All endpoints prefixed with `/api/v1/`:
-- `/reports` - Admin CRUD operations on reports
+- `/auth/login`, `/auth/register`, `/auth/me` - Authentication (in `backend/routers/auth.py`)
+- `/reports` - Admin CRUD operations on reports (requires INTAKE_OFFICER+)
 - `/tickets` - Public endpoints for anonymous whistleblowers to track their reports
 - `/analysis` - Trigger AI analysis on reports
 - `/dashboard` - Statistics for admin dashboard
 - `/reference` - Static reference data (statuses, severities, categories)
-- `/knowledge` - Knowledge base management
+- `/knowledge` - Knowledge base management (ADMIN only)
+- `/webhooks/whatsapp`, `/webhooks/email` - Incoming channel webhooks (in `backend/routers/webhooks.py`)
+
+### Multi-Channel Integration
+
+Services in `backend/services/`:
+- `whatsapp_service.py` - WAHA API integration for WhatsApp messaging
+- `email_service.py` - SMTP email sending with HTML templates
+- `notification_service.py` - Unified notification dispatch across channels
+
+WhatsApp commands: `LAPOR: <description>`, `STATUS <ticket_id>`, `<ticket_id> <message>`
 
 ### Configuration
 
@@ -100,14 +123,21 @@ All endpoints prefixed with `/api/v1/`:
 Static HTML files in `frontend/`:
 - `portal_pelaporan.html` - Public anonymous reporting portal
 - `wbs_dashboard.html` - Admin dashboard
+- `login.html` - Admin login page
+- `index.html` - Landing page
+
+Frontend routes served by FastAPI: `/portal`, `/dashboard`, `/login`, `/home`
 
 ## Key Patterns
 
-- All agent classes use Groq client with JSON response format
-- Background tasks for AI analysis after report submission
+- All agent classes use Groq client with JSON response format (`response_format={"type": "json_object"}`)
+- Background tasks for AI analysis after report submission (`BackgroundTasks.add_task`)
 - Ticket IDs are 8-character uppercase hex strings for anonymous tracking
 - Status transitions are constrained by `STATUS_LIFECYCLE` mapping
-- Audit logs created automatically for key actions
+- Audit logs created automatically for key actions via `_create_audit_log`
+- XSS prevention via `sanitize_input()` in database.py for all user inputs
+- Security headers middleware adds X-Frame-Options, X-XSS-Protection, etc.
+- API docs disabled in production (`docs_url = None` when `debug=False`)
 
 ## Environment Variables
 
@@ -117,6 +147,18 @@ GROQ_API_KEY=
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_KEY=
+JWT_SECRET=          # min 32 chars for production
+SECRET_KEY=          # min 32 chars for production
 ```
 
-Optional for WhatsApp/Email integrations: `WAHA_API_URL`, `SMTP_*`, etc.
+Optional for WhatsApp/Email integrations:
+```
+WAHA_API_URL=
+WAHA_API_KEY=
+WAHA_SESSION=default
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+WBS_EMAIL=wbs@bpkh.go.id
+```
