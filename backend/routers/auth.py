@@ -32,7 +32,7 @@ async def login(credentials: UserLogin, request: Request):
     try:
         # Get user by email
         user = await user_repo.get_by_email(credentials.email)
-        logger.info(f"Login attempt for: {credentials.email}, user found: {user is not None}, password_len: {len(credentials.password)}")
+        logger.info(f"Login attempt for: {credentials.email}")
 
         if not user:
             logger.warning(f"Login attempt for non-existent user: {credentials.email}")
@@ -58,7 +58,6 @@ async def login(credentials: UserLogin, request: Request):
             )
 
         # Verify password
-        logger.info(f"Hash from DB: {user.get('password_hash', 'MISSING')[:30]}...")
         if not verify_password(credentials.password, user["password_hash"]):
             attempts = await user_repo.increment_login_attempts(user["id"])
             remaining = 5 - attempts

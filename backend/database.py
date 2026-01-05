@@ -13,6 +13,37 @@ import re
 from loguru import logger
 
 from config import settings
+import html
+
+
+def sanitize_input(text: str) -> str:
+    """
+    Sanitize user input to prevent XSS attacks.
+    Removes HTML tags and escapes special characters.
+    """
+    if not text:
+        return text
+
+    # Remove script tags and content
+    text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.IGNORECASE | re.DOTALL)
+
+    # Remove other potentially dangerous tags
+    text = re.sub(r'<(iframe|object|embed|link|style|img\s+[^>]*onerror)[^>]*>.*?</\1>', '', text, flags=re.IGNORECASE | re.DOTALL)
+
+    # Remove event handlers
+    text = re.sub(r'\s*on\w+\s*=\s*["\'][^"\']*["\']', '', text, flags=re.IGNORECASE)
+
+    # Escape HTML entities
+    text = html.escape(text)
+
+    return text
+
+
+def sanitize_list(items: List[str]) -> List[str]:
+    """Sanitize a list of strings."""
+    if not items:
+        return items
+    return [sanitize_input(item) for item in items]
 
 
 def parse_date_safe(date_str: str) -> str | None:
@@ -101,17 +132,18 @@ class ReportRepository:
     async def create(self, report_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create new report"""
         ticket_id = self.generate_ticket_id()
-        
+
+        # Sanitize user inputs to prevent XSS
         record = {
             "id": str(uuid.uuid4()),
             "ticket_id": ticket_id,
             "channel": report_data.get("channel", "WEB"),
             "is_anonymous": report_data.get("is_anonymous", True),
-            "title": report_data.get("subject", ""),
-            "description": report_data.get("description", ""),
+            "title": sanitize_input(report_data.get("subject", "")),
+            "description": sanitize_input(report_data.get("description", "")),
             "incident_date": parse_date_safe(report_data.get("incident_date")),
-            "incident_location": report_data.get("incident_location"),
-            "involved_parties": report_data.get("parties_involved", []),
+            "incident_location": sanitize_input(report_data.get("incident_location") or ""),
+            "involved_parties": sanitize_list(report_data.get("parties_involved", [])),
             "status": "NEW",
             "severity": None,
             "category": None,
@@ -279,11 +311,12 @@ class MessageRepository:
         ticket_id: str = None
     ) -> Dict[str, Any]:
         """Create new message"""
+        # Sanitize message content to prevent XSS
         record = {
             "id": str(uuid.uuid4()),
             "report_id": report_id,
             "ticket_id": ticket_id,
-            "content": content,
+            "content": sanitize_input(content),
             "sender_type": sender_type,  # REPORTER, ADMIN, SYSTEM
             "has_attachments": bool(attachments),
             "is_read": False,

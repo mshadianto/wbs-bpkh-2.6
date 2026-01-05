@@ -46,12 +46,22 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 Starting WBS BPKH AI...")
     logger.info(f"📋 Version: {settings.app_version}")
     logger.info(f"🤖 LLM Model: {settings.llm_model}")
-    
+
+    # Security: Validate required secrets are configured
+    if not settings.debug:
+        if not settings.jwt_secret or len(settings.jwt_secret) < 32:
+            logger.error("❌ JWT_SECRET must be set with at least 32 characters in production!")
+            raise ValueError("JWT_SECRET not configured properly")
+        if not settings.secret_key or len(settings.secret_key) < 32:
+            logger.error("❌ SECRET_KEY must be set with at least 32 characters in production!")
+            raise ValueError("SECRET_KEY not configured properly")
+        logger.info("🔐 Security secrets validated")
+
     # Initialize RAG retriever
     app.state.rag_retriever = RAGRetriever()
     app.state.knowledge_loader = KnowledgeLoader()
     app.state.quick_analyzer = QuickAnalyzer()
-    
+
     logger.info("✅ Application started successfully")
     
     yield
@@ -62,34 +72,63 @@ async def lifespan(app: FastAPI):
 
 # ============== FastAPI App ==============
 
+# Disable API docs in production for security
+docs_url = "/docs" if settings.debug else None
+redoc_url = "/redoc" if settings.debug else None
+openapi_url = "/openapi.json" if settings.debug else None
+
 app = FastAPI(
     title="WBS BPKH AI",
     description="""
     ## Whistleblowing System BPKH - RAG Agentic AI
-    
+
     Sistem Pelaporan Pelanggaran berbasis AI untuk Badan Pengelola Keuangan Haji.
-    
+
     **Fitur Utama:**
     - 🔐 Pelaporan anonim dan terenkripsi
     - 🤖 Analisis otomatis dengan Multi-Agent AI
     - 📊 Dashboard monitoring real-time
     - 📝 Komunikasi dua arah yang aman
     - 📈 Audit trail lengkap
-    
+
     **Compliant with ISO 37002:2021**
     """,
     version=settings.app_version,
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url=openapi_url
 )
 
-# CORS Middleware
+# CORS Middleware - Configured for security
+ALLOWED_ORIGINS = [
+    "https://wbs.bpkh.go.id",
+    "https://wbs-bpkh.up.railway.app",
+    "http://localhost:8000",
+    "http://localhost:3000",
+    "http://127.0.0.1:8000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure properly in production
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
+
+
+# Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    if not settings.debug:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 # Include Routers
 app.include_router(auth_router)

@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     app_name: str = Field(default="WBS BPKH AI", env="APP_NAME")
     app_version: str = Field(default="1.1.0", env="APP_VERSION")
     debug: bool = Field(default=False, env="DEBUG")
-    secret_key: str = Field(default="change-me-in-production", env="SECRET_KEY")
+    secret_key: str = Field(default="", env="SECRET_KEY")  # Must be set in production
     
     # Groq API
     groq_api_key: str = Field(default="", env="GROQ_API_KEY")
@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = Field(default=60, env="RATE_LIMIT_PER_MINUTE")
 
     # JWT Authentication
-    jwt_secret: str = Field(default="change-this-jwt-secret-in-production", env="JWT_SECRET")
+    jwt_secret: str = Field(default="", env="JWT_SECRET")  # Must be set in production
     jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
     jwt_expiry_minutes: int = Field(default=60, env="JWT_EXPIRY_MINUTES")  # 1 hour
     
