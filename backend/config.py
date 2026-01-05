@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     
     # WhatsApp (WAHA)
     waha_api_url: Optional[str] = Field(default=None, env="WAHA_API_URL")
+    waha_api_key: Optional[str] = Field(default=None, env="WAHA_API_KEY")
     waha_session: str = Field(default="default", env="WAHA_SESSION")
     waha_number_primary: str = Field(default="+62 853-19000-230", env="WAHA_NUMBER_PRIMARY")
     waha_number_backup: str = Field(default="+62 853-19000-140", env="WAHA_NUMBER_BACKUP")

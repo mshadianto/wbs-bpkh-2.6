@@ -17,6 +17,7 @@ class WhatsAppService:
 
     def __init__(self):
         self.api_url = settings.waha_api_url
+        self.api_key = settings.waha_api_key
         self.session = settings.waha_session
         self.primary_number = settings.waha_number_primary
         self.backup_number = settings.waha_number_backup
@@ -25,6 +26,13 @@ class WhatsAppService:
     def is_configured(self) -> bool:
         """Check if WhatsApp service is properly configured."""
         return self.enabled and bool(self.api_url)
+
+    def _get_headers(self) -> Dict[str, str]:
+        """Get request headers with API key if configured."""
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["X-Api-Key"] = self.api_key
+        return headers
 
     def _format_phone(self, phone: str) -> str:
         """Format phone number for WhatsApp (remove +, spaces, etc.)."""
@@ -71,7 +79,8 @@ class WhatsAppService:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
                     f"{self.api_url}/api/sendText",
-                    json=payload
+                    json=payload,
+                    headers=self._get_headers()
                 )
                 response.raise_for_status()
                 result = response.json()
@@ -174,7 +183,8 @@ _Tim WBS BPKH_"""
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_url}/api/sessions/{self.session}"
+                    f"{self.api_url}/api/sessions/{self.session}",
+                    headers=self._get_headers()
                 )
                 response.raise_for_status()
                 return response.json()
