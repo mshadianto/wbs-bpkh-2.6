@@ -310,6 +310,12 @@
                                 <option value="COI">Conflict of Interest</option>
                                 <option value="PROCUREMENT">Pengadaan</option>
                             </select>
+                            <select id="filter-channel" class="px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                <option value="">Semua Sumber</option>
+                                <option value="WEB">🌐 Web Portal</option>
+                                <option value="WHATSAPP">💬 WhatsApp</option>
+                                <option value="EMAIL">📧 Email</option>
+                            </select>
                             <button onclick="loadReports()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition flex items-center gap-2">
                                 <i data-lucide="filter" class="w-4 h-4"></i>
                                 Filter
@@ -327,6 +333,7 @@
                             <thead class="bg-islamic-light border-b border-islamic-green/20">
                                 <tr>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Ticket ID</th>
+                                    <th class="px-4 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Sumber</th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Subject</th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Kategori</th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Severity</th>
@@ -953,10 +960,12 @@
             const status = document.getElementById('filter-status').value;
             const severity = document.getElementById('filter-severity').value;
             const category = document.getElementById('filter-category').value;
+            const channel = document.getElementById('filter-channel').value;
             let url = `${API_URL}/api/v1/reports?page=${currentPage}&per_page=10`;
             if (status) url += `&status=${status}`;
             if (severity) url += `&severity=${severity}`;
             if (category) url += `&category=${category}`;
+            if (channel) url += `&channel=${channel}`;
 
             try {
                 const response = await authFetch(url);
@@ -972,12 +981,13 @@
         function renderReportsTable(reports) {
             const tbody = document.getElementById('reports-table');
             if (reports.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-8 text-center text-slate-500">Tidak ada laporan ditemukan</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="px-6 py-8 text-center text-slate-500">Tidak ada laporan ditemukan</td></tr>`;
                 return;
             }
             tbody.innerHTML = reports.map(report => `
                 <tr class="hover:bg-islamic-light">
                     <td class="px-6 py-4"><span class="font-mono text-sm font-medium text-islamic-dark">${report.ticket_id}</span></td>
+                    <td class="px-4 py-4">${getChannelBadge(report.channel)}</td>
                     <td class="px-6 py-4"><p class="text-sm text-islamic-dark truncate max-w-xs">${report.subject}</p></td>
                     <td class="px-6 py-4"><span class="status-badge bg-islamic-light text-islamic-dark">${report.category || '-'}</span></td>
                     <td class="px-6 py-4"><span class="status-badge ${getSeverityClass(report.severity)}">${report.severity || '-'}</span></td>
@@ -990,14 +1000,25 @@
             lucide.createIcons();
         }
 
+        function getChannelBadge(channel) {
+            const channels = {
+                'WEB': { icon: '🌐', label: 'Web', bg: 'bg-blue-100', text: 'text-blue-700' },
+                'WHATSAPP': { icon: '💬', label: 'WA', bg: 'bg-green-100', text: 'text-green-700' },
+                'EMAIL': { icon: '📧', label: 'Email', bg: 'bg-amber-100', text: 'text-amber-700' }
+            };
+            const ch = channels[channel] || { icon: '📄', label: channel || 'Web', bg: 'bg-slate-100', text: 'text-slate-700' };
+            return `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${ch.bg} ${ch.text}">${ch.icon} ${ch.label}</span>`;
+        }
+
         function renderSampleReports() {
             const sampleReports = [
-                { ticket_id: 'WBS-X7K9M2N4', subject: 'Dugaan penyimpangan pengadaan barang', category: 'PROCUREMENT', severity: 'CRITICAL', status: 'NEW', fraud_score: 0.85, created_at: new Date().toISOString() },
-                { ticket_id: 'WBS-P3Q5R8S1', subject: 'Laporan gratifikasi pejabat', category: 'GRATIFICATION', severity: 'HIGH', status: 'REVIEWING', fraud_score: 0.72, created_at: new Date().toISOString() }
+                { ticket_id: 'WBS-X7K9M2N4', subject: 'Dugaan penyimpangan pengadaan barang', category: 'PROCUREMENT', severity: 'CRITICAL', status: 'NEW', channel: 'WEB', fraud_score: 0.85, created_at: new Date().toISOString() },
+                { ticket_id: 'WBS-P3Q5R8S1', subject: 'Laporan gratifikasi pejabat', category: 'GRATIFICATION', severity: 'HIGH', status: 'REVIEWING', channel: 'WHATSAPP', fraud_score: 0.72, created_at: new Date().toISOString() },
+                { ticket_id: 'WBS-A1B2C3D4', subject: 'Dugaan korupsi unit keuangan', category: 'CORRUPTION', severity: 'MEDIUM', status: 'INVESTIGATING', channel: 'EMAIL', fraud_score: 0.58, created_at: new Date().toISOString() }
             ];
             renderReportsTable(sampleReports);
-            document.getElementById('showing-count').textContent = '2';
-            document.getElementById('total-count').textContent = '2';
+            document.getElementById('showing-count').textContent = '3';
+            document.getElementById('total-count').textContent = '3';
         }
 
         async function viewReport(reportId) {
