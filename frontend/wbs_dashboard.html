@@ -103,6 +103,36 @@
                     <i data-lucide="inbox" class="w-5 h-5"></i>
                     <span>Inbox</span>
                 </a>
+                <!-- Investigation Section: INVESTIGATOR, MANAGER, ADMIN -->
+                <div id="menu-investigation-section" class="pt-4 mt-4 border-t border-islamic-gold/20 hidden">
+                    <p class="px-4 text-xs text-islamic-gold uppercase tracking-wider mb-2">۝ Investigasi</p>
+                    <a href="#" onclick="showPage('inv-dashboard')" id="menu-inv-dashboard" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                        <span>Kasus Aktif</span>
+                        <span id="active-case-badge" class="ml-auto bg-indigo-500 text-white text-xs px-2 py-0.5 rounded-full hidden">0</span>
+                    </a>
+                    <a href="#" onclick="showPage('inv-intake')" id="menu-inv-intake" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                        <span>Intake & Mandat</span>
+                    </a>
+                    <a href="#" onclick="showPage('inv-analysis')" id="menu-inv-analysis" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="file-search" class="w-5 h-5"></i>
+                        <span>Analisis Data</span>
+                    </a>
+                    <a href="#" onclick="showPage('inv-evidence')" id="menu-inv-evidence" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="folder-lock" class="w-5 h-5"></i>
+                        <span>Bukti & CoC</span>
+                    </a>
+                    <a href="#" onclick="showPage('inv-interview')" id="menu-inv-interview" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                        <span>Wawancara</span>
+                    </a>
+                    <a href="#" onclick="showPage('inv-findings')" id="menu-inv-findings" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="file-check" class="w-5 h-5"></i>
+                        <span>Temuan & Laporan</span>
+                    </a>
+                </div>
+
                 <!-- AI Analysis: INVESTIGATOR, MANAGER, ADMIN -->
                 <a href="#" onclick="showPage('analysis')" id="menu-analysis" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition hidden">
                     <i data-lucide="brain" class="w-5 h-5"></i>
@@ -741,6 +771,701 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- =============================================== -->
+                <!-- INVESTIGATION DASHBOARD PAGES (INVESTIGATOR+)  -->
+                <!-- =============================================== -->
+
+                <!-- Investigation Dashboard - Active Cases -->
+                <div id="page-inv-dashboard" class="page-content hidden fade-in">
+                    <!-- Investigation Pipeline Overview -->
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-xl p-6 mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl font-bold mb-2">Dashboard Investigasi</h2>
+                                <p class="text-indigo-200">Siklus investigasi komprehensif sesuai standar forensik</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-indigo-200 text-sm">Kasus Aktif</p>
+                                <p id="inv-active-count" class="text-4xl font-bold">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Investigation Pipeline Stages -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10 mb-6">
+                        <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                            <span class="text-islamic-gold">۝</span>
+                            Pipeline Investigasi
+                        </h3>
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1 text-center">
+                                <div class="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-2 border-4 border-blue-500">
+                                    <i data-lucide="clipboard-check" class="w-8 h-8 text-blue-600"></i>
+                                </div>
+                                <p class="font-medium text-islamic-dark">Intake</p>
+                                <p id="stage-intake-count" class="text-2xl font-bold text-blue-600">0</p>
+                            </div>
+                            <div class="w-12 h-1 bg-slate-200"></div>
+                            <div class="flex-1 text-center">
+                                <div class="w-16 h-16 mx-auto bg-purple-100 rounded-full flex items-center justify-center mb-2 border-4 border-purple-500">
+                                    <i data-lucide="file-search" class="w-8 h-8 text-purple-600"></i>
+                                </div>
+                                <p class="font-medium text-islamic-dark">Analisis</p>
+                                <p id="stage-analysis-count" class="text-2xl font-bold text-purple-600">0</p>
+                            </div>
+                            <div class="w-12 h-1 bg-slate-200"></div>
+                            <div class="flex-1 text-center">
+                                <div class="w-16 h-16 mx-auto bg-amber-100 rounded-full flex items-center justify-center mb-2 border-4 border-amber-500">
+                                    <i data-lucide="folder-lock" class="w-8 h-8 text-amber-600"></i>
+                                </div>
+                                <p class="font-medium text-islamic-dark">Bukti</p>
+                                <p id="stage-evidence-count" class="text-2xl font-bold text-amber-600">0</p>
+                            </div>
+                            <div class="w-12 h-1 bg-slate-200"></div>
+                            <div class="flex-1 text-center">
+                                <div class="w-16 h-16 mx-auto bg-teal-100 rounded-full flex items-center justify-center mb-2 border-4 border-teal-500">
+                                    <i data-lucide="users" class="w-8 h-8 text-teal-600"></i>
+                                </div>
+                                <p class="font-medium text-islamic-dark">Wawancara</p>
+                                <p id="stage-interview-count" class="text-2xl font-bold text-teal-600">0</p>
+                            </div>
+                            <div class="w-12 h-1 bg-slate-200"></div>
+                            <div class="flex-1 text-center">
+                                <div class="w-16 h-16 mx-auto bg-islamic-green/20 rounded-full flex items-center justify-center mb-2 border-4 border-islamic-green">
+                                    <i data-lucide="file-check" class="w-8 h-8 text-islamic-green"></i>
+                                </div>
+                                <p class="font-medium text-islamic-dark">Laporan</p>
+                                <p id="stage-report-count" class="text-2xl font-bold text-islamic-green">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Cases Table -->
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-islamic-green/10">
+                        <div class="p-4 border-b border-islamic-green/10 bg-islamic-light flex items-center justify-between">
+                            <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Kasus Dalam Investigasi
+                            </h3>
+                            <select id="inv-stage-filter" onchange="loadInvestigationCases()" class="px-3 py-1 border border-islamic-green/20 rounded-lg text-sm">
+                                <option value="">Semua Tahap</option>
+                                <option value="INTAKE">Intake & Mandat</option>
+                                <option value="ANALYSIS">Analisis Data</option>
+                                <option value="EVIDENCE">Pengumpulan Bukti</option>
+                                <option value="INTERVIEW">Wawancara</option>
+                                <option value="REPORTING">Penyusunan Laporan</option>
+                            </select>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-islamic-light">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">No. Kasus</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Ticket</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Subject</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Tahap</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Progress</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Severity</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">SLA</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inv-cases-table" class="divide-y divide-islamic-green/10">
+                                    <!-- Cases will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investigation Intake & Mandate Page -->
+                <div id="page-inv-intake" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Main Content -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- Case Selection -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                    <span class="text-islamic-gold">۝</span>
+                                    Pilih Kasus untuk Intake
+                                </h3>
+                                <select id="intake-case-select" onchange="loadIntakeCase()" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="">-- Pilih Laporan --</option>
+                                </select>
+                            </div>
+
+                            <!-- Intake Form -->
+                            <div id="intake-form-container" class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10 hidden">
+                                <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                    <span class="text-islamic-gold">۝</span>
+                                    Form Intake & Penetapan Mandat
+                                </h3>
+                                <form id="intake-form" onsubmit="submitIntake(event)">
+                                    <!-- Independence Declaration -->
+                                    <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                        <h4 class="font-medium text-blue-800 mb-3 flex items-center gap-2">
+                                            <i data-lucide="shield-check" class="w-5 h-5"></i>
+                                            Deklarasi Independensi
+                                        </h4>
+                                        <div class="space-y-2">
+                                            <label class="flex items-start gap-3 cursor-pointer">
+                                                <input type="checkbox" id="ind-no-conflict" required class="mt-1 w-4 h-4 text-indigo-600 rounded">
+                                                <span class="text-sm text-slate-700">Tidak memiliki konflik kepentingan dengan pihak yang dilaporkan</span>
+                                            </label>
+                                            <label class="flex items-start gap-3 cursor-pointer">
+                                                <input type="checkbox" id="ind-no-relation" required class="mt-1 w-4 h-4 text-indigo-600 rounded">
+                                                <span class="text-sm text-slate-700">Tidak memiliki hubungan keluarga/finansial dengan pihak terkait</span>
+                                            </label>
+                                            <label class="flex items-start gap-3 cursor-pointer">
+                                                <input type="checkbox" id="ind-objective" required class="mt-1 w-4 h-4 text-indigo-600 rounded">
+                                                <span class="text-sm text-slate-700">Mampu bersikap objektif dan tidak memihak dalam investigasi</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mandate Details -->
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-islamic-dark mb-1">Nomor Mandat Investigasi</label>
+                                            <input type="text" id="mandate-number" required placeholder="INV/2024/001" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-islamic-dark mb-1">Tanggal Mulai</label>
+                                                <input type="date" id="mandate-start" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-islamic-dark mb-1">Target Selesai</label>
+                                                <input type="date" id="mandate-target" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-islamic-dark mb-1">Ruang Lingkup Investigasi</label>
+                                            <textarea id="mandate-scope" rows="3" required placeholder="Jelaskan batasan dan fokus investigasi..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-islamic-dark mb-1">Hipotesis Awal</label>
+                                            <textarea id="mandate-hypothesis" rows="2" placeholder="Dugaan awal berdasarkan laporan..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-islamic-dark mb-1">Tim Investigasi</label>
+                                            <input type="text" id="mandate-team" placeholder="Nama anggota tim (pisahkan dengan koma)" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-islamic-green/10">
+                                        <button type="button" onclick="clearIntakeForm()" class="px-4 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light">Reset</button>
+                                        <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+                                            <i data-lucide="check" class="w-4 h-4"></i>
+                                            Tetapkan Mandat
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar -->
+                        <div class="space-y-6">
+                            <!-- Case Summary -->
+                            <div id="intake-case-summary" class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10 hidden">
+                                <h4 class="font-semibold text-islamic-dark mb-4">Ringkasan Kasus</h4>
+                                <div id="intake-summary-content" class="space-y-3 text-sm">
+                                    <!-- Summary will be loaded here -->
+                                </div>
+                            </div>
+
+                            <!-- Guidelines -->
+                            <div class="bg-indigo-50 rounded-xl p-6 border border-indigo-200">
+                                <h4 class="font-semibold text-indigo-800 mb-3 flex items-center gap-2">
+                                    <i data-lucide="info" class="w-5 h-5"></i>
+                                    Panduan Intake
+                                </h4>
+                                <ul class="text-sm text-indigo-700 space-y-2">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-indigo-500">•</span>
+                                        Pastikan independensi sebelum memulai
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-indigo-500">•</span>
+                                        Tetapkan ruang lingkup yang jelas
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-indigo-500">•</span>
+                                        Dokumentasikan hipotesis awal
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-indigo-500">•</span>
+                                        Tentukan timeline realistis
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investigation Data Analysis Page -->
+                <div id="page-inv-analysis" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <!-- Case Selector Sidebar -->
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-islamic-green/10 h-fit">
+                            <h4 class="font-semibold text-islamic-dark mb-3">Kasus Aktif</h4>
+                            <div id="analysis-case-list" class="space-y-2 max-h-96 overflow-y-auto">
+                                <!-- Case list will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Main Analysis Area -->
+                        <div class="lg:col-span-3 space-y-6">
+                            <!-- Analysis Header -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                        <span class="text-islamic-gold">۝</span>
+                                        Analisis Data - <span id="analysis-case-title">Pilih Kasus</span>
+                                    </h3>
+                                    <button onclick="runAIAnalysis()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2">
+                                        <i data-lucide="brain" class="w-4 h-4"></i>
+                                        AI Analysis
+                                    </button>
+                                </div>
+
+                                <!-- Analysis Tabs -->
+                                <div class="flex border-b border-islamic-green/20">
+                                    <button onclick="showAnalysisTab('internal')" class="analysis-tab px-4 py-2 border-b-2 border-indigo-500 text-indigo-600 font-medium">Data Internal</button>
+                                    <button onclick="showAnalysisTab('sop')" class="analysis-tab px-4 py-2 text-slate-500 hover:text-islamic-dark">SOP & Kebijakan</button>
+                                    <button onclick="showAnalysisTab('transaction')" class="analysis-tab px-4 py-2 text-slate-500 hover:text-islamic-dark">Transaksi</button>
+                                    <button onclick="showAnalysisTab('timeline')" class="analysis-tab px-4 py-2 text-slate-500 hover:text-islamic-dark">Timeline</button>
+                                </div>
+                            </div>
+
+                            <!-- Internal Data Tab -->
+                            <div id="tab-internal" class="analysis-tab-content bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-medium text-islamic-dark mb-4">Analisis Data Internal</h4>
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    <div class="p-4 bg-slate-50 rounded-lg border">
+                                        <p class="text-sm text-slate-500 mb-1">Dokumen Diperiksa</p>
+                                        <p id="internal-doc-count" class="text-2xl font-bold text-islamic-dark">0</p>
+                                    </div>
+                                    <div class="p-4 bg-slate-50 rounded-lg border">
+                                        <p class="text-sm text-slate-500 mb-1">Anomali Ditemukan</p>
+                                        <p id="internal-anomaly-count" class="text-2xl font-bold text-red-600">0</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-2">Catatan Analisis Internal</label>
+                                    <textarea id="internal-notes" rows="4" placeholder="Dokumentasikan temuan dari data internal..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                </div>
+                                <button onclick="saveAnalysisNotes('internal')" class="mt-3 px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark">Simpan Catatan</button>
+                            </div>
+
+                            <!-- SOP Tab -->
+                            <div id="tab-sop" class="analysis-tab-content bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10 hidden">
+                                <h4 class="font-medium text-islamic-dark mb-4">Analisis SOP & Kebijakan</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-islamic-dark mb-2">SOP/Kebijakan yang Relevan</label>
+                                        <textarea id="sop-relevant" rows="3" placeholder="Daftarkan SOP dan kebijakan yang berkaitan..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-islamic-dark mb-2">Pelanggaran SOP yang Ditemukan</label>
+                                        <textarea id="sop-violations" rows="3" placeholder="Dokumentasikan pelanggaran prosedur..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                    </div>
+                                </div>
+                                <button onclick="saveAnalysisNotes('sop')" class="mt-3 px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark">Simpan Catatan</button>
+                            </div>
+
+                            <!-- Transaction Tab -->
+                            <div id="tab-transaction" class="analysis-tab-content bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10 hidden">
+                                <h4 class="font-medium text-islamic-dark mb-4">Analisis Rekam Jejak Transaksi</h4>
+                                <div class="grid grid-cols-3 gap-4 mb-4">
+                                    <div class="p-4 bg-slate-50 rounded-lg border">
+                                        <p class="text-sm text-slate-500 mb-1">Total Transaksi</p>
+                                        <p id="trx-total" class="text-xl font-bold text-islamic-dark">0</p>
+                                    </div>
+                                    <div class="p-4 bg-slate-50 rounded-lg border">
+                                        <p class="text-sm text-slate-500 mb-1">Nilai Transaksi</p>
+                                        <p id="trx-value" class="text-xl font-bold text-islamic-dark">Rp 0</p>
+                                    </div>
+                                    <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                                        <p class="text-sm text-red-500 mb-1">Transaksi Mencurigakan</p>
+                                        <p id="trx-suspicious" class="text-xl font-bold text-red-600">0</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-2">Catatan Analisis Transaksi</label>
+                                    <textarea id="transaction-notes" rows="4" placeholder="Dokumentasikan pola dan anomali transaksi..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                                </div>
+                                <button onclick="saveAnalysisNotes('transaction')" class="mt-3 px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark">Simpan Catatan</button>
+                            </div>
+
+                            <!-- Timeline Tab -->
+                            <div id="tab-timeline" class="analysis-tab-content bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10 hidden">
+                                <h4 class="font-medium text-islamic-dark mb-4">Timeline Kejadian</h4>
+                                <div id="timeline-container" class="relative pl-8 space-y-4">
+                                    <p class="text-slate-500 text-sm">Belum ada timeline. Tambahkan event untuk memulai.</p>
+                                </div>
+                                <div class="mt-4 pt-4 border-t border-islamic-green/10">
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <input type="date" id="timeline-date" class="px-3 py-2 border border-islamic-green/20 rounded-lg">
+                                        <input type="text" id="timeline-event" placeholder="Deskripsi kejadian" class="col-span-2 px-3 py-2 border border-islamic-green/20 rounded-lg">
+                                    </div>
+                                    <button onclick="addTimelineEvent()" class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Tambah Event</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investigation Evidence & Chain of Custody Page -->
+                <div id="page-inv-evidence" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Evidence List -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="bg-white rounded-xl shadow-sm border border-islamic-green/10">
+                                <div class="p-4 border-b border-islamic-green/10 bg-islamic-light flex items-center justify-between">
+                                    <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                        <span class="text-islamic-gold">۝</span>
+                                        Daftar Bukti
+                                    </h3>
+                                    <button onclick="showAddEvidenceModal()" class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 flex items-center gap-2">
+                                        <i data-lucide="plus" class="w-4 h-4"></i>
+                                        Tambah Bukti
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-islamic-light">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">ID Bukti</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Jenis</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Deskripsi</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Lokasi</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Status CoC</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="evidence-table" class="divide-y divide-islamic-green/10">
+                                            <tr>
+                                                <td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada bukti terdaftar</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chain of Custody Sidebar -->
+                        <div class="space-y-6">
+                            <!-- CoC Summary -->
+                            <div class="bg-amber-50 rounded-xl p-6 border border-amber-200">
+                                <h4 class="font-semibold text-amber-800 mb-4 flex items-center gap-2">
+                                    <i data-lucide="link" class="w-5 h-5"></i>
+                                    Chain of Custody
+                                </h4>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-amber-700">Total Bukti</span>
+                                        <span id="coc-total" class="font-bold text-amber-800">0</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-amber-700">Digital</span>
+                                        <span id="coc-digital" class="font-bold text-amber-800">0</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-amber-700">Fisik</span>
+                                        <span id="coc-physical" class="font-bold text-amber-800">0</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-amber-700">Dokumen</span>
+                                        <span id="coc-document" class="font-bold text-amber-800">0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CoC Guidelines -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-semibold text-islamic-dark mb-3">Standar Chain of Custody</h4>
+                                <ul class="text-sm text-slate-600 space-y-2">
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 text-islamic-green mt-0.5"></i>
+                                        <span>Catat siapa yang mengumpulkan bukti</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 text-islamic-green mt-0.5"></i>
+                                        <span>Dokumentasikan waktu dan lokasi pengambilan</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 text-islamic-green mt-0.5"></i>
+                                        <span>Simpan bukti di lokasi aman</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 text-islamic-green mt-0.5"></i>
+                                        <span>Catat setiap perpindahan/akses</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 text-islamic-green mt-0.5"></i>
+                                        <span>Buat hash untuk bukti digital</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investigation Interview Page -->
+                <div id="page-inv-interview" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Interview List -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="bg-white rounded-xl shadow-sm border border-islamic-green/10">
+                                <div class="p-4 border-b border-islamic-green/10 bg-islamic-light flex items-center justify-between">
+                                    <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                        <span class="text-islamic-gold">۝</span>
+                                        Daftar Wawancara
+                                    </h3>
+                                    <button onclick="showScheduleInterviewModal()" class="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 flex items-center gap-2">
+                                        <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                                        Jadwalkan Wawancara
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-islamic-light">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Tanggal</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Narasumber</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Peran</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Status</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Berita Acara</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="interview-table" class="divide-y divide-islamic-green/10">
+                                            <tr>
+                                                <td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada wawancara terjadwal</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Berita Acara Form -->
+                            <div id="berita-acara-form" class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10 hidden">
+                                <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                    <span class="text-islamic-gold">۝</span>
+                                    Berita Acara Wawancara
+                                </h3>
+                                <form onsubmit="saveBeritaAcara(event)">
+                                    <div class="grid grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-islamic-dark mb-1">Nomor Berita Acara</label>
+                                            <input type="text" id="ba-number" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-islamic-dark mb-1">Tanggal & Waktu</label>
+                                            <input type="datetime-local" id="ba-datetime" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-islamic-dark mb-1">Lokasi Wawancara</label>
+                                        <input type="text" id="ba-location" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-islamic-dark mb-1">Pewawancara</label>
+                                        <input type="text" id="ba-interviewer" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-islamic-dark mb-1">Isi Keterangan</label>
+                                        <textarea id="ba-content" rows="6" required placeholder="Tuliskan hasil wawancara secara lengkap..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg"></textarea>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-islamic-dark mb-1">Kesimpulan</label>
+                                        <textarea id="ba-conclusion" rows="2" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg"></textarea>
+                                    </div>
+                                    <div class="flex items-center justify-end gap-3">
+                                        <button type="button" onclick="hideBeritaAcaraForm()" class="px-4 py-2 border border-islamic-green/20 rounded-lg">Batal</button>
+                                        <button type="submit" class="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">Simpan Berita Acara</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Interview Guidelines -->
+                        <div class="space-y-6">
+                            <div class="bg-teal-50 rounded-xl p-6 border border-teal-200">
+                                <h4 class="font-semibold text-teal-800 mb-3 flex items-center gap-2">
+                                    <i data-lucide="info" class="w-5 h-5"></i>
+                                    Panduan Wawancara
+                                </h4>
+                                <ul class="text-sm text-teal-700 space-y-2">
+                                    <li>• Siapkan daftar pertanyaan terstruktur</li>
+                                    <li>• Jelaskan hak dan kewajiban narasumber</li>
+                                    <li>• Rekam dengan izin (audio/video)</li>
+                                    <li>• Buat notulensi detail</li>
+                                    <li>• Minta tanda tangan berita acara</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-semibold text-islamic-dark mb-3">Kategori Narasumber</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                                        <span>Subjek (Terlapor)</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
+                                        <span>Saksi Langsung</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 bg-amber-500 rounded-full"></span>
+                                        <span>Saksi Tidak Langsung</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                                        <span>Ahli/Expert</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investigation Findings & Report Page -->
+                <div id="page-inv-findings" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Findings Matrix -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- Findings Summary -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                    <span class="text-islamic-gold">۝</span>
+                                    Matriks Temuan
+                                </h3>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-islamic-light">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">No</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Temuan</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Bukti Pendukung</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Regulasi Dilanggar</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Dampak</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="findings-table" class="divide-y divide-islamic-green/10">
+                                            <tr>
+                                                <td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada temuan. Klik "Tambah Temuan" untuk memulai.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button onclick="showAddFindingModal()" class="mt-4 px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark flex items-center gap-2">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                    Tambah Temuan
+                                </button>
+                            </div>
+
+                            <!-- Recommendations -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                    <span class="text-islamic-gold">۝</span>
+                                    Rekomendasi Tindakan
+                                </h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-islamic-dark mb-2">Tindakan Korektif</label>
+                                        <textarea id="rec-corrective" rows="3" placeholder="Langkah-langkah perbaikan segera..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-islamic-dark mb-2">Tindakan Preventif</label>
+                                        <textarea id="rec-preventive" rows="3" placeholder="Langkah pencegahan ke depan..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-islamic-dark mb-2">Mitigasi Risiko</label>
+                                        <textarea id="rec-mitigation" rows="3" placeholder="Strategi mitigasi risiko..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg"></textarea>
+                                    </div>
+                                </div>
+                                <button onclick="saveRecommendations()" class="mt-4 px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark">Simpan Rekomendasi</button>
+                            </div>
+
+                            <!-- Final Report Generation -->
+                            <div class="bg-gradient-to-r from-islamic-green to-islamic-dark text-white rounded-xl p-6">
+                                <h3 class="font-semibold text-xl mb-2">Generate Laporan Final</h3>
+                                <p class="text-emerald-200 mb-4">Buat laporan investigasi lengkap berdasarkan seluruh temuan dan analisis.</p>
+                                <div class="flex items-center gap-3">
+                                    <button onclick="generateFinalReport()" class="px-6 py-2 bg-white text-islamic-green rounded-lg hover:bg-islamic-cream font-medium flex items-center gap-2">
+                                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                                        Generate Laporan
+                                    </button>
+                                    <button onclick="previewReport()" class="px-6 py-2 bg-islamic-gold/20 text-white rounded-lg hover:bg-islamic-gold/30 flex items-center gap-2">
+                                        <i data-lucide="eye" class="w-5 h-5"></i>
+                                        Preview
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Report Status Sidebar -->
+                        <div class="space-y-6">
+                            <!-- Completeness Checklist -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-semibold text-islamic-dark mb-4">Kelengkapan Laporan</h4>
+                                <div class="space-y-3">
+                                    <div class="flex items-center gap-3">
+                                        <div id="check-mandate" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                            <i data-lucide="check" class="w-4 h-4 text-slate-300"></i>
+                                        </div>
+                                        <span class="text-sm text-slate-600">Mandat Investigasi</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div id="check-analysis" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                            <i data-lucide="check" class="w-4 h-4 text-slate-300"></i>
+                                        </div>
+                                        <span class="text-sm text-slate-600">Analisis Data</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div id="check-evidence" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                            <i data-lucide="check" class="w-4 h-4 text-slate-300"></i>
+                                        </div>
+                                        <span class="text-sm text-slate-600">Bukti Terdokumentasi</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div id="check-interview" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                            <i data-lucide="check" class="w-4 h-4 text-slate-300"></i>
+                                        </div>
+                                        <span class="text-sm text-slate-600">Berita Acara Wawancara</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div id="check-findings" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                            <i data-lucide="check" class="w-4 h-4 text-slate-300"></i>
+                                        </div>
+                                        <span class="text-sm text-slate-600">Matriks Temuan</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div id="check-recommendations" class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                            <i data-lucide="check" class="w-4 h-4 text-slate-300"></i>
+                                        </div>
+                                        <span class="text-sm text-slate-600">Rekomendasi</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Management Response -->
+                            <div class="bg-purple-50 rounded-xl p-6 border border-purple-200">
+                                <h4 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                                    <i data-lucide="message-square" class="w-5 h-5"></i>
+                                    Tanggapan Manajemen
+                                </h4>
+                                <textarea id="mgmt-response" rows="4" placeholder="Masukkan tanggapan dari manajemen..." class="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm"></textarea>
+                                <button onclick="saveManagementResponse()" class="mt-2 w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm">Simpan Tanggapan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
@@ -798,7 +1523,7 @@
         // Role-based UI configuration
         const ROLE_CONFIG = {
             'ADMIN': {
-                menus: ['analysis', 'knowledge', 'settings-section', 'settings', 'audit', 'users'],
+                menus: ['investigation-section', 'analysis', 'knowledge', 'settings-section', 'settings', 'audit', 'users'],
                 welcome: 'Selamat Datang, Administrator',
                 description: 'Anda memiliki akses penuh ke semua fitur sistem WBS BPKH',
                 quickActions: [
@@ -809,24 +1534,24 @@
                 statusFilter: null // Can see all
             },
             'MANAGER': {
-                menus: ['analysis', 'settings-section', 'audit'],
+                menus: ['investigation-section', 'analysis', 'settings-section', 'audit'],
                 welcome: 'Selamat Datang, Pimpinan WBS',
                 description: 'Fokus: Oversight laporan HIGH/CRITICAL dan eskalasi',
                 quickActions: [
                     { icon: 'alert-triangle', label: 'Laporan Critical', action: "filterBySeverity('CRITICAL')", color: 'bg-red-500' },
                     { icon: 'trending-up', label: 'Laporan Eskalasi', action: "filterByStatus('ESCALATED')", color: 'bg-orange-500' },
-                    { icon: 'bar-chart', label: 'Lihat Statistik', action: "showPage('dashboard')", color: 'bg-islamic-green' }
+                    { icon: 'search', label: 'Dashboard Investigasi', action: "showPage('inv-dashboard')", color: 'bg-indigo-500' }
                 ],
                 statusFilter: null // Can see all but focus on escalated
             },
             'INVESTIGATOR': {
-                menus: ['analysis', 'settings-section', 'audit'],
+                menus: ['investigation-section', 'analysis', 'settings-section', 'audit'],
                 welcome: 'Selamat Datang, Tim Investigasi',
                 description: 'Fokus: Investigasi laporan dan analisis fraud',
                 quickActions: [
-                    { icon: 'search', label: 'Laporan Investigasi', action: "filterByStatus('INVESTIGATING')", color: 'bg-indigo-500' },
-                    { icon: 'brain', label: 'AI Analysis', action: "showPage('analysis')", color: 'bg-purple-500' },
-                    { icon: 'file-check', label: 'Review Selesai', action: "filterByStatus('CLOSED_PROVEN')", color: 'bg-islamic-green' }
+                    { icon: 'search', label: 'Kasus Aktif', action: "showPage('inv-dashboard')", color: 'bg-indigo-500' },
+                    { icon: 'clipboard-check', label: 'Intake & Mandat', action: "showPage('inv-intake')", color: 'bg-blue-500' },
+                    { icon: 'file-check', label: 'Temuan & Laporan', action: "showPage('inv-findings')", color: 'bg-islamic-green' }
                 ],
                 statusFilter: ['INVESTIGATING', 'ESCALATED', 'CLOSED_PROVEN', 'CLOSED_NOT_PROVEN']
             },
@@ -958,13 +1683,25 @@
                 'knowledge': 'Knowledge Base',
                 'settings': 'Pengaturan',
                 'audit': 'Audit Log',
-                'users': 'Manajemen User'
+                'users': 'Manajemen User',
+                'inv-dashboard': 'Dashboard Investigasi',
+                'inv-intake': 'Intake & Mandat',
+                'inv-analysis': 'Analisis Data',
+                'inv-evidence': 'Bukti & Chain of Custody',
+                'inv-interview': 'Wawancara',
+                'inv-findings': 'Temuan & Laporan'
             };
             document.getElementById('page-title').textContent = titles[page] || 'Dashboard';
 
             if (page === 'dashboard') loadDashboard();
             if (page === 'reports') loadReports();
             if (page === 'users') loadUsers();
+            if (page === 'inv-dashboard') loadInvestigationDashboard();
+            if (page === 'inv-intake') loadIntakePage();
+            if (page === 'inv-analysis') loadAnalysisPage();
+            if (page === 'inv-evidence') loadEvidencePage();
+            if (page === 'inv-interview') loadInterviewPage();
+            if (page === 'inv-findings') loadFindingsPage();
 
             lucide.createIcons();
         }
@@ -1572,6 +2309,657 @@
         async function resetUserPassword(userId, email) {
             if (!confirm(`Reset password untuk ${email}?`)) return;
             alert('Fitur reset password dalam pengembangan');
+        }
+
+        // =====================================================
+        // INVESTIGATION DASHBOARD FUNCTIONS
+        // =====================================================
+
+        // Investigation data store (in-memory for demo, would be persisted to backend)
+        let investigationData = {
+            cases: [],
+            evidence: [],
+            interviews: [],
+            findings: [],
+            timeline: []
+        };
+
+        async function loadInvestigationDashboard() {
+            try {
+                // Load reports with INVESTIGATING status
+                const response = await authFetch(`${API_URL}/api/v1/reports?status=INVESTIGATING&limit=50`);
+                if (response && response.ok) {
+                    const data = await response.json();
+                    investigationData.cases = data.reports || [];
+                }
+            } catch (error) {
+                console.log('Using demo data for investigation');
+            }
+
+            // Update counts
+            const cases = investigationData.cases;
+            document.getElementById('inv-active-count').textContent = cases.length;
+            document.getElementById('stage-intake-count').textContent = cases.filter(c => c.inv_stage === 'INTAKE' || !c.inv_stage).length;
+            document.getElementById('stage-analysis-count').textContent = cases.filter(c => c.inv_stage === 'ANALYSIS').length;
+            document.getElementById('stage-evidence-count').textContent = cases.filter(c => c.inv_stage === 'EVIDENCE').length;
+            document.getElementById('stage-interview-count').textContent = cases.filter(c => c.inv_stage === 'INTERVIEW').length;
+            document.getElementById('stage-report-count').textContent = cases.filter(c => c.inv_stage === 'REPORTING').length;
+
+            renderInvestigationCasesTable(cases);
+        }
+
+        function loadInvestigationCases() {
+            const filter = document.getElementById('inv-stage-filter').value;
+            let filtered = investigationData.cases;
+            if (filter) {
+                filtered = filtered.filter(c => c.inv_stage === filter);
+            }
+            renderInvestigationCasesTable(filtered);
+        }
+
+        function renderInvestigationCasesTable(cases) {
+            const tbody = document.getElementById('inv-cases-table');
+            if (!cases || cases.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-slate-500">Tidak ada kasus dalam investigasi</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = cases.map((c, idx) => {
+                const stage = c.inv_stage || 'INTAKE';
+                const stageColors = {
+                    'INTAKE': 'bg-blue-100 text-blue-700',
+                    'ANALYSIS': 'bg-purple-100 text-purple-700',
+                    'EVIDENCE': 'bg-amber-100 text-amber-700',
+                    'INTERVIEW': 'bg-teal-100 text-teal-700',
+                    'REPORTING': 'bg-islamic-green/20 text-islamic-green'
+                };
+                const progress = { 'INTAKE': 20, 'ANALYSIS': 40, 'EVIDENCE': 60, 'INTERVIEW': 80, 'REPORTING': 95 }[stage] || 10;
+
+                return `
+                    <tr class="hover:bg-islamic-light">
+                        <td class="px-4 py-3 text-sm font-mono text-islamic-dark">INV-${String(idx + 1).padStart(3, '0')}</td>
+                        <td class="px-4 py-3 text-sm font-mono text-indigo-600">${c.ticket_id}</td>
+                        <td class="px-4 py-3 text-sm text-islamic-dark">${(c.subject || c.title || 'Tanpa Judul').substring(0, 40)}...</td>
+                        <td class="px-4 py-3"><span class="status-badge ${stageColors[stage]}">${stage}</span></td>
+                        <td class="px-4 py-3">
+                            <div class="w-24 bg-slate-200 rounded-full h-2">
+                                <div class="bg-indigo-500 h-2 rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3"><span class="status-badge ${getSeverityClass(c.severity)}">${c.severity || 'MEDIUM'}</span></td>
+                        <td class="px-4 py-3 text-sm text-slate-500">${c.sla_deadline ? new Date(c.sla_deadline).toLocaleDateString('id-ID') : '-'}</td>
+                        <td class="px-4 py-3">
+                            <button onclick="openInvestigationCase('${c.id}')" class="text-indigo-600 hover:text-indigo-800">
+                                <i data-lucide="external-link" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function openInvestigationCase(caseId) {
+            localStorage.setItem('current_inv_case', caseId);
+            showPage('inv-intake');
+        }
+
+        // Intake & Mandate Functions
+        async function loadIntakePage() {
+            const select = document.getElementById('intake-case-select');
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/reports?status=INVESTIGATING&limit=50`);
+                if (response && response.ok) {
+                    const data = await response.json();
+                    const reports = data.reports || [];
+                    select.innerHTML = '<option value="">-- Pilih Laporan --</option>' +
+                        reports.map(r => `<option value="${r.id}">${r.ticket_id} - ${(r.subject || r.title || '').substring(0, 50)}</option>`).join('');
+                }
+            } catch (error) {
+                console.log('Error loading reports for intake');
+            }
+
+            // Check if there's a pre-selected case
+            const currentCase = localStorage.getItem('current_inv_case');
+            if (currentCase) {
+                select.value = currentCase;
+                loadIntakeCase();
+            }
+        }
+
+        function loadIntakeCase() {
+            const caseId = document.getElementById('intake-case-select').value;
+            if (!caseId) {
+                document.getElementById('intake-form-container').classList.add('hidden');
+                document.getElementById('intake-case-summary').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('intake-form-container').classList.remove('hidden');
+            document.getElementById('intake-case-summary').classList.remove('hidden');
+
+            // Load case summary
+            const caseData = investigationData.cases.find(c => c.id === caseId);
+            if (caseData) {
+                document.getElementById('intake-summary-content').innerHTML = `
+                    <div class="flex justify-between"><span class="text-slate-500">Ticket:</span><span class="font-medium">${caseData.ticket_id}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Severity:</span><span class="font-medium">${caseData.severity || 'MEDIUM'}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Kategori:</span><span class="font-medium">${caseData.category || '-'}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Tanggal Masuk:</span><span class="font-medium">${new Date(caseData.created_at).toLocaleDateString('id-ID')}</span></div>
+                    <div class="mt-3 pt-3 border-t border-slate-200">
+                        <p class="text-slate-500 mb-1">Deskripsi:</p>
+                        <p class="text-slate-700 text-xs">${(caseData.description || '').substring(0, 200)}...</p>
+                    </div>
+                `;
+            }
+
+            // Set default dates
+            document.getElementById('mandate-start').value = new Date().toISOString().split('T')[0];
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + 30);
+            document.getElementById('mandate-target').value = targetDate.toISOString().split('T')[0];
+        }
+
+        function submitIntake(event) {
+            event.preventDefault();
+            alert('Mandat investigasi berhasil ditetapkan! Kasus akan berpindah ke tahap Analisis Data.');
+            // In real implementation, save to backend
+            showPage('inv-analysis');
+        }
+
+        function clearIntakeForm() {
+            document.getElementById('intake-form').reset();
+        }
+
+        // Analysis Page Functions
+        function loadAnalysisPage() {
+            const caseList = document.getElementById('analysis-case-list');
+            const cases = investigationData.cases;
+
+            if (cases.length === 0) {
+                caseList.innerHTML = '<p class="text-sm text-slate-500">Tidak ada kasus aktif</p>';
+                return;
+            }
+
+            caseList.innerHTML = cases.map(c => `
+                <button onclick="selectAnalysisCase('${c.id}')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-50 border border-transparent hover:border-indigo-200 transition">
+                    <p class="font-mono text-sm text-indigo-600">${c.ticket_id}</p>
+                    <p class="text-xs text-slate-500 truncate">${(c.subject || c.title || '').substring(0, 30)}</p>
+                </button>
+            `).join('');
+        }
+
+        function selectAnalysisCase(caseId) {
+            const caseData = investigationData.cases.find(c => c.id === caseId);
+            if (caseData) {
+                document.getElementById('analysis-case-title').textContent = caseData.ticket_id;
+                localStorage.setItem('current_inv_case', caseId);
+            }
+        }
+
+        function showAnalysisTab(tab) {
+            document.querySelectorAll('.analysis-tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+
+            document.querySelectorAll('.analysis-tab').forEach(el => {
+                el.classList.remove('border-b-2', 'border-indigo-500', 'text-indigo-600', 'font-medium');
+                el.classList.add('text-slate-500');
+            });
+            event.target.classList.add('border-b-2', 'border-indigo-500', 'text-indigo-600', 'font-medium');
+            event.target.classList.remove('text-slate-500');
+        }
+
+        function saveAnalysisNotes(type) {
+            alert(`Catatan ${type} berhasil disimpan!`);
+        }
+
+        function addTimelineEvent() {
+            const date = document.getElementById('timeline-date').value;
+            const event = document.getElementById('timeline-event').value;
+            if (!date || !event) {
+                alert('Tanggal dan deskripsi kejadian harus diisi');
+                return;
+            }
+
+            investigationData.timeline.push({ date, event });
+            renderTimeline();
+            document.getElementById('timeline-date').value = '';
+            document.getElementById('timeline-event').value = '';
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            if (investigationData.timeline.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-sm">Belum ada timeline.</p>';
+                return;
+            }
+
+            container.innerHTML = investigationData.timeline
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .map(t => `
+                    <div class="relative">
+                        <div class="absolute -left-6 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white"></div>
+                        <div class="bg-slate-50 rounded-lg p-3 border">
+                            <p class="text-xs text-indigo-600 font-medium">${new Date(t.date).toLocaleDateString('id-ID')}</p>
+                            <p class="text-sm text-slate-700">${t.event}</p>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        async function runAIAnalysis() {
+            const caseId = localStorage.getItem('current_inv_case');
+            if (!caseId) {
+                alert('Pilih kasus terlebih dahulu');
+                return;
+            }
+            alert('AI Analysis sedang dijalankan... Hasil akan ditampilkan di halaman AI Analysis.');
+            showPage('analysis');
+        }
+
+        // Evidence Page Functions
+        function loadEvidencePage() {
+            updateEvidenceCounts();
+        }
+
+        function updateEvidenceCounts() {
+            const evidence = investigationData.evidence;
+            document.getElementById('coc-total').textContent = evidence.length;
+            document.getElementById('coc-digital').textContent = evidence.filter(e => e.type === 'DIGITAL').length;
+            document.getElementById('coc-physical').textContent = evidence.filter(e => e.type === 'PHYSICAL').length;
+            document.getElementById('coc-document').textContent = evidence.filter(e => e.type === 'DOCUMENT').length;
+        }
+
+        function showAddEvidenceModal() {
+            const html = `
+                <div id="evidence-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl w-full max-w-lg p-6">
+                        <h3 class="text-lg font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                            <span class="text-islamic-gold">۝</span>
+                            Tambah Bukti Baru
+                        </h3>
+                        <form onsubmit="addEvidence(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Jenis Bukti</label>
+                                    <select id="ev-type" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                        <option value="DIGITAL">Digital (file, email, log)</option>
+                                        <option value="PHYSICAL">Fisik (barang, perangkat)</option>
+                                        <option value="DOCUMENT">Dokumen (surat, kontrak)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Deskripsi</label>
+                                    <textarea id="ev-desc" rows="2" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Lokasi Pengambilan</label>
+                                    <input type="text" id="ev-location" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Lokasi Penyimpanan</label>
+                                    <input type="text" id="ev-storage" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Hash (untuk digital)</label>
+                                    <input type="text" id="ev-hash" placeholder="SHA-256 hash" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-2 mt-6">
+                                <button type="button" onclick="closeEvidenceModal()" class="px-4 py-2 border border-islamic-green/20 rounded-lg">Batal</button>
+                                <button type="submit" class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600">Simpan Bukti</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function closeEvidenceModal() {
+            document.getElementById('evidence-modal')?.remove();
+        }
+
+        function addEvidence(event) {
+            event.preventDefault();
+            const evidence = {
+                id: 'EV-' + String(investigationData.evidence.length + 1).padStart(3, '0'),
+                type: document.getElementById('ev-type').value,
+                description: document.getElementById('ev-desc').value,
+                location: document.getElementById('ev-location').value,
+                storage: document.getElementById('ev-storage').value,
+                hash: document.getElementById('ev-hash').value,
+                collected_at: new Date().toISOString(),
+                collected_by: currentUser.full_name
+            };
+            investigationData.evidence.push(evidence);
+            closeEvidenceModal();
+            renderEvidenceTable();
+            updateEvidenceCounts();
+            alert('Bukti berhasil ditambahkan dengan Chain of Custody');
+        }
+
+        function renderEvidenceTable() {
+            const tbody = document.getElementById('evidence-table');
+            if (investigationData.evidence.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada bukti terdaftar</td></tr>';
+                return;
+            }
+            tbody.innerHTML = investigationData.evidence.map(e => `
+                <tr class="hover:bg-islamic-light">
+                    <td class="px-4 py-3 font-mono text-sm text-amber-600">${e.id}</td>
+                    <td class="px-4 py-3"><span class="status-badge bg-amber-100 text-amber-700">${e.type}</span></td>
+                    <td class="px-4 py-3 text-sm text-islamic-dark">${e.description.substring(0, 40)}...</td>
+                    <td class="px-4 py-3 text-sm text-slate-500">${e.storage}</td>
+                    <td class="px-4 py-3"><span class="status-badge bg-islamic-green/20 text-islamic-green">SECURED</span></td>
+                    <td class="px-4 py-3">
+                        <button onclick="viewEvidenceCoC('${e.id}')" class="text-amber-600 hover:text-amber-800" title="Lihat Chain of Custody">
+                            <i data-lucide="link" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function viewEvidenceCoC(evidenceId) {
+            const ev = investigationData.evidence.find(e => e.id === evidenceId);
+            if (ev) {
+                alert(`Chain of Custody - ${ev.id}\n\nDikumpulkan oleh: ${ev.collected_by}\nTanggal: ${new Date(ev.collected_at).toLocaleString('id-ID')}\nLokasi Pengambilan: ${ev.location}\nLokasi Penyimpanan: ${ev.storage}\nHash: ${ev.hash || 'N/A'}`);
+            }
+        }
+
+        // Interview Page Functions
+        function loadInterviewPage() {
+            renderInterviewTable();
+        }
+
+        function showScheduleInterviewModal() {
+            const html = `
+                <div id="interview-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl w-full max-w-lg p-6">
+                        <h3 class="text-lg font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                            <span class="text-islamic-gold">۝</span>
+                            Jadwalkan Wawancara
+                        </h3>
+                        <form onsubmit="scheduleInterview(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Nama Narasumber</label>
+                                    <input type="text" id="int-name" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Peran</label>
+                                    <select id="int-role" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                        <option value="SUBJECT">Subjek (Terlapor)</option>
+                                        <option value="DIRECT_WITNESS">Saksi Langsung</option>
+                                        <option value="INDIRECT_WITNESS">Saksi Tidak Langsung</option>
+                                        <option value="EXPERT">Ahli/Expert</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-islamic-dark mb-1">Tanggal</label>
+                                        <input type="date" id="int-date" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-islamic-dark mb-1">Waktu</label>
+                                        <input type="time" id="int-time" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Lokasi</label>
+                                    <input type="text" id="int-location" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-2 mt-6">
+                                <button type="button" onclick="closeInterviewModal()" class="px-4 py-2 border border-islamic-green/20 rounded-lg">Batal</button>
+                                <button type="submit" class="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600">Jadwalkan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function closeInterviewModal() {
+            document.getElementById('interview-modal')?.remove();
+        }
+
+        function scheduleInterview(event) {
+            event.preventDefault();
+            const interview = {
+                id: 'INT-' + String(investigationData.interviews.length + 1).padStart(3, '0'),
+                name: document.getElementById('int-name').value,
+                role: document.getElementById('int-role').value,
+                date: document.getElementById('int-date').value,
+                time: document.getElementById('int-time').value,
+                location: document.getElementById('int-location').value,
+                status: 'SCHEDULED',
+                berita_acara: null
+            };
+            investigationData.interviews.push(interview);
+            closeInterviewModal();
+            renderInterviewTable();
+            alert('Wawancara berhasil dijadwalkan');
+        }
+
+        function renderInterviewTable() {
+            const tbody = document.getElementById('interview-table');
+            if (investigationData.interviews.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada wawancara terjadwal</td></tr>';
+                return;
+            }
+
+            const roleColors = {
+                'SUBJECT': 'bg-red-100 text-red-700',
+                'DIRECT_WITNESS': 'bg-blue-100 text-blue-700',
+                'INDIRECT_WITNESS': 'bg-amber-100 text-amber-700',
+                'EXPERT': 'bg-green-100 text-green-700'
+            };
+
+            tbody.innerHTML = investigationData.interviews.map(i => `
+                <tr class="hover:bg-islamic-light">
+                    <td class="px-4 py-3 text-sm text-islamic-dark">${new Date(i.date).toLocaleDateString('id-ID')} ${i.time}</td>
+                    <td class="px-4 py-3 text-sm text-islamic-dark font-medium">${i.name}</td>
+                    <td class="px-4 py-3"><span class="status-badge ${roleColors[i.role]}">${i.role.replace('_', ' ')}</span></td>
+                    <td class="px-4 py-3"><span class="status-badge ${i.status === 'COMPLETED' ? 'bg-islamic-green/20 text-islamic-green' : 'bg-blue-100 text-blue-700'}">${i.status}</span></td>
+                    <td class="px-4 py-3">${i.berita_acara ? '<span class="text-islamic-green"><i data-lucide="check-circle" class="w-4 h-4"></i></span>' : '<span class="text-slate-400">-</span>'}</td>
+                    <td class="px-4 py-3">
+                        <button onclick="openBeritaAcara('${i.id}')" class="text-teal-600 hover:text-teal-800" title="Buat Berita Acara">
+                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function openBeritaAcara(interviewId) {
+            const interview = investigationData.interviews.find(i => i.id === interviewId);
+            if (!interview) return;
+
+            document.getElementById('berita-acara-form').classList.remove('hidden');
+            document.getElementById('ba-number').value = `BA/${interview.id}/${new Date().getFullYear()}`;
+            document.getElementById('ba-datetime').value = `${interview.date}T${interview.time}`;
+            document.getElementById('ba-location').value = interview.location;
+            document.getElementById('ba-interviewer').value = currentUser.full_name;
+
+            localStorage.setItem('current_interview', interviewId);
+        }
+
+        function hideBeritaAcaraForm() {
+            document.getElementById('berita-acara-form').classList.add('hidden');
+        }
+
+        function saveBeritaAcara(event) {
+            event.preventDefault();
+            const interviewId = localStorage.getItem('current_interview');
+            const interview = investigationData.interviews.find(i => i.id === interviewId);
+            if (interview) {
+                interview.status = 'COMPLETED';
+                interview.berita_acara = {
+                    number: document.getElementById('ba-number').value,
+                    datetime: document.getElementById('ba-datetime').value,
+                    location: document.getElementById('ba-location').value,
+                    interviewer: document.getElementById('ba-interviewer').value,
+                    content: document.getElementById('ba-content').value,
+                    conclusion: document.getElementById('ba-conclusion').value
+                };
+            }
+            hideBeritaAcaraForm();
+            renderInterviewTable();
+            alert('Berita Acara berhasil disimpan');
+        }
+
+        // Findings Page Functions
+        function loadFindingsPage() {
+            renderFindingsTable();
+            updateReportChecklist();
+        }
+
+        function showAddFindingModal() {
+            const html = `
+                <div id="finding-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl w-full max-w-2xl p-6">
+                        <h3 class="text-lg font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                            <span class="text-islamic-gold">۝</span>
+                            Tambah Temuan
+                        </h3>
+                        <form onsubmit="addFinding(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Deskripsi Temuan</label>
+                                    <textarea id="find-desc" rows="3" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Bukti Pendukung</label>
+                                    <input type="text" id="find-evidence" required placeholder="ID bukti (pisahkan dengan koma)" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Regulasi yang Dilanggar</label>
+                                    <input type="text" id="find-regulation" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Dampak</label>
+                                    <select id="find-impact" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg">
+                                        <option value="HIGH">Tinggi - Kerugian signifikan</option>
+                                        <option value="MEDIUM">Sedang - Kerugian moderat</option>
+                                        <option value="LOW">Rendah - Kerugian minimal</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-2 mt-6">
+                                <button type="button" onclick="closeFindingModal()" class="px-4 py-2 border border-islamic-green/20 rounded-lg">Batal</button>
+                                <button type="submit" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark">Simpan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function closeFindingModal() {
+            document.getElementById('finding-modal')?.remove();
+        }
+
+        function addFinding(event) {
+            event.preventDefault();
+            const finding = {
+                id: investigationData.findings.length + 1,
+                description: document.getElementById('find-desc').value,
+                evidence: document.getElementById('find-evidence').value,
+                regulation: document.getElementById('find-regulation').value,
+                impact: document.getElementById('find-impact').value
+            };
+            investigationData.findings.push(finding);
+            closeFindingModal();
+            renderFindingsTable();
+            updateReportChecklist();
+            alert('Temuan berhasil ditambahkan');
+        }
+
+        function renderFindingsTable() {
+            const tbody = document.getElementById('findings-table');
+            if (investigationData.findings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">Belum ada temuan.</td></tr>';
+                return;
+            }
+
+            const impactColors = {
+                'HIGH': 'bg-red-100 text-red-700',
+                'MEDIUM': 'bg-amber-100 text-amber-700',
+                'LOW': 'bg-blue-100 text-blue-700'
+            };
+
+            tbody.innerHTML = investigationData.findings.map(f => `
+                <tr class="hover:bg-islamic-light">
+                    <td class="px-4 py-3 text-sm text-islamic-dark">${f.id}</td>
+                    <td class="px-4 py-3 text-sm text-islamic-dark">${f.description.substring(0, 50)}...</td>
+                    <td class="px-4 py-3 text-sm text-slate-500">${f.evidence}</td>
+                    <td class="px-4 py-3 text-sm text-slate-500">${f.regulation}</td>
+                    <td class="px-4 py-3"><span class="status-badge ${impactColors[f.impact]}">${f.impact}</span></td>
+                    <td class="px-4 py-3">
+                        <button onclick="deleteFinding(${f.id})" class="text-red-500 hover:text-red-700">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function deleteFinding(id) {
+            if (confirm('Hapus temuan ini?')) {
+                investigationData.findings = investigationData.findings.filter(f => f.id !== id);
+                renderFindingsTable();
+            }
+        }
+
+        function saveRecommendations() {
+            alert('Rekomendasi berhasil disimpan');
+            updateReportChecklist();
+        }
+
+        function saveManagementResponse() {
+            alert('Tanggapan manajemen berhasil disimpan');
+        }
+
+        function updateReportChecklist() {
+            // Simple checklist update logic
+            const checkItems = ['mandate', 'analysis', 'evidence', 'interview', 'findings', 'recommendations'];
+            const hasData = {
+                mandate: true, // Assumed from intake
+                analysis: investigationData.timeline.length > 0,
+                evidence: investigationData.evidence.length > 0,
+                interview: investigationData.interviews.filter(i => i.status === 'COMPLETED').length > 0,
+                findings: investigationData.findings.length > 0,
+                recommendations: document.getElementById('rec-corrective')?.value?.length > 0
+            };
+
+            checkItems.forEach(item => {
+                const el = document.getElementById(`check-${item}`);
+                if (el && hasData[item]) {
+                    el.classList.remove('border-slate-300');
+                    el.classList.add('border-islamic-green', 'bg-islamic-green');
+                    el.querySelector('i').classList.remove('text-slate-300');
+                    el.querySelector('i').classList.add('text-white');
+                }
+            });
+        }
+
+        function generateFinalReport() {
+            if (investigationData.findings.length === 0) {
+                alert('Harap tambahkan minimal satu temuan sebelum generate laporan');
+                return;
+            }
+            alert('Laporan Final Investigasi sedang di-generate...\n\nLaporan akan mencakup:\n- Mandat & Ruang Lingkup\n- Metodologi Investigasi\n- Analisis Data\n- Daftar Bukti & Chain of Custody\n- Hasil Wawancara\n- Matriks Temuan\n- Rekomendasi Tindakan\n- Tanggapan Manajemen');
+        }
+
+        function previewReport() {
+            alert('Fitur preview laporan dalam pengembangan');
         }
     </script>
 </body>
