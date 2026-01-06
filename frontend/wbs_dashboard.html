@@ -103,6 +103,55 @@
                     <i data-lucide="inbox" class="w-5 h-5"></i>
                     <span>Inbox</span>
                 </a>
+
+                <!-- Intake Officer Section: INTAKE_OFFICER, ADMIN -->
+                <div id="menu-intake-section" class="pt-4 mt-4 border-t border-islamic-gold/20 hidden">
+                    <p class="px-4 text-xs text-islamic-gold uppercase tracking-wider mb-2">۝ Intake</p>
+                    <a href="#" onclick="showPage('intake-queue')" id="menu-intake-queue" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="inbox" class="w-5 h-5"></i>
+                        <span>Antrian Laporan</span>
+                        <span id="intake-queue-badge" class="ml-auto bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+                    </a>
+                    <a href="#" onclick="showPage('intake-review')" id="menu-intake-review" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                        <span>Review & Validasi</span>
+                    </a>
+                    <a href="#" onclick="showPage('intake-communicate')" id="menu-intake-communicate" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="message-circle" class="w-5 h-5"></i>
+                        <span>Komunikasi Pelapor</span>
+                    </a>
+                    <a href="#" onclick="showPage('intake-escalate')" id="menu-intake-escalate" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="arrow-up-circle" class="w-5 h-5"></i>
+                        <span>Eskalasi</span>
+                    </a>
+                </div>
+
+                <!-- Manager Section: MANAGER, ADMIN -->
+                <div id="menu-manager-section" class="pt-4 mt-4 border-t border-islamic-gold/20 hidden">
+                    <p class="px-4 text-xs text-islamic-gold uppercase tracking-wider mb-2">۝ Manajemen</p>
+                    <a href="#" onclick="showPage('mgr-overview')" id="menu-mgr-overview" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                        <span>Executive Overview</span>
+                    </a>
+                    <a href="#" onclick="showPage('mgr-escalation')" id="menu-mgr-escalation" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                        <span>Eskalasi & Approval</span>
+                        <span id="escalation-badge" class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full hidden">0</span>
+                    </a>
+                    <a href="#" onclick="showPage('mgr-sla')" id="menu-mgr-sla" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="clock" class="w-5 h-5"></i>
+                        <span>SLA Monitoring</span>
+                    </a>
+                    <a href="#" onclick="showPage('mgr-risk')" id="menu-mgr-risk" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                        <span>Risk Dashboard</span>
+                    </a>
+                    <a href="#" onclick="showPage('mgr-performance')" id="menu-mgr-performance" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                        <span>Performance</span>
+                    </a>
+                </div>
+
                 <!-- Investigation Section: INVESTIGATOR, MANAGER, ADMIN -->
                 <div id="menu-investigation-section" class="pt-4 mt-4 border-t border-islamic-gold/20 hidden">
                     <p class="px-4 text-xs text-islamic-gold uppercase tracking-wider mb-2">۝ Investigasi</p>
@@ -1466,6 +1515,902 @@
                     </div>
                 </div>
 
+                <!-- ============================================== -->
+                <!-- MANAGER DASHBOARD PAGES                        -->
+                <!-- ============================================== -->
+
+                <!-- Manager Executive Overview Page -->
+                <div id="page-mgr-overview" class="page-content hidden fade-in">
+                    <!-- KPI Summary Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-slate-500">Total Laporan Bulan Ini</p>
+                                    <p id="mgr-kpi-total" class="text-3xl font-bold text-islamic-dark">0</p>
+                                    <p id="mgr-kpi-total-trend" class="text-xs text-green-600 flex items-center gap-1 mt-1">
+                                        <i data-lucide="trending-up" class="w-3 h-3"></i> +0% vs bulan lalu
+                                    </p>
+                                </div>
+                                <div class="w-14 h-14 bg-islamic-green/10 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="file-text" class="w-7 h-7 text-islamic-green"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-slate-500">Tingkat Penyelesaian</p>
+                                    <p id="mgr-kpi-resolution" class="text-3xl font-bold text-islamic-green">0%</p>
+                                    <p class="text-xs text-slate-500 mt-1">Target: 85%</p>
+                                </div>
+                                <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="check-circle-2" class="w-7 h-7 text-green-600"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-slate-500">Menunggu Approval</p>
+                                    <p id="mgr-kpi-pending" class="text-3xl font-bold text-amber-600">0</p>
+                                    <p class="text-xs text-slate-500 mt-1">Perlu tindakan segera</p>
+                                </div>
+                                <div class="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="clock" class="w-7 h-7 text-amber-600"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-slate-500">SLA Breach Risk</p>
+                                    <p id="mgr-kpi-sla-risk" class="text-3xl font-bold text-red-600">0</p>
+                                    <p class="text-xs text-slate-500 mt-1">Dalam 24 jam</p>
+                                </div>
+                                <div class="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="alert-triangle" class="w-7 h-7 text-red-600"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Status Distribution Chart -->
+                        <div class="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Distribusi Status Laporan
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                    <p class="text-2xl font-bold text-blue-600" id="mgr-stat-new">0</p>
+                                    <p class="text-sm text-slate-600">Baru</p>
+                                </div>
+                                <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                                    <p class="text-2xl font-bold text-yellow-600" id="mgr-stat-reviewing">0</p>
+                                    <p class="text-sm text-slate-600">Direview</p>
+                                </div>
+                                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                    <p class="text-2xl font-bold text-purple-600" id="mgr-stat-investigating">0</p>
+                                    <p class="text-sm text-slate-600">Investigasi</p>
+                                </div>
+                                <div class="text-center p-4 bg-red-50 rounded-lg">
+                                    <p class="text-2xl font-bold text-red-600" id="mgr-stat-escalated">0</p>
+                                    <p class="text-sm text-slate-600">Eskalasi</p>
+                                </div>
+                            </div>
+                            <!-- Severity Breakdown -->
+                            <h4 class="font-medium text-islamic-dark mt-6 mb-3">Breakdown Tingkat Keparahan</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-20 text-sm text-slate-600">CRITICAL</span>
+                                    <div class="flex-1 bg-slate-200 rounded-full h-4 overflow-hidden">
+                                        <div id="mgr-sev-critical" class="bg-red-600 h-full rounded-full" style="width: 0%"></div>
+                                    </div>
+                                    <span id="mgr-sev-critical-count" class="text-sm font-medium text-slate-700">0</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="w-20 text-sm text-slate-600">HIGH</span>
+                                    <div class="flex-1 bg-slate-200 rounded-full h-4 overflow-hidden">
+                                        <div id="mgr-sev-high" class="bg-orange-500 h-full rounded-full" style="width: 0%"></div>
+                                    </div>
+                                    <span id="mgr-sev-high-count" class="text-sm font-medium text-slate-700">0</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="w-20 text-sm text-slate-600">MEDIUM</span>
+                                    <div class="flex-1 bg-slate-200 rounded-full h-4 overflow-hidden">
+                                        <div id="mgr-sev-medium" class="bg-yellow-500 h-full rounded-full" style="width: 0%"></div>
+                                    </div>
+                                    <span id="mgr-sev-medium-count" class="text-sm font-medium text-slate-700">0</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="w-20 text-sm text-slate-600">LOW</span>
+                                    <div class="flex-1 bg-slate-200 rounded-full h-4 overflow-hidden">
+                                        <div id="mgr-sev-low" class="bg-green-500 h-full rounded-full" style="width: 0%"></div>
+                                    </div>
+                                    <span id="mgr-sev-low-count" class="text-sm font-medium text-slate-700">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions & Alerts -->
+                        <div class="space-y-6">
+                            <!-- Urgent Alerts -->
+                            <div class="bg-red-50 rounded-xl p-6 border border-red-200">
+                                <h4 class="font-semibold text-red-800 mb-3 flex items-center gap-2">
+                                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                                    Perhatian Segera
+                                </h4>
+                                <div id="mgr-urgent-alerts" class="space-y-2">
+                                    <p class="text-sm text-red-700">Memuat...</p>
+                                </div>
+                            </div>
+
+                            <!-- Recent Activity -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-semibold text-islamic-dark mb-3 flex items-center gap-2">
+                                    <i data-lucide="activity" class="w-5 h-5 text-islamic-gold"></i>
+                                    Aktivitas Terbaru
+                                </h4>
+                                <div id="mgr-recent-activity" class="space-y-3 max-h-60 overflow-y-auto">
+                                    <p class="text-sm text-slate-500">Memuat...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Analysis -->
+                    <div class="mt-6 bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                        <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                            <span class="text-islamic-gold">۝</span>
+                            Analisis Kategori Pelanggaran
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="mgr-category-stats">
+                            <div class="text-center p-4 bg-slate-50 rounded-lg">
+                                <p class="text-2xl font-bold text-slate-600">0</p>
+                                <p class="text-xs text-slate-500">Korupsi</p>
+                            </div>
+                            <div class="text-center p-4 bg-slate-50 rounded-lg">
+                                <p class="text-2xl font-bold text-slate-600">0</p>
+                                <p class="text-xs text-slate-500">Fraud</p>
+                            </div>
+                            <div class="text-center p-4 bg-slate-50 rounded-lg">
+                                <p class="text-2xl font-bold text-slate-600">0</p>
+                                <p class="text-xs text-slate-500">COI</p>
+                            </div>
+                            <div class="text-center p-4 bg-slate-50 rounded-lg">
+                                <p class="text-2xl font-bold text-slate-600">0</p>
+                                <p class="text-xs text-slate-500">Gratifikasi</p>
+                            </div>
+                            <div class="text-center p-4 bg-slate-50 rounded-lg">
+                                <p class="text-2xl font-bold text-slate-600">0</p>
+                                <p class="text-xs text-slate-500">Lainnya</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manager Escalation & Approval Page -->
+                <div id="page-mgr-escalation" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Escalation Queue -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- Pending Approvals -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                        <span class="text-islamic-gold">۝</span>
+                                        Menunggu Persetujuan
+                                    </h3>
+                                    <span id="mgr-pending-count" class="bg-amber-500 text-white px-3 py-1 rounded-full text-sm">0</span>
+                                </div>
+                                <div id="mgr-pending-list" class="space-y-4">
+                                    <div class="p-4 bg-slate-50 rounded-lg text-center text-slate-500">
+                                        Tidak ada item menunggu persetujuan
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Escalated Cases -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-red-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-semibold text-red-800 flex items-center gap-2">
+                                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                                        Kasus Eskalasi
+                                    </h3>
+                                    <span id="mgr-escalated-count" class="bg-red-500 text-white px-3 py-1 rounded-full text-sm">0</span>
+                                </div>
+                                <div id="mgr-escalated-list" class="space-y-4">
+                                    <div class="p-4 bg-red-50 rounded-lg text-center text-red-600">
+                                        Tidak ada kasus eskalasi
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Approval Actions Sidebar -->
+                        <div class="space-y-6">
+                            <!-- Quick Stats -->
+                            <div class="bg-gradient-to-br from-islamic-green to-islamic-dark text-white rounded-xl p-6">
+                                <h4 class="font-semibold mb-4">Ringkasan Approval</h4>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-emerald-200">Disetujui Hari Ini</span>
+                                        <span id="mgr-approved-today" class="font-bold">0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-emerald-200">Ditolak Hari Ini</span>
+                                        <span id="mgr-rejected-today" class="font-bold">0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-emerald-200">Rata-rata Response</span>
+                                        <span id="mgr-avg-response" class="font-bold">-</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Escalation Matrix -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-semibold text-islamic-dark mb-3">Matriks Eskalasi</h4>
+                                <div class="space-y-3 text-sm">
+                                    <div class="p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
+                                        <p class="font-medium text-red-800">Level 4 - Direktur Utama</p>
+                                        <p class="text-red-600 text-xs">CRITICAL > Rp 1M</p>
+                                    </div>
+                                    <div class="p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                                        <p class="font-medium text-orange-800">Level 3 - Direktur</p>
+                                        <p class="text-orange-600 text-xs">HIGH > Rp 500jt</p>
+                                    </div>
+                                    <div class="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                                        <p class="font-medium text-yellow-800">Level 2 - Kepala Divisi</p>
+                                        <p class="text-yellow-600 text-xs">MEDIUM > Rp 100jt</p>
+                                    </div>
+                                    <div class="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                                        <p class="font-medium text-green-800">Level 1 - Manager WBS</p>
+                                        <p class="text-green-600 text-xs">LOW < Rp 100jt</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manager SLA Monitoring Page -->
+                <div id="page-mgr-sla" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-green-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-slate-500">On Track</p>
+                                    <p id="sla-on-track" class="text-2xl font-bold text-green-600">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-yellow-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="clock" class="w-6 h-6 text-yellow-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-slate-500">At Risk (24h)</p>
+                                    <p id="sla-at-risk" class="text-2xl font-bold text-yellow-600">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-orange-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="alert-triangle" class="w-6 h-6 text-orange-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-slate-500">Warning (48h)</p>
+                                    <p id="sla-warning" class="text-2xl font-bold text-orange-600">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-red-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="x-circle" class="w-6 h-6 text-red-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-slate-500">Breached</p>
+                                    <p id="sla-breached" class="text-2xl font-bold text-red-600">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SLA Details Table -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Detail SLA per Laporan
+                            </h3>
+                            <select id="sla-filter" class="px-4 py-2 border border-islamic-green/20 rounded-lg text-sm" onchange="filterSLATable()">
+                                <option value="all">Semua Status</option>
+                                <option value="breached">Breached Only</option>
+                                <option value="at-risk">At Risk</option>
+                                <option value="on-track">On Track</option>
+                            </select>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-islamic-light">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Ticket ID</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Severity</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Target SLA</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Elapsed</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Remaining</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sla-table-body" class="divide-y divide-islamic-green/10">
+                                    <tr>
+                                        <td colspan="7" class="px-4 py-8 text-center text-slate-500">Memuat data SLA...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- SLA Configuration Reference -->
+                    <div class="mt-6 bg-islamic-light rounded-xl p-6">
+                        <h4 class="font-semibold text-islamic-dark mb-4">Konfigurasi SLA per Severity</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-white p-4 rounded-lg border border-red-200">
+                                <p class="font-medium text-red-600">CRITICAL</p>
+                                <p class="text-sm text-slate-600">Response: 4 jam</p>
+                                <p class="text-sm text-slate-600">Resolution: 3 hari</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg border border-orange-200">
+                                <p class="font-medium text-orange-600">HIGH</p>
+                                <p class="text-sm text-slate-600">Response: 8 jam</p>
+                                <p class="text-sm text-slate-600">Resolution: 7 hari</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg border border-yellow-200">
+                                <p class="font-medium text-yellow-600">MEDIUM</p>
+                                <p class="text-sm text-slate-600">Response: 24 jam</p>
+                                <p class="text-sm text-slate-600">Resolution: 14 hari</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg border border-green-200">
+                                <p class="font-medium text-green-600">LOW</p>
+                                <p class="text-sm text-slate-600">Response: 48 jam</p>
+                                <p class="text-sm text-slate-600">Resolution: 30 hari</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manager Risk Dashboard Page -->
+                <div id="page-mgr-risk" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Risk Matrix -->
+                        <div class="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Risk Heat Map
+                            </h3>
+                            <div class="grid grid-cols-4 gap-2 text-center text-sm">
+                                <div></div>
+                                <div class="font-medium text-slate-600 py-2">Low Impact</div>
+                                <div class="font-medium text-slate-600 py-2">Med Impact</div>
+                                <div class="font-medium text-slate-600 py-2">High Impact</div>
+
+                                <div class="font-medium text-slate-600 py-4">High Likelihood</div>
+                                <div id="risk-hl-li" class="bg-yellow-400 rounded-lg p-4 cursor-pointer hover:opacity-80" onclick="showRiskDetails('medium-high')">0</div>
+                                <div id="risk-hl-mi" class="bg-orange-500 text-white rounded-lg p-4 cursor-pointer hover:opacity-80" onclick="showRiskDetails('high')">0</div>
+                                <div id="risk-hl-hi" class="bg-red-600 text-white rounded-lg p-4 cursor-pointer hover:opacity-80" onclick="showRiskDetails('critical')">0</div>
+
+                                <div class="font-medium text-slate-600 py-4">Med Likelihood</div>
+                                <div id="risk-ml-li" class="bg-green-400 rounded-lg p-4 cursor-pointer hover:opacity-80" onclick="showRiskDetails('low')">0</div>
+                                <div id="risk-ml-mi" class="bg-yellow-400 rounded-lg p-4 cursor-pointer hover:opacity-80" onclick="showRiskDetails('medium')">0</div>
+                                <div id="risk-ml-hi" class="bg-orange-500 text-white rounded-lg p-4 cursor-pointer hover:opacity-80" onclick="showRiskDetails('high')">0</div>
+
+                                <div class="font-medium text-slate-600 py-4">Low Likelihood</div>
+                                <div id="risk-ll-li" class="bg-green-300 rounded-lg p-4 cursor-pointer hover:opacity-80" onclick="showRiskDetails('very-low')">0</div>
+                                <div id="risk-ll-mi" class="bg-green-400 rounded-lg p-4 cursor-pointer hover:opacity-80" onclick="showRiskDetails('low')">0</div>
+                                <div id="risk-ll-hi" class="bg-yellow-400 rounded-lg p-4 cursor-pointer hover:opacity-80" onclick="showRiskDetails('medium')">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Risk Summary -->
+                        <div class="space-y-6">
+                            <div class="bg-gradient-to-br from-red-600 to-red-800 text-white rounded-xl p-6">
+                                <h4 class="font-semibold mb-2">Total Potensi Kerugian</h4>
+                                <p id="risk-total-loss" class="text-3xl font-bold">Rp 0</p>
+                                <p class="text-red-200 text-sm mt-1">Berdasarkan estimasi dampak finansial</p>
+                            </div>
+
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-semibold text-islamic-dark mb-3">Top Risk Areas</h4>
+                                <div id="risk-top-areas" class="space-y-3">
+                                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
+                                        <span class="text-sm text-slate-600">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Register -->
+                    <div class="mt-6 bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                        <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                            <span class="text-islamic-gold">۝</span>
+                            Risk Register
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-islamic-light">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Risk ID</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Deskripsi</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Kategori</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Likelihood</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Impact</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Score</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Mitigasi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="risk-register-body" class="divide-y divide-islamic-green/10">
+                                    <tr>
+                                        <td colspan="7" class="px-4 py-8 text-center text-slate-500">Memuat risk register...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manager Performance Page -->
+                <div id="page-mgr-performance" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Team Performance -->
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Kinerja Tim
+                            </h3>
+                            <div id="team-performance" class="space-y-4">
+                                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-islamic-green/20 rounded-full flex items-center justify-center">
+                                            <i data-lucide="user" class="w-5 h-5 text-islamic-green"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-islamic-dark">Tim Intake</p>
+                                            <p class="text-xs text-slate-500">2 anggota aktif</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-islamic-green">85%</p>
+                                        <p class="text-xs text-slate-500">SLA compliance</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <i data-lucide="search" class="w-5 h-5 text-purple-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-islamic-dark">Tim Investigasi</p>
+                                            <p class="text-xs text-slate-500">3 anggota aktif</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-purple-600">78%</p>
+                                        <p class="text-xs text-slate-500">SLA compliance</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Monthly Metrics -->
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Metrik Bulanan
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                    <p id="perf-total-received" class="text-2xl font-bold text-blue-600">0</p>
+                                    <p class="text-sm text-slate-600">Laporan Masuk</p>
+                                </div>
+                                <div class="text-center p-4 bg-green-50 rounded-lg">
+                                    <p id="perf-total-closed" class="text-2xl font-bold text-green-600">0</p>
+                                    <p class="text-sm text-slate-600">Laporan Selesai</p>
+                                </div>
+                                <div class="text-center p-4 bg-amber-50 rounded-lg">
+                                    <p id="perf-avg-resolution" class="text-2xl font-bold text-amber-600">0</p>
+                                    <p class="text-sm text-slate-600">Hari Rata-rata</p>
+                                </div>
+                                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                    <p id="perf-proven-rate" class="text-2xl font-bold text-purple-600">0%</p>
+                                    <p class="text-sm text-slate-600">Terbukti</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trend Analysis -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                        <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                            <span class="text-islamic-gold">۝</span>
+                            Tren 6 Bulan Terakhir
+                        </h3>
+                        <div class="grid grid-cols-6 gap-2 text-center">
+                            <div class="p-4 bg-slate-50 rounded-lg">
+                                <p class="text-xs text-slate-500">Jul</p>
+                                <div class="h-20 flex items-end justify-center mt-2">
+                                    <div class="w-6 bg-islamic-green/60 rounded-t" style="height: 40%"></div>
+                                </div>
+                                <p class="text-sm font-medium mt-2">12</p>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-lg">
+                                <p class="text-xs text-slate-500">Aug</p>
+                                <div class="h-20 flex items-end justify-center mt-2">
+                                    <div class="w-6 bg-islamic-green/60 rounded-t" style="height: 60%"></div>
+                                </div>
+                                <p class="text-sm font-medium mt-2">18</p>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-lg">
+                                <p class="text-xs text-slate-500">Sep</p>
+                                <div class="h-20 flex items-end justify-center mt-2">
+                                    <div class="w-6 bg-islamic-green/60 rounded-t" style="height: 45%"></div>
+                                </div>
+                                <p class="text-sm font-medium mt-2">14</p>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-lg">
+                                <p class="text-xs text-slate-500">Oct</p>
+                                <div class="h-20 flex items-end justify-center mt-2">
+                                    <div class="w-6 bg-islamic-green/60 rounded-t" style="height: 70%"></div>
+                                </div>
+                                <p class="text-sm font-medium mt-2">21</p>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-lg">
+                                <p class="text-xs text-slate-500">Nov</p>
+                                <div class="h-20 flex items-end justify-center mt-2">
+                                    <div class="w-6 bg-islamic-green/60 rounded-t" style="height: 55%"></div>
+                                </div>
+                                <p class="text-sm font-medium mt-2">16</p>
+                            </div>
+                            <div class="p-4 bg-islamic-green/10 rounded-lg border-2 border-islamic-green">
+                                <p class="text-xs text-islamic-green font-medium">Dec</p>
+                                <div class="h-20 flex items-end justify-center mt-2">
+                                    <div class="w-6 bg-islamic-green rounded-t" style="height: 80%"></div>
+                                </div>
+                                <p class="text-sm font-bold text-islamic-green mt-2">24</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================== -->
+                <!-- INTAKE OFFICER DASHBOARD PAGES                 -->
+                <!-- ============================================== -->
+
+                <!-- Intake Queue Page -->
+                <div id="page-intake-queue" class="page-content hidden fade-in">
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-blue-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="inbox" class="w-5 h-5 text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500">Laporan Baru</p>
+                                    <p id="intake-new-count" class="text-xl font-bold text-blue-600">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-yellow-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="eye" class="w-5 h-5 text-yellow-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500">Sedang Direview</p>
+                                    <p id="intake-reviewing-count" class="text-xl font-bold text-yellow-600">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-purple-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="help-circle" class="w-5 h-5 text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500">Perlu Info Tambahan</p>
+                                    <p id="intake-needinfo-count" class="text-xl font-bold text-purple-600">0</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-red-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500">Prioritas Tinggi</p>
+                                    <p id="intake-priority-count" class="text-xl font-bold text-red-600">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reports Queue Table -->
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Antrian Laporan Masuk
+                            </h3>
+                            <div class="flex gap-2">
+                                <select id="intake-queue-filter" class="px-3 py-2 border border-islamic-green/20 rounded-lg text-sm" onchange="filterIntakeQueue()">
+                                    <option value="all">Semua Status</option>
+                                    <option value="NEW">Baru</option>
+                                    <option value="REVIEWING">Direview</option>
+                                    <option value="NEED_INFO">Perlu Info</option>
+                                </select>
+                                <button onclick="loadIntakeQueue()" class="px-3 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark text-sm flex items-center gap-2">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-islamic-light">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Ticket ID</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Tanggal</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Sumber</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Kategori</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Ringkasan</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">SLA</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold text-islamic-dark">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="intake-queue-body" class="divide-y divide-islamic-green/10">
+                                    <tr>
+                                        <td colspan="8" class="px-4 py-8 text-center text-slate-500">Memuat antrian laporan...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Intake Review & Validation Page -->
+                <div id="page-intake-review" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Report Details -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- Selected Report -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                        <span class="text-islamic-gold">۝</span>
+                                        Detail Laporan
+                                    </h3>
+                                    <span id="review-ticket-id" class="font-mono text-sm bg-slate-100 px-3 py-1 rounded">-</span>
+                                </div>
+                                <div id="review-report-content" class="space-y-4">
+                                    <p class="text-slate-500 text-center py-8">Pilih laporan dari antrian untuk direview</p>
+                                </div>
+                            </div>
+
+                            <!-- AI Analysis Summary -->
+                            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+                                <h4 class="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                                    <i data-lucide="cpu" class="w-5 h-5"></i>
+                                    Analisis AI
+                                </h4>
+                                <div id="review-ai-analysis" class="space-y-3">
+                                    <p class="text-purple-600 text-sm">Analisis AI akan muncul setelah memilih laporan</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Validation Actions -->
+                        <div class="space-y-6">
+                            <!-- Validation Checklist -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-semibold text-islamic-dark mb-4">Checklist Validasi</h4>
+                                <div class="space-y-3">
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <input type="checkbox" id="check-complete" class="w-5 h-5 rounded border-slate-300 text-islamic-green focus:ring-islamic-green">
+                                        <span class="text-sm text-slate-700">Informasi lengkap (5W1H)</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <input type="checkbox" id="check-evidence" class="w-5 h-5 rounded border-slate-300 text-islamic-green focus:ring-islamic-green">
+                                        <span class="text-sm text-slate-700">Bukti pendukung tersedia</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <input type="checkbox" id="check-jurisdiction" class="w-5 h-5 rounded border-slate-300 text-islamic-green focus:ring-islamic-green">
+                                        <span class="text-sm text-slate-700">Dalam yurisdiksi BPKH</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <input type="checkbox" id="check-not-duplicate" class="w-5 h-5 rounded border-slate-300 text-islamic-green focus:ring-islamic-green">
+                                        <span class="text-sm text-slate-700">Bukan duplikat</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <input type="checkbox" id="check-actionable" class="w-5 h-5 rounded border-slate-300 text-islamic-green focus:ring-islamic-green">
+                                        <span class="text-sm text-slate-700">Dapat ditindaklanjuti</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-semibold text-islamic-dark mb-4">Tindakan</h4>
+                                <div class="space-y-3">
+                                    <button onclick="acceptReport()" class="w-full px-4 py-3 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark flex items-center justify-center gap-2">
+                                        <i data-lucide="check" class="w-5 h-5"></i>
+                                        Terima & Teruskan ke Investigasi
+                                    </button>
+                                    <button onclick="requestMoreInfo()" class="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2">
+                                        <i data-lucide="message-circle" class="w-5 h-5"></i>
+                                        Minta Informasi Tambahan
+                                    </button>
+                                    <button onclick="rejectReport()" class="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2">
+                                        <i data-lucide="x" class="w-5 h-5"></i>
+                                        Tolak Laporan
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-semibold text-islamic-dark mb-3">Catatan Review</h4>
+                                <textarea id="review-notes" rows="4" placeholder="Tambahkan catatan review..." class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg text-sm"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Intake Communication Page -->
+                <div id="page-intake-communicate" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Communication List -->
+                        <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Daftar Komunikasi
+                            </h3>
+                            <div class="space-y-2 max-h-96 overflow-y-auto" id="comm-ticket-list">
+                                <div class="p-3 bg-slate-50 rounded-lg text-center text-slate-500">
+                                    Tidak ada komunikasi pending
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Interface -->
+                        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-islamic-green/10 flex flex-col h-[600px]">
+                            <!-- Chat Header -->
+                            <div class="p-4 border-b border-islamic-green/10 flex items-center justify-between">
+                                <div>
+                                    <h4 id="comm-current-ticket" class="font-semibold text-islamic-dark">Pilih Tiket</h4>
+                                    <p id="comm-current-status" class="text-sm text-slate-500">-</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="loadChatHistory()" class="p-2 hover:bg-slate-100 rounded-lg">
+                                        <i data-lucide="refresh-cw" class="w-5 h-5 text-slate-600"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Messages -->
+                            <div id="comm-messages" class="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50">
+                                <div class="text-center text-slate-500 py-8">
+                                    Pilih tiket untuk melihat riwayat komunikasi
+                                </div>
+                            </div>
+
+                            <!-- Message Input -->
+                            <div class="p-4 border-t border-islamic-green/10">
+                                <div class="flex gap-2">
+                                    <input type="text" id="comm-message-input" placeholder="Ketik pesan..." class="flex-1 px-4 py-2 border border-islamic-green/20 rounded-lg" onkeypress="if(event.key==='Enter')sendMessage()">
+                                    <button onclick="sendMessage()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark flex items-center gap-2">
+                                        <i data-lucide="send" class="w-5 h-5"></i>
+                                        Kirim
+                                    </button>
+                                </div>
+                                <div class="mt-2 flex gap-2">
+                                    <button onclick="sendTemplate('request_info')" class="text-xs px-3 py-1 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200">📋 Minta Info</button>
+                                    <button onclick="sendTemplate('update_status')" class="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200">📊 Update Status</button>
+                                    <button onclick="sendTemplate('thank_you')" class="text-xs px-3 py-1 bg-green-100 text-green-700 rounded-full hover:bg-green-200">🙏 Terima Kasih</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Intake Escalation Page -->
+                <div id="page-intake-escalate" class="page-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Reports to Escalate -->
+                        <div class="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                            <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Laporan Perlu Eskalasi
+                            </h3>
+                            <div id="escalate-list" class="space-y-4">
+                                <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <span class="font-mono text-sm bg-amber-100 px-2 py-1 rounded">ABC12345</span>
+                                            <span class="ml-2 px-2 py-1 bg-red-100 text-red-700 text-xs rounded">CRITICAL</span>
+                                        </div>
+                                        <span class="text-xs text-amber-600">SLA: 2 jam tersisa</span>
+                                    </div>
+                                    <p class="mt-2 text-sm text-slate-700">Dugaan penyalahgunaan dana operasional dengan estimasi kerugian > Rp 1 Miliar</p>
+                                    <div class="mt-3 flex gap-2">
+                                        <button onclick="escalateToManager('ABC12345')" class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">
+                                            Eskalasi ke Manager
+                                        </button>
+                                        <button onclick="viewReportDetail('ABC12345')" class="px-3 py-1 bg-slate-200 text-slate-700 rounded text-sm hover:bg-slate-300">
+                                            Lihat Detail
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Escalation Guide -->
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10">
+                                <h4 class="font-semibold text-islamic-dark mb-4">Kriteria Eskalasi</h4>
+                                <div class="space-y-3 text-sm">
+                                    <div class="p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
+                                        <p class="font-medium text-red-800">CRITICAL</p>
+                                        <p class="text-red-600 text-xs">Dampak > Rp 1M atau melibatkan pejabat tinggi</p>
+                                    </div>
+                                    <div class="p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                                        <p class="font-medium text-orange-800">HIGH</p>
+                                        <p class="text-orange-600 text-xs">Dampak Rp 500jt - Rp 1M atau reputasi institusi</p>
+                                    </div>
+                                    <div class="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                                        <p class="font-medium text-yellow-800">Auto-Escalate If:</p>
+                                        <ul class="text-yellow-700 text-xs list-disc list-inside mt-1">
+                                            <li>SLA response terlewat</li>
+                                            <li>Fraud score > 0.7</li>
+                                            <li>Bukti kuat tersedia</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-islamic-green to-islamic-dark text-white rounded-xl p-6">
+                                <h4 class="font-semibold mb-3">Panduan Eskalasi</h4>
+                                <ul class="text-sm text-emerald-200 space-y-2">
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+                                        <span>Pastikan semua informasi telah diverifikasi</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+                                        <span>Sertakan catatan analisis awal</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+                                        <span>Pilih level eskalasi yang tepat</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
@@ -1523,24 +2468,24 @@
         // Role-based UI configuration
         const ROLE_CONFIG = {
             'ADMIN': {
-                menus: ['investigation-section', 'analysis', 'knowledge', 'settings-section', 'settings', 'audit', 'users'],
+                menus: ['intake-section', 'manager-section', 'investigation-section', 'analysis', 'knowledge', 'settings-section', 'settings', 'audit', 'users'],
                 welcome: 'Selamat Datang, Administrator',
                 description: 'Anda memiliki akses penuh ke semua fitur sistem WBS BPKH',
                 quickActions: [
                     { icon: 'users', label: 'Kelola User', action: "showPage('users')", color: 'bg-purple-500' },
-                    { icon: 'database', label: 'Knowledge Base', action: "showPage('knowledge')", color: 'bg-blue-500' },
+                    { icon: 'layout-dashboard', label: 'Executive View', action: "showPage('mgr-overview')", color: 'bg-blue-500' },
                     { icon: 'settings', label: 'Pengaturan', action: "showPage('settings')", color: 'bg-slate-500' }
                 ],
                 statusFilter: null // Can see all
             },
             'MANAGER': {
-                menus: ['investigation-section', 'analysis', 'settings-section', 'audit'],
+                menus: ['manager-section', 'investigation-section', 'analysis', 'settings-section', 'audit'],
                 welcome: 'Selamat Datang, Pimpinan WBS',
-                description: 'Fokus: Oversight laporan HIGH/CRITICAL dan eskalasi',
+                description: 'Fokus: Oversight, monitoring SLA, dan eskalasi',
                 quickActions: [
-                    { icon: 'alert-triangle', label: 'Laporan Critical', action: "filterBySeverity('CRITICAL')", color: 'bg-red-500' },
-                    { icon: 'trending-up', label: 'Laporan Eskalasi', action: "filterByStatus('ESCALATED')", color: 'bg-orange-500' },
-                    { icon: 'search', label: 'Dashboard Investigasi', action: "showPage('inv-dashboard')", color: 'bg-indigo-500' }
+                    { icon: 'layout-dashboard', label: 'Executive Overview', action: "showPage('mgr-overview')", color: 'bg-blue-600' },
+                    { icon: 'alert-triangle', label: 'Eskalasi & Approval', action: "showPage('mgr-escalation')", color: 'bg-red-500' },
+                    { icon: 'clock', label: 'SLA Monitoring', action: "showPage('mgr-sla')", color: 'bg-amber-500' }
                 ],
                 statusFilter: null // Can see all but focus on escalated
             },
@@ -1556,13 +2501,13 @@
                 statusFilter: ['INVESTIGATING', 'ESCALATED', 'CLOSED_PROVEN', 'CLOSED_NOT_PROVEN']
             },
             'INTAKE_OFFICER': {
-                menus: [],
+                menus: ['intake-section'],
                 welcome: 'Selamat Datang, Penerima Laporan',
                 description: 'Fokus: Review laporan baru dan komunikasi dengan pelapor',
                 quickActions: [
-                    { icon: 'inbox', label: 'Laporan Baru', action: "filterByStatus('NEW')", color: 'bg-blue-500' },
-                    { icon: 'eye', label: 'Sedang Review', action: "filterByStatus('REVIEWING')", color: 'bg-purple-500' },
-                    { icon: 'message-circle', label: 'Butuh Info', action: "filterByStatus('NEED_INFO')", color: 'bg-yellow-500' }
+                    { icon: 'inbox', label: 'Antrian Laporan', action: "showPage('intake-queue')", color: 'bg-blue-500' },
+                    { icon: 'clipboard-check', label: 'Review & Validasi', action: "showPage('intake-review')", color: 'bg-purple-500' },
+                    { icon: 'message-circle', label: 'Komunikasi Pelapor', action: "showPage('intake-communicate')", color: 'bg-teal-500' }
                 ],
                 statusFilter: ['NEW', 'REVIEWING', 'NEED_INFO']
             }
@@ -1689,7 +2634,18 @@
                 'inv-analysis': 'Analisis Data',
                 'inv-evidence': 'Bukti & Chain of Custody',
                 'inv-interview': 'Wawancara',
-                'inv-findings': 'Temuan & Laporan'
+                'inv-findings': 'Temuan & Laporan',
+                // Manager pages
+                'mgr-overview': 'Executive Overview',
+                'mgr-escalation': 'Eskalasi & Approval',
+                'mgr-sla': 'SLA Monitoring',
+                'mgr-risk': 'Risk Dashboard',
+                'mgr-performance': 'Performance',
+                // Intake Officer pages
+                'intake-queue': 'Antrian Laporan',
+                'intake-review': 'Review & Validasi',
+                'intake-communicate': 'Komunikasi Pelapor',
+                'intake-escalate': 'Eskalasi'
             };
             document.getElementById('page-title').textContent = titles[page] || 'Dashboard';
 
@@ -1702,6 +2658,17 @@
             if (page === 'inv-evidence') loadEvidencePage();
             if (page === 'inv-interview') loadInterviewPage();
             if (page === 'inv-findings') loadFindingsPage();
+            // Manager pages
+            if (page === 'mgr-overview') loadManagerOverview();
+            if (page === 'mgr-escalation') loadManagerEscalation();
+            if (page === 'mgr-sla') loadManagerSLA();
+            if (page === 'mgr-risk') loadManagerRisk();
+            if (page === 'mgr-performance') loadManagerPerformance();
+            // Intake Officer pages
+            if (page === 'intake-queue') loadIntakeQueue();
+            if (page === 'intake-review') loadIntakeReviewPage();
+            if (page === 'intake-communicate') loadIntakeCommunicate();
+            if (page === 'intake-escalate') loadIntakeEscalate();
 
             lucide.createIcons();
         }
@@ -2960,6 +3927,686 @@
 
         function previewReport() {
             alert('Fitur preview laporan dalam pengembangan');
+        }
+
+        // ============================================
+        // MANAGER DASHBOARD FUNCTIONS
+        // ============================================
+
+        async function loadManagerOverview() {
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/dashboard/stats`);
+                if (!response || !response.ok) throw new Error('Failed to load stats');
+                const data = await response.json();
+
+                // Update KPIs
+                document.getElementById('mgr-kpi-total').textContent = data.total_reports || 0;
+                document.getElementById('mgr-kpi-sla-risk').textContent = data.sla_at_risk || 0;
+                document.getElementById('mgr-kpi-pending').textContent = data.pending_review || 0;
+
+                // Calculate resolution rate
+                const total = data.total_reports || 1;
+                const closed = (data.status_breakdown?.CLOSED_PROVEN || 0) + (data.status_breakdown?.CLOSED_NOT_PROVEN || 0) + (data.status_breakdown?.CLOSED_DROPPED || 0);
+                const resolutionRate = Math.round((closed / total) * 100);
+                document.getElementById('mgr-kpi-resolution').textContent = resolutionRate + '%';
+
+                // Update status distribution
+                if (data.status_breakdown) {
+                    document.getElementById('mgr-stat-new').textContent = data.status_breakdown.NEW || 0;
+                    document.getElementById('mgr-stat-reviewing').textContent = data.status_breakdown.REVIEWING || 0;
+                    document.getElementById('mgr-stat-investigating').textContent = data.status_breakdown.INVESTIGATING || 0;
+                    document.getElementById('mgr-stat-escalated').textContent = data.status_breakdown.ESCALATED || 0;
+                }
+
+                // Update severity breakdown
+                if (data.severity_breakdown) {
+                    const sevTotal = Object.values(data.severity_breakdown).reduce((a, b) => a + b, 0) || 1;
+                    const critical = data.severity_breakdown.CRITICAL || 0;
+                    const high = data.severity_breakdown.HIGH || 0;
+                    const medium = data.severity_breakdown.MEDIUM || 0;
+                    const low = data.severity_breakdown.LOW || 0;
+
+                    document.getElementById('mgr-sev-critical').style.width = (critical / sevTotal * 100) + '%';
+                    document.getElementById('mgr-sev-critical-count').textContent = critical;
+                    document.getElementById('mgr-sev-high').style.width = (high / sevTotal * 100) + '%';
+                    document.getElementById('mgr-sev-high-count').textContent = high;
+                    document.getElementById('mgr-sev-medium').style.width = (medium / sevTotal * 100) + '%';
+                    document.getElementById('mgr-sev-medium-count').textContent = medium;
+                    document.getElementById('mgr-sev-low').style.width = (low / sevTotal * 100) + '%';
+                    document.getElementById('mgr-sev-low-count').textContent = low;
+                }
+
+                // Update urgent alerts
+                const alertsEl = document.getElementById('mgr-urgent-alerts');
+                const alerts = [];
+                if (data.sla_at_risk > 0) alerts.push(`<div class="p-2 bg-red-100 rounded text-sm">${data.sla_at_risk} laporan hampir breach SLA</div>`);
+                if (data.status_breakdown?.ESCALATED > 0) alerts.push(`<div class="p-2 bg-orange-100 rounded text-sm">${data.status_breakdown.ESCALATED} kasus eskalasi menunggu</div>`);
+                if (data.severity_breakdown?.CRITICAL > 0) alerts.push(`<div class="p-2 bg-red-100 rounded text-sm">${data.severity_breakdown.CRITICAL} kasus CRITICAL aktif</div>`);
+                alertsEl.innerHTML = alerts.length > 0 ? alerts.join('') : '<p class="text-sm text-green-600">Tidak ada alert mendesak</p>';
+
+                // Update recent activity
+                document.getElementById('mgr-recent-activity').innerHTML = `
+                    <div class="flex items-center gap-2 text-sm">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span class="text-slate-600">Dashboard dimuat</span>
+                        <span class="text-slate-400 ml-auto text-xs">${new Date().toLocaleTimeString('id-ID')}</span>
+                    </div>
+                `;
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading manager overview:', error);
+            }
+        }
+
+        async function loadManagerEscalation() {
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/reports?status=ESCALATED&limit=20`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const data = await response.json();
+                const reports = data.reports || [];
+
+                // Update escalated count
+                document.getElementById('mgr-escalated-count').textContent = reports.length;
+
+                // Render escalated list
+                const listEl = document.getElementById('mgr-escalated-list');
+                if (reports.length === 0) {
+                    listEl.innerHTML = '<div class="p-4 bg-green-50 rounded-lg text-center text-green-600">Tidak ada kasus eskalasi</div>';
+                } else {
+                    listEl.innerHTML = reports.map(r => `
+                        <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <span class="font-mono text-sm bg-red-100 px-2 py-1 rounded">${r.ticket_id}</span>
+                                    <span class="ml-2 px-2 py-1 bg-${getSeverityColor(r.severity)}-100 text-${getSeverityColor(r.severity)}-700 text-xs rounded">${r.severity || 'MEDIUM'}</span>
+                                </div>
+                                <span class="text-xs text-red-600">${formatDate(r.created_at)}</span>
+                            </div>
+                            <p class="mt-2 text-sm text-slate-700">${escapeHtml(r.subject || r.title || '-')}</p>
+                            <div class="mt-3 flex gap-2">
+                                <button onclick="approveEscalation('${r.id}')" class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700">Approve</button>
+                                <button onclick="viewReportModal('${r.id}')" class="px-3 py-1 bg-slate-200 text-slate-700 rounded text-sm hover:bg-slate-300">Detail</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Load pending approvals (using REVIEWING status as proxy)
+                const pendingResponse = await authFetch(`${API_URL}/api/v1/reports?status=REVIEWING&limit=10`);
+                if (pendingResponse && pendingResponse.ok) {
+                    const pendingData = await pendingResponse.json();
+                    const pending = pendingData.reports || [];
+                    document.getElementById('mgr-pending-count').textContent = pending.length;
+
+                    const pendingListEl = document.getElementById('mgr-pending-list');
+                    if (pending.length === 0) {
+                        pendingListEl.innerHTML = '<div class="p-4 bg-slate-50 rounded-lg text-center text-slate-500">Tidak ada item menunggu persetujuan</div>';
+                    } else {
+                        pendingListEl.innerHTML = pending.map(r => `
+                            <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                                <div class="flex items-start justify-between">
+                                    <span class="font-mono text-sm bg-amber-100 px-2 py-1 rounded">${r.ticket_id}</span>
+                                    <span class="text-xs text-amber-600">${formatDate(r.created_at)}</span>
+                                </div>
+                                <p class="mt-2 text-sm text-slate-700">${escapeHtml(r.subject || r.title || '-')}</p>
+                                <div class="mt-3 flex gap-2">
+                                    <button onclick="approveReport('${r.id}')" class="px-3 py-1 bg-islamic-green text-white rounded text-sm hover:bg-islamic-dark">Approve</button>
+                                    <button onclick="viewReportModal('${r.id}')" class="px-3 py-1 bg-slate-200 text-slate-700 rounded text-sm hover:bg-slate-300">Detail</button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading escalation:', error);
+            }
+        }
+
+        function approveEscalation(reportId) {
+            if (confirm('Setujui eskalasi kasus ini?')) {
+                updateReportStatus(reportId, 'INVESTIGATING');
+            }
+        }
+
+        function approveReport(reportId) {
+            if (confirm('Setujui laporan ini untuk investigasi?')) {
+                updateReportStatus(reportId, 'INVESTIGATING');
+            }
+        }
+
+        async function loadManagerSLA() {
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/reports?limit=100`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const data = await response.json();
+                const reports = data.reports || [];
+
+                // Calculate SLA status for each report
+                const slaConfig = {
+                    'CRITICAL': { response: 4, resolution: 72 },
+                    'HIGH': { response: 8, resolution: 168 },
+                    'MEDIUM': { response: 24, resolution: 336 },
+                    'LOW': { response: 48, resolution: 720 }
+                };
+
+                let onTrack = 0, atRisk = 0, warning = 0, breached = 0;
+                const tableRows = [];
+
+                reports.forEach(r => {
+                    if (r.status?.includes('CLOSED')) return;
+
+                    const created = new Date(r.created_at);
+                    const now = new Date();
+                    const hoursElapsed = (now - created) / (1000 * 60 * 60);
+                    const config = slaConfig[r.severity] || slaConfig['MEDIUM'];
+                    const hoursRemaining = config.resolution - hoursElapsed;
+
+                    let slaStatus = 'on-track';
+                    if (hoursRemaining <= 0) {
+                        breached++;
+                        slaStatus = 'breached';
+                    } else if (hoursRemaining <= 24) {
+                        atRisk++;
+                        slaStatus = 'at-risk';
+                    } else if (hoursRemaining <= 48) {
+                        warning++;
+                        slaStatus = 'warning';
+                    } else {
+                        onTrack++;
+                    }
+
+                    const statusColors = {
+                        'on-track': 'bg-green-100 text-green-700',
+                        'at-risk': 'bg-yellow-100 text-yellow-700',
+                        'warning': 'bg-orange-100 text-orange-700',
+                        'breached': 'bg-red-100 text-red-700'
+                    };
+
+                    tableRows.push(`
+                        <tr data-sla="${slaStatus}">
+                            <td class="px-4 py-3 font-mono text-sm">${r.ticket_id}</td>
+                            <td class="px-4 py-3"><span class="px-2 py-1 bg-${getSeverityColor(r.severity)}-100 text-${getSeverityColor(r.severity)}-700 text-xs rounded">${r.severity || 'MEDIUM'}</span></td>
+                            <td class="px-4 py-3 text-sm">${config.resolution}h</td>
+                            <td class="px-4 py-3 text-sm">${Math.round(hoursElapsed)}h</td>
+                            <td class="px-4 py-3 text-sm font-medium ${hoursRemaining <= 0 ? 'text-red-600' : ''}">${hoursRemaining <= 0 ? 'OVERDUE' : Math.round(hoursRemaining) + 'h'}</td>
+                            <td class="px-4 py-3"><span class="px-2 py-1 ${statusColors[slaStatus]} text-xs rounded">${slaStatus.toUpperCase()}</span></td>
+                            <td class="px-4 py-3"><button onclick="viewReportModal('${r.id}')" class="text-islamic-green hover:underline text-sm">Detail</button></td>
+                        </tr>
+                    `);
+                });
+
+                document.getElementById('sla-on-track').textContent = onTrack;
+                document.getElementById('sla-at-risk').textContent = atRisk;
+                document.getElementById('sla-warning').textContent = warning;
+                document.getElementById('sla-breached').textContent = breached;
+
+                document.getElementById('sla-table-body').innerHTML = tableRows.length > 0 ? tableRows.join('') :
+                    '<tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">Tidak ada data SLA</td></tr>';
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading SLA:', error);
+            }
+        }
+
+        function filterSLATable() {
+            const filter = document.getElementById('sla-filter').value;
+            const rows = document.querySelectorAll('#sla-table-body tr[data-sla]');
+            rows.forEach(row => {
+                if (filter === 'all' || row.dataset.sla === filter) {
+                    row.classList.remove('hidden');
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+        }
+
+        async function loadManagerRisk() {
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/reports?limit=100`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const data = await response.json();
+                const reports = data.reports || [];
+
+                // Calculate risk matrix based on severity
+                let totalLoss = 0;
+                const riskMatrix = {
+                    'hl-li': 0, 'hl-mi': 0, 'hl-hi': 0,
+                    'ml-li': 0, 'ml-mi': 0, 'ml-hi': 0,
+                    'll-li': 0, 'll-mi': 0, 'll-hi': 0
+                };
+
+                const lossEstimates = {
+                    'CRITICAL': 1000000000,
+                    'HIGH': 500000000,
+                    'MEDIUM': 100000000,
+                    'LOW': 50000000
+                };
+
+                reports.forEach(r => {
+                    if (r.status?.includes('CLOSED')) return;
+                    totalLoss += lossEstimates[r.severity] || lossEstimates['MEDIUM'];
+
+                    // Map severity to risk matrix
+                    if (r.severity === 'CRITICAL') riskMatrix['hl-hi']++;
+                    else if (r.severity === 'HIGH') riskMatrix['hl-mi']++;
+                    else if (r.severity === 'MEDIUM') riskMatrix['ml-mi']++;
+                    else riskMatrix['ll-li']++;
+                });
+
+                document.getElementById('risk-total-loss').textContent = 'Rp ' + (totalLoss / 1000000000).toFixed(1) + ' M';
+
+                // Update risk heat map
+                Object.keys(riskMatrix).forEach(key => {
+                    const el = document.getElementById(`risk-${key}`);
+                    if (el) el.textContent = riskMatrix[key];
+                });
+
+                // Update top risk areas
+                const categories = {};
+                reports.forEach(r => {
+                    const cat = r.category || 'Lainnya';
+                    categories[cat] = (categories[cat] || 0) + 1;
+                });
+
+                const topAreas = Object.entries(categories)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5);
+
+                document.getElementById('risk-top-areas').innerHTML = topAreas.map(([cat, count]) => `
+                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded">
+                        <span class="text-sm text-slate-600">${cat}</span>
+                        <span class="text-sm font-medium text-islamic-dark">${count}</span>
+                    </div>
+                `).join('') || '<div class="p-2 bg-slate-50 rounded text-sm text-slate-500">Tidak ada data</div>';
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading risk:', error);
+            }
+        }
+
+        function showRiskDetails(level) {
+            alert(`Menampilkan detail risiko level: ${level.toUpperCase()}\n\nFitur dalam pengembangan`);
+        }
+
+        async function loadManagerPerformance() {
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/dashboard/stats`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const data = await response.json();
+
+                document.getElementById('perf-total-received').textContent = data.total_reports || 0;
+
+                const closed = (data.status_breakdown?.CLOSED_PROVEN || 0) +
+                               (data.status_breakdown?.CLOSED_NOT_PROVEN || 0) +
+                               (data.status_breakdown?.CLOSED_DROPPED || 0);
+                document.getElementById('perf-total-closed').textContent = closed;
+
+                // Mock avg resolution and proven rate
+                document.getElementById('perf-avg-resolution').textContent = '12';
+                const provenRate = closed > 0 ? Math.round((data.status_breakdown?.CLOSED_PROVEN || 0) / closed * 100) : 0;
+                document.getElementById('perf-proven-rate').textContent = provenRate + '%';
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading performance:', error);
+            }
+        }
+
+        // ============================================
+        // INTAKE OFFICER DASHBOARD FUNCTIONS
+        // ============================================
+
+        let selectedIntakeTicket = null;
+        let selectedCommTicket = null;
+
+        async function loadIntakeQueue() {
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/reports?status=NEW,REVIEWING,NEED_INFO&limit=50`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const data = await response.json();
+                const reports = data.reports || [];
+
+                // Update counts
+                const newCount = reports.filter(r => r.status === 'NEW').length;
+                const reviewingCount = reports.filter(r => r.status === 'REVIEWING').length;
+                const needInfoCount = reports.filter(r => r.status === 'NEED_INFO').length;
+                const priorityCount = reports.filter(r => r.severity === 'CRITICAL' || r.severity === 'HIGH').length;
+
+                document.getElementById('intake-new-count').textContent = newCount;
+                document.getElementById('intake-reviewing-count').textContent = reviewingCount;
+                document.getElementById('intake-needinfo-count').textContent = needInfoCount;
+                document.getElementById('intake-priority-count').textContent = priorityCount;
+
+                // Update badge in sidebar
+                const badgeEl = document.getElementById('intake-queue-badge');
+                if (badgeEl) badgeEl.textContent = newCount;
+
+                // Render table
+                const tbody = document.getElementById('intake-queue-body');
+                if (reports.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-slate-500">Tidak ada laporan dalam antrian</td></tr>';
+                } else {
+                    tbody.innerHTML = reports.map(r => {
+                        const statusColors = {
+                            'NEW': 'bg-blue-100 text-blue-700',
+                            'REVIEWING': 'bg-yellow-100 text-yellow-700',
+                            'NEED_INFO': 'bg-purple-100 text-purple-700'
+                        };
+                        const channelColors = {
+                            'WEB': 'bg-blue-100 text-blue-700',
+                            'WHATSAPP': 'bg-green-100 text-green-700',
+                            'EMAIL': 'bg-amber-100 text-amber-700'
+                        };
+                        return `
+                            <tr class="hover:bg-slate-50 cursor-pointer" onclick="selectIntakeReport('${r.id}')">
+                                <td class="px-4 py-3 font-mono text-sm">${r.ticket_id}</td>
+                                <td class="px-4 py-3 text-sm">${formatDate(r.created_at)}</td>
+                                <td class="px-4 py-3"><span class="px-2 py-1 ${channelColors[r.channel] || channelColors['WEB']} text-xs rounded">${r.channel || 'WEB'}</span></td>
+                                <td class="px-4 py-3 text-sm">${escapeHtml(r.category || '-')}</td>
+                                <td class="px-4 py-3 text-sm max-w-xs truncate">${escapeHtml(r.subject || r.title || '-')}</td>
+                                <td class="px-4 py-3"><span class="px-2 py-1 ${statusColors[r.status] || ''} text-xs rounded">${r.status}</span></td>
+                                <td class="px-4 py-3"><span class="px-2 py-1 bg-${getSeverityColor(r.severity)}-100 text-${getSeverityColor(r.severity)}-700 text-xs rounded">${r.severity || '-'}</span></td>
+                                <td class="px-4 py-3">
+                                    <button onclick="event.stopPropagation(); selectIntakeReport('${r.id}'); showPage('intake-review')" class="text-islamic-green hover:underline text-sm">Review</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading intake queue:', error);
+            }
+        }
+
+        function filterIntakeQueue() {
+            const filter = document.getElementById('intake-queue-filter').value;
+            // Reload with filter
+            loadIntakeQueue();
+        }
+
+        async function selectIntakeReport(reportId) {
+            selectedIntakeTicket = reportId;
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/reports/${reportId}`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const report = await response.json();
+
+                document.getElementById('review-ticket-id').textContent = report.ticket_id;
+                document.getElementById('review-report-content').innerHTML = `
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-slate-500">Subjek</label>
+                            <p class="font-medium text-islamic-dark">${escapeHtml(report.subject || report.title || '-')}</p>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-500">Kategori</label>
+                            <p class="text-islamic-dark">${escapeHtml(report.category || '-')}</p>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-500">Deskripsi</label>
+                            <p class="text-slate-700 whitespace-pre-wrap">${escapeHtml(report.description || '-')}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-slate-500">Tanggal</label>
+                                <p class="text-islamic-dark">${formatDate(report.created_at)}</p>
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-500">Sumber</label>
+                                <p class="text-islamic-dark">${report.channel || 'WEB'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Show AI analysis if available
+                if (report.ai_analysis) {
+                    const analysis = typeof report.ai_analysis === 'string' ? JSON.parse(report.ai_analysis) : report.ai_analysis;
+                    document.getElementById('review-ai-analysis').innerHTML = `
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="p-2 bg-white rounded">
+                                <span class="text-purple-600 font-medium">Severity:</span> ${analysis.severity || '-'}
+                            </div>
+                            <div class="p-2 bg-white rounded">
+                                <span class="text-purple-600 font-medium">Fraud Score:</span> ${analysis.fraud_score || '-'}
+                            </div>
+                        </div>
+                        ${analysis.summary ? `<p class="mt-2 text-sm text-purple-700">${escapeHtml(analysis.summary)}</p>` : ''}
+                    `;
+                }
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading report:', error);
+            }
+        }
+
+        function loadIntakeReviewPage() {
+            if (selectedIntakeTicket) {
+                selectIntakeReport(selectedIntakeTicket);
+            }
+        }
+
+        async function acceptReport() {
+            if (!selectedIntakeTicket) {
+                alert('Pilih laporan terlebih dahulu');
+                return;
+            }
+            if (confirm('Terima laporan ini dan teruskan ke investigasi?')) {
+                await updateReportStatus(selectedIntakeTicket, 'INVESTIGATING');
+                selectedIntakeTicket = null;
+                showPage('intake-queue');
+            }
+        }
+
+        async function requestMoreInfo() {
+            if (!selectedIntakeTicket) {
+                alert('Pilih laporan terlebih dahulu');
+                return;
+            }
+            const message = prompt('Pesan untuk pelapor (informasi yang dibutuhkan):');
+            if (message) {
+                await updateReportStatus(selectedIntakeTicket, 'NEED_INFO');
+                // Send message to reporter
+                try {
+                    await authFetch(`${API_URL}/api/v1/tickets/${selectedIntakeTicket}/messages`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content: message, is_admin: true })
+                    });
+                } catch (e) { console.error(e); }
+                showPage('intake-queue');
+            }
+        }
+
+        async function rejectReport() {
+            if (!selectedIntakeTicket) {
+                alert('Pilih laporan terlebih dahulu');
+                return;
+            }
+            const reason = prompt('Alasan penolakan:');
+            if (reason && confirm('Yakin ingin menolak laporan ini?')) {
+                await updateReportStatus(selectedIntakeTicket, 'CLOSED_DROPPED');
+                selectedIntakeTicket = null;
+                showPage('intake-queue');
+            }
+        }
+
+        async function loadIntakeCommunicate() {
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/reports?status=NEED_INFO,REVIEWING,NEW&limit=50`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const data = await response.json();
+                const reports = data.reports || [];
+
+                const listEl = document.getElementById('comm-ticket-list');
+                if (reports.length === 0) {
+                    listEl.innerHTML = '<div class="p-3 bg-slate-50 rounded-lg text-center text-slate-500">Tidak ada komunikasi pending</div>';
+                } else {
+                    listEl.innerHTML = reports.map(r => `
+                        <div onclick="selectCommTicket('${r.ticket_id}', '${r.status}')" class="p-3 rounded-lg cursor-pointer hover:bg-islamic-green/10 border border-transparent hover:border-islamic-green/20 ${selectedCommTicket === r.ticket_id ? 'bg-islamic-green/10 border-islamic-green/20' : 'bg-slate-50'}">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-sm font-medium">${r.ticket_id}</span>
+                                <span class="text-xs px-2 py-0.5 rounded ${r.status === 'NEED_INFO' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${r.status}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1 truncate">${escapeHtml(r.subject || r.title || '-')}</p>
+                        </div>
+                    `).join('');
+                }
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading communicate:', error);
+            }
+        }
+
+        async function selectCommTicket(ticketId, status) {
+            selectedCommTicket = ticketId;
+            document.getElementById('comm-current-ticket').textContent = ticketId;
+            document.getElementById('comm-current-status').textContent = status;
+            await loadChatHistory();
+            loadIntakeCommunicate(); // Refresh list to update selection
+        }
+
+        async function loadChatHistory() {
+            if (!selectedCommTicket) return;
+
+            const messagesEl = document.getElementById('comm-messages');
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/tickets/${selectedCommTicket}/messages`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const data = await response.json();
+                const messages = data.messages || [];
+
+                if (messages.length === 0) {
+                    messagesEl.innerHTML = '<div class="text-center text-slate-500 py-8">Belum ada pesan</div>';
+                } else {
+                    messagesEl.innerHTML = messages.map(m => {
+                        const isAdmin = m.is_admin;
+                        return `
+                            <div class="flex ${isAdmin ? 'justify-end' : 'justify-start'}">
+                                <div class="max-w-[70%] p-3 rounded-lg ${isAdmin ? 'bg-islamic-green text-white' : 'bg-white border border-slate-200'}">
+                                    <p class="text-sm">${escapeHtml(m.content)}</p>
+                                    <p class="text-xs ${isAdmin ? 'text-emerald-200' : 'text-slate-400'} mt-1">${formatDate(m.created_at)}</p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                }
+            } catch (error) {
+                console.error('Error loading chat:', error);
+                messagesEl.innerHTML = '<div class="text-center text-red-500 py-8">Gagal memuat pesan</div>';
+            }
+        }
+
+        async function sendMessage() {
+            if (!selectedCommTicket) {
+                alert('Pilih tiket terlebih dahulu');
+                return;
+            }
+
+            const input = document.getElementById('comm-message-input');
+            const content = input.value.trim();
+            if (!content) return;
+
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/tickets/${selectedCommTicket}/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, is_admin: true })
+                });
+
+                if (response && response.ok) {
+                    input.value = '';
+                    await loadChatHistory();
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Gagal mengirim pesan');
+            }
+        }
+
+        function sendTemplate(type) {
+            const templates = {
+                'request_info': 'Terima kasih atas laporan Anda. Untuk menindaklanjuti, kami memerlukan informasi tambahan:\n\n1. [Detail spesifik yang dibutuhkan]\n2. [Bukti pendukung jika ada]\n\nMohon berikan informasi tersebut melalui portal ini.',
+                'update_status': 'Yth. Pelapor,\n\nKami informasikan bahwa laporan Anda sedang dalam proses [STATUS]. Tim kami akan menghubungi Anda jika memerlukan informasi tambahan.\n\nTerima kasih atas kesabaran Anda.',
+                'thank_you': 'Terima kasih atas informasi tambahan yang Anda berikan. Laporan Anda akan segera kami tindaklanjuti.\n\nJika ada pertanyaan, silakan hubungi kami melalui portal ini.'
+            };
+
+            document.getElementById('comm-message-input').value = templates[type] || '';
+        }
+
+        async function loadIntakeEscalate() {
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/reports?limit=50`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const data = await response.json();
+                const reports = data.reports || [];
+
+                // Filter reports that need escalation (CRITICAL/HIGH severity or high fraud score)
+                const needsEscalation = reports.filter(r =>
+                    !r.status?.includes('CLOSED') &&
+                    !r.status?.includes('ESCALATED') &&
+                    (r.severity === 'CRITICAL' || r.severity === 'HIGH')
+                );
+
+                const listEl = document.getElementById('escalate-list');
+                if (needsEscalation.length === 0) {
+                    listEl.innerHTML = '<div class="p-4 bg-green-50 rounded-lg text-center text-green-600">Tidak ada laporan yang perlu dieskalasi</div>';
+                } else {
+                    listEl.innerHTML = needsEscalation.map(r => `
+                        <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <span class="font-mono text-sm bg-amber-100 px-2 py-1 rounded">${r.ticket_id}</span>
+                                    <span class="ml-2 px-2 py-1 bg-${getSeverityColor(r.severity)}-100 text-${getSeverityColor(r.severity)}-700 text-xs rounded">${r.severity}</span>
+                                </div>
+                                <span class="text-xs text-amber-600">${formatDate(r.created_at)}</span>
+                            </div>
+                            <p class="mt-2 text-sm text-slate-700">${escapeHtml(r.subject || r.title || '-')}</p>
+                            <div class="mt-3 flex gap-2">
+                                <button onclick="escalateToManager('${r.id}')" class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">Eskalasi ke Manager</button>
+                                <button onclick="viewReportModal('${r.id}')" class="px-3 py-1 bg-slate-200 text-slate-700 rounded text-sm hover:bg-slate-300">Lihat Detail</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading escalate:', error);
+            }
+        }
+
+        async function escalateToManager(reportId) {
+            if (confirm('Eskalasi laporan ini ke Manager?')) {
+                await updateReportStatus(reportId, 'ESCALATED');
+                loadIntakeEscalate();
+            }
+        }
+
+        function viewReportDetail(ticketId) {
+            // Navigate to reports page and show detail
+            showPage('reports');
+        }
+
+        // Helper function for severity colors
+        function getSeverityColor(severity) {
+            const colors = {
+                'CRITICAL': 'red',
+                'HIGH': 'orange',
+                'MEDIUM': 'yellow',
+                'LOW': 'green'
+            };
+            return colors[severity] || 'slate';
         }
     </script>
 </body>
