@@ -88,7 +88,7 @@
                 </div>
             </div>
 
-            <!-- Navigation -->
+            <!-- Navigation (Role-based) -->
             <nav class="flex-1 p-4 space-y-2 relative">
                 <a href="#" onclick="showPage('dashboard')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg bg-islamic-gold/20 text-white border border-islamic-gold/30">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
@@ -103,24 +103,32 @@
                     <i data-lucide="inbox" class="w-5 h-5"></i>
                     <span>Inbox</span>
                 </a>
-                <a href="#" onclick="showPage('analysis')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                <!-- AI Analysis: INVESTIGATOR, MANAGER, ADMIN -->
+                <a href="#" onclick="showPage('analysis')" id="menu-analysis" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition hidden">
                     <i data-lucide="brain" class="w-5 h-5"></i>
                     <span>AI Analysis</span>
                 </a>
-                <a href="#" onclick="showPage('knowledge')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                <!-- Knowledge Base: ADMIN only -->
+                <a href="#" onclick="showPage('knowledge')" id="menu-knowledge" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition hidden">
                     <i data-lucide="database" class="w-5 h-5"></i>
                     <span>Knowledge Base</span>
                 </a>
 
-                <div class="pt-4 mt-4 border-t border-islamic-gold/20">
+                <!-- Settings Section: MANAGER, ADMIN -->
+                <div id="menu-settings-section" class="pt-4 mt-4 border-t border-islamic-gold/20 hidden">
                     <p class="px-4 text-xs text-islamic-gold uppercase tracking-wider mb-2">۝ Settings</p>
-                    <a href="#" onclick="showPage('settings')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                    <a href="#" onclick="showPage('settings')" id="menu-settings" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition hidden">
                         <i data-lucide="settings" class="w-5 h-5"></i>
                         <span>Pengaturan</span>
                     </a>
-                    <a href="#" onclick="showPage('audit')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
+                    <a href="#" onclick="showPage('audit')" id="menu-audit" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition">
                         <i data-lucide="history" class="w-5 h-5"></i>
                         <span>Audit Log</span>
+                    </a>
+                    <!-- User Management: ADMIN only -->
+                    <a href="#" onclick="showPage('users')" id="menu-users" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-emerald-100 hover:bg-islamic-gold/10 hover:text-white transition hidden">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                        <span>Manajemen User</span>
                     </a>
                 </div>
             </nav>
@@ -175,16 +183,26 @@
             <div class="p-6">
                 <!-- Dashboard Page -->
                 <div id="page-dashboard" class="page-content fade-in">
-                    <!-- Ayat Banner -->
-                    <div class="bg-gradient-to-r from-islamic-green to-islamic-dark text-white rounded-xl p-4 mb-6 flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            <span class="text-islamic-gold text-3xl font-arabic">۞</span>
-                            <div>
-                                <p class="font-arabic text-lg text-islamic-gold">"وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ"</p>
-                                <p class="text-emerald-100 text-sm">Tolong-menolonglah dalam kebaikan dan takwa - QS. Al-Maidah: 2</p>
+                    <!-- Role-specific Welcome Banner -->
+                    <div id="role-banner" class="bg-gradient-to-r from-islamic-green to-islamic-dark text-white rounded-xl p-4 mb-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <span class="text-islamic-gold text-3xl font-arabic">۞</span>
+                                <div>
+                                    <p id="role-welcome" class="font-semibold text-lg">Selamat Datang</p>
+                                    <p id="role-description" class="text-emerald-100 text-sm">Dashboard WBS BPKH</p>
+                                </div>
+                            </div>
+                            <div id="role-focus" class="text-right">
+                                <p class="text-islamic-gold font-arabic text-lg">"وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ"</p>
+                                <p class="text-emerald-100 text-xs">QS. Al-Maidah: 2</p>
                             </div>
                         </div>
-                        <span class="text-islamic-gold text-3xl font-arabic">۞</span>
+                    </div>
+
+                    <!-- Role-specific Quick Actions -->
+                    <div id="quick-actions" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 hidden">
+                        <!-- Will be populated based on role -->
                     </div>
 
                     <!-- Stats Cards -->
@@ -690,6 +708,39 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- User Management Page (ADMIN only) -->
+                <div id="page-users" class="page-content hidden fade-in">
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-islamic-green/10">
+                        <div class="p-4 border-b border-islamic-green/10 bg-islamic-light flex items-center justify-between">
+                            <h3 class="font-semibold text-islamic-dark flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span>
+                                Manajemen User
+                            </h3>
+                            <button onclick="showAddUserModal()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition flex items-center gap-2">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                Tambah User
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-islamic-light">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">Email</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">Nama</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">Role</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">Department</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-semibold text-islamic-dark">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table" class="divide-y divide-islamic-green/10">
+                                    <!-- Users will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -729,6 +780,9 @@
             const userRoleEl = document.getElementById('user-role');
             if (userNameEl) userNameEl.textContent = currentUser.full_name || currentUser.email;
             if (userRoleEl) userRoleEl.textContent = formatRole(currentUser.role);
+
+            // Apply role-based menu visibility
+            applyRoleBasedUI();
         }
 
         function formatRole(role) {
@@ -739,6 +793,109 @@
                 'INTAKE_OFFICER': 'Penerima Laporan'
             };
             return roles[role] || role;
+        }
+
+        // Role-based UI configuration
+        const ROLE_CONFIG = {
+            'ADMIN': {
+                menus: ['analysis', 'knowledge', 'settings-section', 'settings', 'audit', 'users'],
+                welcome: 'Selamat Datang, Administrator',
+                description: 'Anda memiliki akses penuh ke semua fitur sistem WBS BPKH',
+                quickActions: [
+                    { icon: 'users', label: 'Kelola User', action: "showPage('users')", color: 'bg-purple-500' },
+                    { icon: 'database', label: 'Knowledge Base', action: "showPage('knowledge')", color: 'bg-blue-500' },
+                    { icon: 'settings', label: 'Pengaturan', action: "showPage('settings')", color: 'bg-slate-500' }
+                ],
+                statusFilter: null // Can see all
+            },
+            'MANAGER': {
+                menus: ['analysis', 'settings-section', 'audit'],
+                welcome: 'Selamat Datang, Pimpinan WBS',
+                description: 'Fokus: Oversight laporan HIGH/CRITICAL dan eskalasi',
+                quickActions: [
+                    { icon: 'alert-triangle', label: 'Laporan Critical', action: "filterBySeverity('CRITICAL')", color: 'bg-red-500' },
+                    { icon: 'trending-up', label: 'Laporan Eskalasi', action: "filterByStatus('ESCALATED')", color: 'bg-orange-500' },
+                    { icon: 'bar-chart', label: 'Lihat Statistik', action: "showPage('dashboard')", color: 'bg-islamic-green' }
+                ],
+                statusFilter: null // Can see all but focus on escalated
+            },
+            'INVESTIGATOR': {
+                menus: ['analysis', 'settings-section', 'audit'],
+                welcome: 'Selamat Datang, Tim Investigasi',
+                description: 'Fokus: Investigasi laporan dan analisis fraud',
+                quickActions: [
+                    { icon: 'search', label: 'Laporan Investigasi', action: "filterByStatus('INVESTIGATING')", color: 'bg-indigo-500' },
+                    { icon: 'brain', label: 'AI Analysis', action: "showPage('analysis')", color: 'bg-purple-500' },
+                    { icon: 'file-check', label: 'Review Selesai', action: "filterByStatus('CLOSED_PROVEN')", color: 'bg-islamic-green' }
+                ],
+                statusFilter: ['INVESTIGATING', 'ESCALATED', 'CLOSED_PROVEN', 'CLOSED_NOT_PROVEN']
+            },
+            'INTAKE_OFFICER': {
+                menus: [],
+                welcome: 'Selamat Datang, Penerima Laporan',
+                description: 'Fokus: Review laporan baru dan komunikasi dengan pelapor',
+                quickActions: [
+                    { icon: 'inbox', label: 'Laporan Baru', action: "filterByStatus('NEW')", color: 'bg-blue-500' },
+                    { icon: 'eye', label: 'Sedang Review', action: "filterByStatus('REVIEWING')", color: 'bg-purple-500' },
+                    { icon: 'message-circle', label: 'Butuh Info', action: "filterByStatus('NEED_INFO')", color: 'bg-yellow-500' }
+                ],
+                statusFilter: ['NEW', 'REVIEWING', 'NEED_INFO']
+            }
+        };
+
+        function applyRoleBasedUI() {
+            if (!currentUser || !currentUser.role) return;
+
+            const config = ROLE_CONFIG[currentUser.role] || ROLE_CONFIG['INTAKE_OFFICER'];
+
+            // Show/hide menu items
+            const allMenus = ['analysis', 'knowledge', 'settings-section', 'settings', 'audit', 'users'];
+            allMenus.forEach(menu => {
+                const el = document.getElementById(`menu-${menu}`);
+                if (el) {
+                    if (config.menus.includes(menu)) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                }
+            });
+
+            // Update welcome banner
+            const welcomeEl = document.getElementById('role-welcome');
+            const descEl = document.getElementById('role-description');
+            if (welcomeEl) welcomeEl.textContent = config.welcome;
+            if (descEl) descEl.textContent = config.description;
+
+            // Render quick actions
+            const quickActionsEl = document.getElementById('quick-actions');
+            if (quickActionsEl && config.quickActions) {
+                quickActionsEl.classList.remove('hidden');
+                quickActionsEl.innerHTML = config.quickActions.map(action => `
+                    <button onclick="${action.action}" class="${action.color} text-white rounded-xl p-4 flex items-center gap-3 hover:opacity-90 transition shadow-sm">
+                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                            <i data-lucide="${action.icon}" class="w-5 h-5"></i>
+                        </div>
+                        <span class="font-medium">${action.label}</span>
+                    </button>
+                `).join('');
+                lucide.createIcons();
+            }
+
+            // Store role filter for reports
+            window.roleStatusFilter = config.statusFilter;
+        }
+
+        function filterByStatus(status) {
+            document.getElementById('filter-status').value = status;
+            showPage('reports');
+            loadReports();
+        }
+
+        function filterBySeverity(severity) {
+            document.getElementById('filter-severity').value = severity;
+            showPage('reports');
+            loadReports();
         }
 
         function logout() {
@@ -800,12 +957,14 @@
                 'analysis': 'AI Analysis',
                 'knowledge': 'Knowledge Base',
                 'settings': 'Pengaturan',
-                'audit': 'Audit Log'
+                'audit': 'Audit Log',
+                'users': 'Manajemen User'
             };
             document.getElementById('page-title').textContent = titles[page] || 'Dashboard';
 
             if (page === 'dashboard') loadDashboard();
             if (page === 'reports') loadReports();
+            if (page === 'users') loadUsers();
 
             lucide.createIcons();
         }
@@ -1269,6 +1428,151 @@
         }
         function toggleSidebar() { const sidebar = document.getElementById('sidebar'); sidebar.classList.toggle('w-64'); sidebar.classList.toggle('w-0'); }
         function exportReports() { alert('Fitur export dalam pengembangan'); }
+
+        // User Management Functions (ADMIN only)
+        async function loadUsers() {
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/auth/users`);
+                if (!response || !response.ok) throw new Error('Failed to load users');
+                const data = await response.json();
+                renderUsersTable(data.users || []);
+            } catch (error) {
+                console.log('Using sample users');
+                renderUsersTable([
+                    { email: 'admin@bpkh.go.id', full_name: 'Administrator', role: 'ADMIN', department: '-', status: 'ACTIVE' },
+                    { email: 'manager@bpkh.go.id', full_name: 'Manager WBS', role: 'MANAGER', department: 'Kepala Unit WBS', status: 'ACTIVE' },
+                    { email: 'investigator@bpkh.go.id', full_name: 'Investigator WBS', role: 'INVESTIGATOR', department: 'Bidang Audit Internal', status: 'ACTIVE' },
+                    { email: 'intake@bpkh.go.id', full_name: 'Petugas Intake', role: 'INTAKE_OFFICER', department: 'Unit Pengelola WBS', status: 'ACTIVE' }
+                ]);
+            }
+        }
+
+        function renderUsersTable(users) {
+            const tbody = document.getElementById('users-table');
+            if (!users || users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">Tidak ada user</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = users.map(user => `
+                <tr class="hover:bg-islamic-light">
+                    <td class="px-6 py-4 text-sm text-islamic-dark">${user.email}</td>
+                    <td class="px-6 py-4 text-sm text-islamic-dark">${user.full_name}</td>
+                    <td class="px-6 py-4"><span class="status-badge ${getRoleBadgeClass(user.role)}">${formatRole(user.role)}</span></td>
+                    <td class="px-6 py-4 text-sm text-slate-600">${user.department || '-'}</td>
+                    <td class="px-6 py-4"><span class="status-badge ${user.status === 'ACTIVE' ? 'bg-islamic-green/20 text-islamic-green' : 'bg-red-100 text-red-700'}">${user.status}</span></td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <button onclick="editUser('${user.id}')" class="text-islamic-green hover:text-islamic-dark" title="Edit">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="resetUserPassword('${user.id}', '${user.email}')" class="text-amber-500 hover:text-amber-700" title="Reset Password">
+                                <i data-lucide="key" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function getRoleBadgeClass(role) {
+            const classes = {
+                'ADMIN': 'bg-purple-100 text-purple-700',
+                'MANAGER': 'bg-blue-100 text-blue-700',
+                'INVESTIGATOR': 'bg-indigo-100 text-indigo-700',
+                'INTAKE_OFFICER': 'bg-islamic-green/20 text-islamic-green'
+            };
+            return classes[role] || 'bg-slate-100 text-slate-700';
+        }
+
+        function showAddUserModal() {
+            const html = `
+                <div id="add-user-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl w-full max-w-md p-6">
+                        <h3 class="text-lg font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                            <span class="text-islamic-gold">۝</span>
+                            Tambah User Baru
+                        </h3>
+                        <form onsubmit="createUser(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Email</label>
+                                    <input type="email" id="new-user-email" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Nama Lengkap</label>
+                                    <input type="text" id="new-user-name" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Password</label>
+                                    <input type="password" id="new-user-password" required minlength="8" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                    <p class="text-xs text-slate-500 mt-1">Min 8 karakter, huruf besar, huruf kecil, angka, simbol</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Role</label>
+                                    <select id="new-user-role" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                        <option value="INTAKE_OFFICER">Penerima Laporan</option>
+                                        <option value="INVESTIGATOR">Tim Investigasi</option>
+                                        <option value="MANAGER">Pimpinan WBS</option>
+                                        <option value="ADMIN">Administrator</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Department</label>
+                                    <input type="text" id="new-user-dept" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-end gap-2 mt-6">
+                                <button type="button" onclick="closeAddUserModal()" class="px-4 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light">Batal</button>
+                                <button type="submit" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark">Simpan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function closeAddUserModal() {
+            const modal = document.getElementById('add-user-modal');
+            if (modal) modal.remove();
+        }
+
+        async function createUser(event) {
+            event.preventDefault();
+            const userData = {
+                email: document.getElementById('new-user-email').value,
+                full_name: document.getElementById('new-user-name').value,
+                password: document.getElementById('new-user-password').value,
+                role: document.getElementById('new-user-role').value,
+                department: document.getElementById('new-user-dept').value
+            };
+
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/auth/register`, {
+                    method: 'POST',
+                    body: JSON.stringify(userData)
+                });
+                if (!response || !response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Gagal membuat user');
+                }
+                alert('User berhasil dibuat');
+                closeAddUserModal();
+                loadUsers();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function editUser(userId) {
+            alert('Fitur edit user dalam pengembangan');
+        }
+
+        async function resetUserPassword(userId, email) {
+            if (!confirm(`Reset password untuk ${email}?`)) return;
+            alert('Fitur reset password dalam pengembangan');
+        }
     </script>
 </body>
 </html>
