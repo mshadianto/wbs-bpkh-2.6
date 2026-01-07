@@ -3028,8 +3028,12 @@
 
             const config = ROLE_CONFIG[currentUser.role] || ROLE_CONFIG['INTAKE_OFFICER'];
 
-            // Show/hide menu items
-            const allMenus = ['analysis', 'knowledge', 'settings-section', 'settings', 'audit', 'users'];
+            // Show/hide menu items - include all role-specific menus
+            const allMenus = [
+                'intake-section', 'manager-section', 'investigation-section',
+                'ai-screening', 'ai-deep-analysis', 'ai-insights',
+                'analysis', 'knowledge', 'settings-section', 'settings', 'audit', 'users'
+            ];
             allMenus.forEach(menu => {
                 const el = document.getElementById(`menu-${menu}`);
                 if (el) {
@@ -4784,10 +4788,12 @@
 
         async function loadIntakeQueue() {
             try {
-                const response = await authFetch(`${API_URL}/api/v1/reports?status=NEW,REVIEWING,NEED_INFO&limit=50`);
+                // Fetch all reports and filter client-side for intake officer statuses
+                const response = await authFetch(`${API_URL}/api/v1/reports?limit=100`);
                 if (!response || !response.ok) throw new Error('Failed');
                 const data = await response.json();
-                const reports = data.reports || [];
+                const intakeStatuses = ['NEW', 'REVIEWING', 'NEED_INFO'];
+                const reports = (data.reports || []).filter(r => intakeStatuses.includes(r.status));
 
                 // Update counts
                 const newCount = reports.filter(r => r.status === 'NEW').length;
@@ -4959,10 +4965,12 @@
 
         async function loadIntakeCommunicate() {
             try {
-                const response = await authFetch(`${API_URL}/api/v1/reports?status=NEED_INFO,REVIEWING,NEW&limit=50`);
+                // Fetch all and filter client-side
+                const response = await authFetch(`${API_URL}/api/v1/reports?limit=100`);
                 if (!response || !response.ok) throw new Error('Failed');
                 const data = await response.json();
-                const reports = data.reports || [];
+                const commStatuses = ['NEW', 'REVIEWING', 'NEED_INFO'];
+                const reports = (data.reports || []).filter(r => commStatuses.includes(r.status));
 
                 const listEl = document.getElementById('comm-ticket-list');
                 if (reports.length === 0) {
@@ -5263,10 +5271,12 @@
 
         async function loadAIScreening() {
             try {
-                const response = await authFetch(`${API_URL}/api/v1/reports?status=NEW,REVIEWING&limit=30`);
+                // Fetch all and filter client-side for screening statuses
+                const response = await authFetch(`${API_URL}/api/v1/reports?limit=100`);
                 if (!response || !response.ok) throw new Error('Failed');
                 const data = await response.json();
-                const reports = data.reports || [];
+                const screenStatuses = ['NEW', 'REVIEWING'];
+                const reports = (data.reports || []).filter(r => screenStatuses.includes(r.status));
 
                 const select = document.getElementById('screen-ticket-select');
                 select.innerHTML = '<option value="">-- Pilih Laporan Baru --</option>' +
@@ -5399,10 +5409,12 @@
 
         async function loadAIDeepAnalysis() {
             try {
-                const response = await authFetch(`${API_URL}/api/v1/reports?status=INVESTIGATING,ESCALATED&limit=30`);
+                // Fetch all and filter client-side for investigation statuses
+                const response = await authFetch(`${API_URL}/api/v1/reports?limit=100`);
                 if (!response || !response.ok) throw new Error('Failed');
                 const data = await response.json();
-                const reports = data.reports || [];
+                const investigationStatuses = ['INVESTIGATING', 'ESCALATED'];
+                const reports = (data.reports || []).filter(r => investigationStatuses.includes(r.status));
 
                 const select = document.getElementById('deep-case-select');
                 select.innerHTML = '<option value="">-- Pilih Kasus Aktif --</option>' +
