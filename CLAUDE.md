@@ -30,8 +30,8 @@ uvicorn main:app --reload --port 8000
 # Load knowledge base for RAG
 python scripts/seed_knowledge.py
 
-# Run tests
-pytest
+# Run tests (test directory not yet created)
+pytest backend/tests/
 pytest -v  # verbose
 pytest backend/tests/test_specific.py  # single test file
 
@@ -86,6 +86,7 @@ JWT-based authentication in `backend/auth.py`:
 - Use `require_role(UserRole.ADMIN)` for specific role
 - Use `require_min_role(UserRole.INTAKE_OFFICER)` for minimum role level
 - Account lockout after 5 failed login attempts (30 min)
+- Password hashing: bcrypt via passlib
 - Password requirements: 8+ chars, uppercase, lowercase, digit, special char
 
 ### API Structure
@@ -128,6 +129,8 @@ Static HTML files in `frontend/`:
 
 Frontend routes served by FastAPI: `/portal`, `/dashboard`, `/login`, `/home`
 
+Role-specific dashboards exist for INVESTIGATOR, MANAGER, and INTAKE_OFFICER with tailored views and AI analysis pages.
+
 ## Key Patterns
 
 - All agent classes use Groq client with JSON response format (`response_format={"type": "json_object"}`)
@@ -162,3 +165,9 @@ SMTP_USER=
 SMTP_PASSWORD=
 WBS_EMAIL=wbs@bpkh.go.id
 ```
+
+## Database Setup
+
+Run `scripts/setup_supabase.sql` in Supabase SQL Editor to create tables:
+- Enable pgvector extension first: `create extension if not exists vector;`
+- RPC functions: `match_documents`, `match_cases` for vector similarity search
