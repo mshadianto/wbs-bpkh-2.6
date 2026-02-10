@@ -313,7 +313,7 @@ class ReportRepository:
         if date_to:
             query = query.lte("created_at", date_to)
         if search:
-            query = query.or_(f"subject.ilike.%{search}%,description.ilike.%{search}%,ticket_id.ilike.%{search}%")
+            query = query.or_(f"title.ilike.%{search}%,description.ilike.%{search}%,ticket_id.ilike.%{search}%")
 
         is_desc = sort_order.lower() == "desc"
         allowed_sort = {"created_at", "severity", "status", "category"}
@@ -350,7 +350,7 @@ class ReportRepository:
         if date_to:
             query = query.lte("created_at", date_to)
         if search:
-            query = query.or_(f"subject.ilike.%{search}%,description.ilike.%{search}%,ticket_id.ilike.%{search}%")
+            query = query.or_(f"title.ilike.%{search}%,description.ilike.%{search}%,ticket_id.ilike.%{search}%")
 
         result = query.execute()
         return result.count if result.count is not None else len(result.data or [])

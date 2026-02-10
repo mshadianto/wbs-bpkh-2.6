@@ -306,6 +306,59 @@ async def list_reports(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/v1/reports/export", tags=["Reports"])
+async def export_reports(
+    format: str = Query("csv", description="Export format"),
+    status: Optional[str] = Query(None),
+    severity: Optional[str] = Query(None),
+    category: Optional[str] = Query(None),
+    current_user: TokenData = Depends(require_min_role(UserRole.MANAGER))
+):
+    """Export reports as CSV (Manager and above)"""
+    from io import StringIO
+    from fastapi.responses import StreamingResponse
+    import csv
+
+    try:
+        reports = await report_repo.list_all(
+            status=status, severity=severity, category=category, limit=5000
+        )
+
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            "Ticket ID", "Status", "Severity", "Category", "Subject",
+            "Channel", "Is Anonymous", "Fraud Score", "Assigned To",
+            "Created At", "Updated At"
+        ])
+        for r in reports:
+            writer.writerow([
+                r.get("ticket_id", ""),
+                r.get("status", ""),
+                r.get("severity", ""),
+                r.get("category", ""),
+                r.get("title", ""),
+                r.get("channel", ""),
+                r.get("is_anonymous", ""),
+                r.get("fraud_score", ""),
+                r.get("assigned_to", ""),
+                r.get("created_at", ""),
+                r.get("updated_at", ""),
+            ])
+
+        output.seek(0)
+        filename = f"wbs_reports_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to export reports: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/api/v1/reports/{report_id}", response_model=ReportDetail, tags=["Reports"])
 async def get_report(
     report_id: str,
@@ -646,61 +699,6 @@ async def get_analysis(
         raise
     except Exception as e:
         logger.error(f"Failed to get analysis: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# ============== Export Endpoints ==============
-
-@app.get("/api/v1/reports/export", tags=["Reports"])
-async def export_reports(
-    format: str = Query("csv", description="Export format"),
-    status: Optional[str] = Query(None),
-    severity: Optional[str] = Query(None),
-    category: Optional[str] = Query(None),
-    current_user: TokenData = Depends(require_min_role(UserRole.MANAGER))
-):
-    """Export reports as CSV (Manager and above)"""
-    from io import StringIO
-    from fastapi.responses import StreamingResponse
-    import csv
-
-    try:
-        reports = await report_repo.list_all(
-            status=status, severity=severity, category=category, limit=5000
-        )
-
-        output = StringIO()
-        writer = csv.writer(output)
-        writer.writerow([
-            "Ticket ID", "Status", "Severity", "Category", "Subject",
-            "Channel", "Is Anonymous", "Fraud Score", "Assigned To",
-            "Created At", "Updated At"
-        ])
-        for r in reports:
-            writer.writerow([
-                r.get("ticket_id", ""),
-                r.get("status", ""),
-                r.get("severity", ""),
-                r.get("category", ""),
-                r.get("subject", ""),
-                r.get("channel", ""),
-                r.get("is_anonymous", ""),
-                r.get("fraud_score", ""),
-                r.get("assigned_to", ""),
-                r.get("created_at", ""),
-                r.get("updated_at", ""),
-            ])
-
-        output.seek(0)
-        filename = f"wbs_reports_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
-        return StreamingResponse(
-            iter([output.getvalue()]),
-            media_type="text/csv",
-            headers={"Content-Disposition": f"attachment; filename={filename}"}
-        )
-
-    except Exception as e:
-        logger.error(f"Failed to export reports: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
