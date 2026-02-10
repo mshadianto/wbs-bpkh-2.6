@@ -83,18 +83,24 @@ class RAGRetriever:
         """Perform vector similarity search in Supabase"""
         try:
             # Call Supabase RPC function for similarity search
+            # SQL function params: query_embedding, match_count, filter_doc_type (singular)
             params = {
                 "query_embedding": embedding,
-                "match_threshold": threshold,
                 "match_count": top_k
             }
-            
-            if doc_types:
-                params["filter_doc_types"] = doc_types
-            
+
+            if doc_types and len(doc_types) > 0:
+                params["filter_doc_type"] = doc_types[0]
+
             result = self.db.rpc("match_documents", params).execute()
-            return result.data or []
-            
+            results = result.data or []
+
+            # Client-side threshold filtering (SQL function doesn't support match_threshold)
+            if threshold > 0 and results:
+                results = [r for r in results if r.get("similarity", 0) >= threshold]
+
+            return results
+
         except Exception as e:
             logger.error(f"Vector search error: {e}")
             return []

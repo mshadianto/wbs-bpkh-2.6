@@ -209,19 +209,50 @@ class ReportRepository:
         report_id: str,
         analysis: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Update AI analysis results"""
+        """Update AI analysis results and calculate SLA deadlines"""
+        from config import SEVERITY_LEVELS
+
+        update_data = {
+            "severity": analysis.get("severity"),
+            "category": analysis.get("category"),
+            "fraud_score": analysis.get("fraud_score"),
+            "ai_analysis": analysis,
+            "status": "REVIEWING",
+            "updated_at": datetime.utcnow().isoformat()
+        }
+
+        # Calculate SLA deadlines based on severity
+        severity = analysis.get("severity", "MEDIUM")
+        sla_config = SEVERITY_LEVELS.get(severity, SEVERITY_LEVELS["MEDIUM"])
+
+        # Get report created_at for SLA calculation
+        report = await self.get_by_id(report_id)
+        if report:
+            created_at = report.get("created_at", datetime.utcnow().isoformat())
+            try:
+                if isinstance(created_at, str):
+                    base_time = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                else:
+                    base_time = created_at
+            except (ValueError, TypeError):
+                base_time = datetime.utcnow()
+
+            from datetime import timedelta
+            update_data["sla_response_deadline"] = (
+                base_time + timedelta(hours=sla_config["sla_initial_hours"])
+            ).isoformat()
+            update_data["sla_review_deadline"] = (
+                base_time + timedelta(hours=sla_config["sla_investigation_hours"])
+            ).isoformat()
+            update_data["sla_investigation_deadline"] = (
+                base_time + timedelta(days=sla_config["sla_resolution_days"])
+            ).isoformat()
+
         result = self.db.table(self.table)\
-            .update({
-                "severity": analysis.get("severity"),
-                "category": analysis.get("category"),
-                "fraud_score": analysis.get("fraud_score"),
-                "ai_analysis": analysis,
-                "status": "REVIEWING",
-                "updated_at": datetime.utcnow().isoformat()
-            })\
+            .update(update_data)\
             .eq("id", report_id)\
             .execute()
-        
+
         await self._create_audit_log(
             report_id,
             "AI_ANALYSIS_COMPLETED",
@@ -230,29 +261,99 @@ class ReportRepository:
                 "fraud_score": analysis.get("fraud_score")
             }
         )
-        
+
         return result.data[0] if result.data else None
+
+    async def get_sla_at_risk_count(self) -> int:
+        """Count reports where SLA deadline is approaching (within 24h) or breached"""
+        now = datetime.utcnow().isoformat()
+        upcoming = (datetime.utcnow() + timedelta(hours=24)).isoformat()
+
+        # Reports with SLA deadlines that are breached or within 24h
+        # Only count non-closed reports
+        closed_statuses = ["CLOSED_PROVEN", "CLOSED_NOT_PROVEN", "CLOSED_INVALID"]
+        try:
+            result = self.db.table(self.table)\
+                .select("id", count="exact")\
+                .not_.in_("status", closed_statuses)\
+                .lte("sla_investigation_deadline", upcoming)\
+                .execute()
+            return result.count if result.count is not None else 0
+        except Exception as e:
+            logger.error(f"Failed to get SLA at risk count: {e}")
+            return 0
     
     async def list_all(
         self,
         status: Optional[str] = None,
         severity: Optional[str] = None,
+        category: Optional[str] = None,
+        search: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        assigned_to: Optional[str] = None,
+        sort_by: str = "created_at",
+        sort_order: str = "desc",
         limit: int = 50,
         offset: int = 0
     ) -> List[Dict[str, Any]]:
         """List reports with filters"""
         query = self.db.table(self.table).select("*")
-        
+
         if status:
             query = query.eq("status", status)
         if severity:
             query = query.eq("severity", severity)
-        
-        query = query.order("created_at", desc=True)\
+        if category:
+            query = query.eq("category", category)
+        if assigned_to:
+            query = query.eq("assigned_to", assigned_to)
+        if date_from:
+            query = query.gte("created_at", date_from)
+        if date_to:
+            query = query.lte("created_at", date_to)
+        if search:
+            query = query.or_(f"subject.ilike.%{search}%,description.ilike.%{search}%,ticket_id.ilike.%{search}%")
+
+        is_desc = sort_order.lower() == "desc"
+        allowed_sort = {"created_at", "severity", "status", "category"}
+        sort_field = sort_by if sort_by in allowed_sort else "created_at"
+        query = query.order(sort_field, desc=is_desc)\
             .range(offset, offset + limit - 1)
-        
+
         result = query.execute()
         return result.data or []
+
+    async def get_total_count(
+        self,
+        status: Optional[str] = None,
+        severity: Optional[str] = None,
+        category: Optional[str] = None,
+        search: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        assigned_to: Optional[str] = None
+    ) -> int:
+        """Get total count of reports matching filters"""
+        query = self.db.table(self.table).select("id", count="exact")
+
+        if status:
+            query = query.eq("status", status)
+        if severity:
+            query = query.eq("severity", severity)
+        if category:
+            query = query.eq("category", category)
+        if assigned_to:
+            query = query.eq("assigned_to", assigned_to)
+        if date_from:
+            query = query.gte("created_at", date_from)
+        if date_to:
+            query = query.lte("created_at", date_to)
+        if search:
+            query = query.or_(f"subject.ilike.%{search}%,description.ilike.%{search}%,ticket_id.ilike.%{search}%")
+
+        result = query.execute()
+        return result.count if result.count is not None else len(result.data or [])
     
     async def get_statistics(self) -> Dict[str, Any]:
         """Get dashboard statistics"""

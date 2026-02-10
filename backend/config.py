@@ -261,20 +261,10 @@ SEVERITY_LEVELS = {
 # REPORT STATUS (Sesuai Business Process WBS BPKH v1.1)
 # ============================================================================
 REPORT_STATUS = {
-    "NEW_WEB": {
-        "code": "NEW_WEB",
-        "name": "Baru - Via Web",
-        "description": "Laporan baru masuk dari portal web"
-    },
-    "NEW_WHATSAPP": {
-        "code": "NEW_WHATSAPP",
-        "name": "Baru - Via WhatsApp",
-        "description": "Laporan baru masuk dari WhatsApp"
-    },
-    "NEW_EMAIL": {
-        "code": "NEW_EMAIL",
-        "name": "Baru - Via Email",
-        "description": "Laporan baru masuk dari Email"
+    "NEW": {
+        "code": "NEW",
+        "name": "Baru",
+        "description": "Laporan baru masuk (channel tercatat di field terpisah)"
     },
     "REVIEWING": {
         "code": "REVIEWING",
@@ -310,21 +300,25 @@ REPORT_STATUS = {
         "code": "CLOSED_NOT_PROVEN",
         "name": "Selesai - Tidak Terbukti",
         "description": "Bukti tidak cukup, laporan diarsipkan"
+    },
+    "CLOSED_INVALID": {
+        "code": "CLOSED_INVALID",
+        "name": "Selesai - Tidak Valid",
+        "description": "Laporan tidak memenuhi kriteria atau bukan pelanggaran"
     }
 }
 
 # Status Lifecycle: BARU → SEDANG DITINJAU → BUTUH INFO (opsional) → DALAM INVESTIGASI → SELESAI
 STATUS_LIFECYCLE = {
-    "NEW_WEB": ["REVIEWING", "NEED_INFO", "HOLD"],
-    "NEW_WHATSAPP": ["REVIEWING", "NEED_INFO", "HOLD"],
-    "NEW_EMAIL": ["REVIEWING", "NEED_INFO", "HOLD"],
-    "REVIEWING": ["NEED_INFO", "INVESTIGATING", "ESCALATED", "HOLD", "CLOSED_NOT_PROVEN"],
-    "NEED_INFO": ["REVIEWING", "INVESTIGATING", "HOLD", "CLOSED_NOT_PROVEN"],
+    "NEW": ["REVIEWING", "NEED_INFO", "HOLD", "CLOSED_INVALID"],
+    "REVIEWING": ["NEED_INFO", "INVESTIGATING", "ESCALATED", "HOLD", "CLOSED_NOT_PROVEN", "CLOSED_INVALID"],
+    "NEED_INFO": ["REVIEWING", "INVESTIGATING", "HOLD", "CLOSED_NOT_PROVEN", "CLOSED_INVALID"],
     "INVESTIGATING": ["ESCALATED", "HOLD", "CLOSED_PROVEN", "CLOSED_NOT_PROVEN"],
     "ESCALATED": ["INVESTIGATING", "HOLD", "CLOSED_PROVEN", "CLOSED_NOT_PROVEN"],
     "HOLD": ["REVIEWING", "NEED_INFO", "INVESTIGATING", "CLOSED_NOT_PROVEN"],
     "CLOSED_PROVEN": [],  # Final state
-    "CLOSED_NOT_PROVEN": []  # Final state
+    "CLOSED_NOT_PROVEN": [],  # Final state
+    "CLOSED_INVALID": []  # Final state
 }
 
 

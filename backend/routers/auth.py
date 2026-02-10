@@ -387,3 +387,92 @@ async def update_user_status(
     logger.info(f"User status updated by {current_user.email}: {user['email']} -> {new_status.value}")
 
     return {"message": f"Status berhasil diubah menjadi {new_status.value}"}
+
+
+@router.get("/users/{user_id}")
+async def get_user(
+    user_id: str,
+    current_user: TokenData = Depends(require_role(UserRole.ADMIN))
+):
+    """Get single user detail (Admin only)"""
+    user = await user_repo.get_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User tidak ditemukan"
+        )
+    user.pop("password_hash", None)
+    return user
+
+
+@router.put("/users/{user_id}")
+async def update_user_profile(
+    user_id: str,
+    request: Request,
+    current_user: TokenData = Depends(require_role(UserRole.ADMIN))
+):
+    """Update user profile (Admin only)"""
+    body = await request.json()
+    user = await user_repo.get_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User tidak ditemukan"
+        )
+
+    allowed_fields = {"full_name", "department", "phone", "employee_id"}
+    update_data = {k: v for k, v in body.items() if k in allowed_fields and v is not None}
+
+    if not update_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tidak ada field yang valid untuk di-update"
+        )
+
+    from datetime import datetime
+    update_data["updated_at"] = datetime.utcnow().isoformat()
+
+    result = user_repo.db.table("users")\
+        .update(update_data)\
+        .eq("id", user_id)\
+        .execute()
+
+    logger.info(f"User profile updated by {current_user.email}: {user['email']}")
+    return {"message": "Profil berhasil diupdate", "updated_fields": list(update_data.keys())}
+
+
+@router.post("/users/{user_id}/reset-password")
+async def admin_reset_password(
+    user_id: str,
+    current_user: TokenData = Depends(require_role(UserRole.ADMIN))
+):
+    """Reset user password to a temporary password (Admin only)"""
+    user = await user_repo.get_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User tidak ditemukan"
+        )
+
+    import secrets
+    temp_password = f"Temp{secrets.token_hex(4).upper()}!"
+
+    password_hash = hash_password(temp_password)
+    from datetime import datetime
+    user_repo.db.table("users")\
+        .update({
+            "password_hash": password_hash,
+            "must_change_password": True,
+            "login_attempts": 0,
+            "locked_until": None,
+            "updated_at": datetime.utcnow().isoformat()
+        })\
+        .eq("id", user_id)\
+        .execute()
+
+    logger.info(f"Password reset by {current_user.email} for user {user['email']}")
+    return {
+        "message": "Password berhasil direset",
+        "temporary_password": temp_password,
+        "note": "User harus mengganti password saat login berikutnya"
+    }

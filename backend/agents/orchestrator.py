@@ -8,6 +8,7 @@ Implements ISO 37002:2021 compliant workflow.
 from groq import Groq
 from typing import Dict, Any, Optional
 import json
+import asyncio
 from datetime import datetime
 from loguru import logger
 
@@ -18,6 +19,7 @@ from .compliance_agent import ComplianceAgent
 from .severity_agent import SeverityAgent
 from .recommendation_agent import RecommendationAgent
 from .summary_agent import SummaryAgent
+from .utils import retry_llm_call, truncate_content
 
 
 class OrchestratorAgent:
@@ -76,91 +78,86 @@ class OrchestratorAgent:
         }
         
         try:
-            # Combine report content with attachments
+            # Combine report content with attachments and truncate if needed
             full_content = report_content
             if attachments_text:
                 full_content += f"\n\n[LAMPIRAN]:\n{attachments_text}"
-            
-            # Step 1: Intake Agent - Parse 4W+1H
+            full_content = truncate_content(full_content)
+
+            # Step 1: Intake Agent - Parse 4W+1H (must run first)
             logger.info("Step 1: Running IntakeAgent (4W+1H)")
-            intake_result = await self.intake_agent.parse(full_content)
+            intake_result = await retry_llm_call(
+                lambda: self.intake_agent.parse(full_content)
+            )
             analysis_result["intake"] = intake_result
             analysis_result["agents_used"].append("IntakeAgent")
-            
-            # Step 2: Analysis Agent - Fraud indicators
-            logger.info("Step 2: Running AnalysisAgent")
-            fraud_result = await self.analysis_agent.analyze(
-                full_content,
-                intake_result
+
+            # Step 2+3: AnalysisAgent + ComplianceAgent in PARALLEL
+            # (both depend on intake_result but are independent of each other)
+            logger.info("Step 2+3: Running AnalysisAgent & ComplianceAgent in parallel")
+            fraud_result, compliance_result = await asyncio.gather(
+                retry_llm_call(lambda: self.analysis_agent.analyze(
+                    full_content, intake_result
+                )),
+                retry_llm_call(lambda: self.compliance_agent.check(
+                    full_content, intake_result, self.rag_context
+                ))
             )
             analysis_result["fraud_analysis"] = fraud_result
             analysis_result["fraud_score"] = fraud_result.get("fraud_score", 0.0)
             analysis_result["agents_used"].append("AnalysisAgent")
-            
-            # Step 3: Compliance Agent - Regulation check
-            logger.info("Step 3: Running ComplianceAgent")
-            compliance_result = await self.compliance_agent.check(
-                full_content,
-                intake_result,
-                self.rag_context
-            )
             analysis_result["compliance"] = compliance_result
             analysis_result["agents_used"].append("ComplianceAgent")
-            
-            # Step 4: Severity Agent - Risk assessment
+
+            # Step 4: Severity Agent - needs both fraud + compliance results
             logger.info("Step 4: Running SeverityAgent")
-            severity_result = await self.severity_agent.assess(
-                full_content,
-                intake_result,
-                fraud_result,
-                compliance_result
+            severity_result = await retry_llm_call(
+                lambda: self.severity_agent.assess(
+                    full_content, intake_result, fraud_result, compliance_result
+                )
             )
             analysis_result["severity"] = severity_result.get("level", "MEDIUM")
             analysis_result["severity_details"] = severity_result
             analysis_result["agents_used"].append("SeverityAgent")
-            
-            # Step 5: Recommendation Agent - Action items
+
+            # Step 5: Recommendation Agent
             logger.info("Step 5: Running RecommendationAgent")
-            recommendation_result = await self.recommendation_agent.recommend(
-                full_content,
-                intake_result,
-                fraud_result,
-                compliance_result,
-                severity_result,
-                similar_cases
+            recommendation_result = await retry_llm_call(
+                lambda: self.recommendation_agent.recommend(
+                    full_content, intake_result, fraud_result,
+                    compliance_result, severity_result, similar_cases
+                )
             )
             analysis_result["recommendations"] = recommendation_result
             analysis_result["agents_used"].append("RecommendationAgent")
-            
-            # Step 6: Summary Agent - Executive summary
+
+            # Step 6: Summary Agent
             logger.info("Step 6: Running SummaryAgent")
-            summary_result = await self.summary_agent.summarize(
-                full_content,
-                intake_result,
-                fraud_result,
-                compliance_result,
-                severity_result,
-                recommendation_result
+            summary_result = await retry_llm_call(
+                lambda: self.summary_agent.summarize(
+                    full_content, intake_result, fraud_result,
+                    compliance_result, severity_result, recommendation_result
+                )
             )
             analysis_result["executive_summary"] = summary_result
             analysis_result["agents_used"].append("SummaryAgent")
-            
+
             # Determine category from compliance result
             analysis_result["category"] = self._determine_category(
                 compliance_result,
                 intake_result
             )
-            
+
             # Calculate priority
             analysis_result["priority"] = self._calculate_priority(
                 analysis_result["severity"],
                 analysis_result["fraud_score"]
             )
-            
+
             # Similar cases from RAG
             if similar_cases:
                 analysis_result["similar_cases"] = similar_cases[:3]
-            
+
             analysis_result["status"] = "COMPLETED"
             logger.info(f"Analysis completed: Severity={analysis_result['severity']}, Score={analysis_result['fraud_score']:.2f}")
             

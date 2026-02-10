@@ -65,6 +65,20 @@
     </style>
 </head>
 <body class="bg-islamic-cream min-h-screen">
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[9998] flex flex-col gap-2 pointer-events-none"></div>
+    <script>
+        function showToast(message, type = 'info', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            const colors = { success: 'bg-green-600', error: 'bg-red-600', warning: 'bg-yellow-600', info: 'bg-blue-600' };
+            const toast = document.createElement('div');
+            toast.className = `${colors[type] || colors.info} text-white px-5 py-3 rounded-lg shadow-lg pointer-events-auto flex items-center gap-3 transform translate-x-full transition-transform duration-300 max-w-sm`;
+            toast.innerHTML = `<span class="text-sm">${message}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-x-full'));
+            setTimeout(() => { toast.classList.add('translate-x-full'); setTimeout(() => toast.remove(), 300); }, duration);
+        }
+    </script>
     <!-- Header with Islamic Design -->
     <header class="islamic-pattern text-white relative overflow-hidden">
         <!-- Decorative Elements -->
@@ -536,7 +550,7 @@
                 document.getElementById('contact-section').classList.add('hidden');
 
             } catch (error) {
-                alert('Error: ' + error.message);
+                showToast(error.message || 'Gagal mengirim laporan', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i data-lucide="send" class="w-5 h-5"></i> Kirim Laporan';
@@ -549,7 +563,7 @@
             const ticketId = document.getElementById('ticket_id').value.trim().toUpperCase();
 
             if (!ticketId || ticketId.length < 8) {
-                alert('Masukkan nomor tiket yang valid');
+                showToast('Masukkan nomor tiket yang valid (minimal 8 karakter)', 'warning');
                 return;
             }
 

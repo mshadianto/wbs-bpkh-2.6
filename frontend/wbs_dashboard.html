@@ -64,6 +64,17 @@
     </style>
 </head>
 <body class="bg-islamic-cream">
+    <!-- Global Loading Overlay -->
+    <div id="global-loading" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 shadow-2xl flex flex-col items-center gap-4 max-w-sm">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-green-200 border-t-green-700"></div>
+            <p id="loading-message" class="text-gray-700 font-medium text-center">Memproses...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[9998] flex flex-col gap-2 pointer-events-none"></div>
+
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar with Islamic Design -->
         <aside id="sidebar" class="sidebar w-64 islamic-sidebar text-white flex flex-col relative z-10">
@@ -2933,6 +2944,113 @@
         let authToken = null;
         let currentUser = null;
 
+        // ============== Global UI Utilities ==============
+
+        function showLoading(message = 'Memproses...') {
+            document.getElementById('loading-message').textContent = message;
+            document.getElementById('global-loading').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('global-loading').classList.add('hidden');
+        }
+
+        function showToast(message, type = 'info', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                warning: 'bg-yellow-600',
+                info: 'bg-blue-600'
+            };
+            const icons = {
+                success: '&#10003;',
+                error: '&#10007;',
+                warning: '&#9888;',
+                info: '&#8505;'
+            };
+            const toast = document.createElement('div');
+            toast.className = `${colors[type] || colors.info} text-white px-5 py-3 rounded-lg shadow-lg pointer-events-auto flex items-center gap-3 transform translate-x-full transition-transform duration-300 max-w-sm`;
+            toast.innerHTML = `<span class="text-lg">${icons[type] || icons.info}</span><span class="text-sm">${message}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-x-full'));
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        async function apiFetch(url, options = {}) {
+            const defaultHeaders = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            };
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers: { ...defaultHeaders, ...options.headers }
+                });
+                if (response.status === 401) {
+                    showToast('Sesi berakhir. Silakan login ulang.', 'error');
+                    setTimeout(() => window.location.href = '/login', 1500);
+                    return null;
+                }
+                if (response.status === 429) {
+                    showToast('Terlalu banyak permintaan. Coba lagi nanti.', 'warning');
+                    return null;
+                }
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.detail || `Error ${response.status}`);
+                }
+                return response;
+            } catch (error) {
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showToast('Tidak dapat terhubung ke server', 'error');
+                } else {
+                    showToast(error.message || 'Terjadi kesalahan', 'error');
+                }
+                throw error;
+            }
+        }
+
+        async function retryAnalysis(reportId) {
+            showLoading('Menjalankan ulang AI Analysis...');
+            try {
+                const resp = await apiFetch(`${API_URL}/api/v1/analysis/run`, {
+                    method: 'POST',
+                    body: JSON.stringify({ report_id: reportId, use_full_analysis: true })
+                });
+                if (resp) {
+                    showToast('Analisis sedang diproses ulang', 'success');
+                    setTimeout(() => loadReports(), 2000);
+                }
+            } catch (e) {
+                showToast('Gagal menjalankan ulang analisis', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function exportCSV() {
+            showLoading('Mengekspor data...');
+            const url = `${API_URL}/api/v1/reports/export?format=csv`;
+            fetch(url, { headers: { 'Authorization': `Bearer ${authToken}` } })
+                .then(resp => {
+                    if (!resp.ok) throw new Error('Export gagal');
+                    return resp.blob();
+                })
+                .then(blob => {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `wbs_reports_${new Date().toISOString().slice(0,10)}.csv`;
+                    a.click();
+                    showToast('Export berhasil', 'success');
+                })
+                .catch(e => showToast(e.message || 'Export gagal', 'error'))
+                .finally(() => hideLoading());
+        }
+
         // Authentication Check
         function checkAuth() {
             authToken = localStorage.getItem('wbs_token');
@@ -3204,7 +3322,21 @@
 
                 document.getElementById('stat-total').textContent = data.total_reports || 0;
                 document.getElementById('stat-pending').textContent = data.pending_review || 0;
-                document.getElementById('stat-sla-risk').textContent = data.sla_at_risk || 0;
+
+                // SLA at risk with color coding
+                const slaCount = data.sla_at_risk || 0;
+                const slaEl = document.getElementById('stat-sla-risk');
+                slaEl.textContent = slaCount;
+                // Color code: green=0, yellow=1-3, red=4+
+                const slaParent = slaEl.closest('.bg-white, [class*="bg-"]');
+                if (slaParent) {
+                    slaParent.classList.remove('border-red-500', 'border-yellow-500', 'border-green-500');
+                    if (slaCount >= 4) {
+                        slaParent.classList.add('border-l-4', 'border-red-500');
+                    } else if (slaCount >= 1) {
+                        slaParent.classList.add('border-l-4', 'border-yellow-500');
+                    }
+                }
 
                 const closedCount = (data.by_status?.CLOSED_PROVEN || 0) + (data.by_status?.CLOSED_NOT_PROVEN || 0) + (data.by_status?.CLOSED_INVALID || 0);
                 document.getElementById('stat-closed').textContent = closedCount;
@@ -3421,6 +3553,34 @@
 
         function renderReportDetail(report) {
             document.getElementById('modal-ticket-id').textContent = `Ticket: ${report.ticket_id}`;
+
+            // Check for AI analysis error state
+            let analysisHtml = '';
+            const analysis = report.ai_analysis ? (typeof report.ai_analysis === 'string' ? JSON.parse(report.ai_analysis) : report.ai_analysis) : null;
+
+            if (analysis && analysis.status === 'ERROR') {
+                analysisHtml = `
+                    <div class="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-red-600 text-lg">&#10007;</span>
+                            <p class="text-red-700 font-medium">Analisis AI Gagal</p>
+                        </div>
+                        <p class="text-red-600 text-sm mb-3">${analysis.error || 'Unknown error'}</p>
+                        <button onclick="retryAnalysis('${report.id}')"
+                                class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                            Ulangi Analisis
+                        </button>
+                    </div>`;
+            } else if (!analysis || analysis.status === 'IN_PROGRESS') {
+                analysisHtml = `
+                    <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p class="text-blue-700 text-sm flex items-center gap-2">
+                            <span class="animate-spin inline-block w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"></span>
+                            Analisis AI sedang diproses...
+                        </p>
+                    </div>`;
+            }
+
             document.getElementById('modal-content').innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -3443,6 +3603,7 @@
                                 <div><p class="text-xs text-slate-500">Kategori</p><span class="status-badge bg-islamic-light text-islamic-dark">${report.category || 'PENDING'}</span></div>
                             </div>
                             ${report.fraud_score ? `<div><p class="text-xs text-slate-500 mb-1">Fraud Score</p><div class="flex items-center gap-3"><div class="flex-1 h-3 bg-slate-200 rounded-full overflow-hidden"><div class="h-full ${getFraudScoreColor(report.fraud_score)}" style="width: ${report.fraud_score * 100}%"></div></div><span class="font-semibold ${report.fraud_score > 0.7 ? 'text-red-600' : report.fraud_score > 0.4 ? 'text-amber-600' : 'text-islamic-green'}">${(report.fraud_score * 100).toFixed(0)}%</span></div></div>` : ''}
+                            ${analysisHtml}
                         </div>
                     </div>
                 </div>
@@ -3653,7 +3814,7 @@
             return priorities[priority] || { label: priority, description: '' };
         }
         function toggleSidebar() { const sidebar = document.getElementById('sidebar'); sidebar.classList.toggle('w-64'); sidebar.classList.toggle('w-0'); }
-        function exportReports() { alert('Fitur export dalam pengembangan'); }
+        function exportReports() { exportCSV(); }
 
         // User Management Functions (ADMIN only)
         async function loadUsers() {
