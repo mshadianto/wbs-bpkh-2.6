@@ -43,6 +43,9 @@
         .scrollbar-thin::-webkit-scrollbar { width: 6px; }
         .scrollbar-thin::-webkit-scrollbar-track { background: #E8F5E9; }
         .scrollbar-thin::-webkit-scrollbar-thumb { background: #006B3F; border-radius: 3px; }
+        .islamic-sidebar .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .islamic-sidebar .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(196, 164, 105, 0.4); border-radius: 3px; }
+        .islamic-sidebar .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(196, 164, 105, 0.6); }
 
         /* Islamic Pattern for Sidebar */
         .islamic-sidebar {
@@ -100,7 +103,7 @@
             </div>
 
             <!-- Navigation (Role-based) -->
-            <nav class="flex-1 p-4 space-y-2 relative">
+            <nav class="flex-1 p-4 space-y-2 relative overflow-y-auto scrollbar-thin">
                 <a href="#" onclick="showPage('dashboard')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg bg-islamic-gold/20 text-white border border-islamic-gold/30">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     <span>Dashboard</span>
