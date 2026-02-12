@@ -490,11 +490,11 @@ async def assign_report(
             report_repo.db.table("report_assignments").insert({
                 "report_id": report_id,
                 "assigned_to": assigned_to,
-                "assigned_by": current_user.sub,
+                "assigned_by": current_user.user_id,
                 "role": "INVESTIGATOR"
             }).execute()
-        except Exception:
-            pass  # Table might not exist yet
+        except Exception as assign_err:
+            logger.warning(f"Failed to create assignment record for report {report_id}: {assign_err}")
 
         # Audit log
         await report_repo._create_audit_log(

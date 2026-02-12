@@ -161,7 +161,7 @@ Sertakan detail: Apa, Siapa, Kapan, Dimana, dan Bagaimana."""
                 "description": parsed["description"],
                 "category": "LAINNYA",
                 "reporter_contact": from_number,
-                "source_channel": "WHATSAPP"
+                "channel": "WHATSAPP"
             })
 
             # Send confirmation
@@ -199,12 +199,15 @@ STATUS A1B2C3D4"""
                 return {"status": "not_found"}
 
             status_labels = {
-                "SUBMITTED": "Diterima",
-                "UNDER_REVIEW": "Sedang Ditinjau",
-                "INVESTIGATION": "Dalam Investigasi",
-                "ACTION_TAKEN": "Tindakan Diambil",
-                "RESOLVED": "Selesai",
-                "DISMISSED": "Ditutup"
+                "NEW": "Diterima",
+                "REVIEWING": "Sedang Ditinjau",
+                "NEED_INFO": "Butuh Informasi Tambahan",
+                "INVESTIGATING": "Dalam Investigasi",
+                "HOLD": "Ditangguhkan",
+                "ESCALATED": "Dieskalasi",
+                "CLOSED_PROVEN": "Selesai - Terbukti",
+                "CLOSED_NOT_PROVEN": "Selesai - Tidak Terbukti",
+                "CLOSED_INVALID": "Ditutup - Tidak Valid"
             }
 
             status_label = status_labels.get(report["status"], report["status"])
@@ -234,13 +237,12 @@ https://wbs-bpkh.up.railway.app"""
 
                     if clean_message:
                         # Save message
-                        await message_repo.create({
-                            "ticket_id": ticket_id,
-                            "report_id": report["id"],
-                            "sender_type": "REPORTER",
-                            "content": clean_message,
-                            "is_from_admin": False
-                        })
+                        await message_repo.create(
+                            report_id=report["id"],
+                            content=clean_message,
+                            sender_type="REPORTER",
+                            ticket_id=ticket_id
+                        )
 
                         await notification_service.whatsapp.send_message(
                             from_number,
@@ -317,7 +319,7 @@ async def email_webhook(
                 "description": parsed["description"],
                 "category": "LAINNYA",
                 "reporter_contact": from_email,
-                "source_channel": "EMAIL"
+                "channel": "EMAIL"
             })
 
             # Send confirmation
@@ -341,13 +343,12 @@ async def email_webhook(
                 clean_body = re.split(r'\n>|\nOn .* wrote:', clean_body)[0].strip()  # Remove quoted
 
                 if clean_body:
-                    await message_repo.create({
-                        "ticket_id": ticket_id,
-                        "report_id": report["id"],
-                        "sender_type": "REPORTER",
-                        "content": clean_body,
-                        "is_from_admin": False
-                    })
+                    await message_repo.create(
+                        report_id=report["id"],
+                        content=clean_body,
+                        sender_type="REPORTER",
+                        ticket_id=ticket_id
+                    )
 
                     logger.info(f"Message added to report {ticket_id} via email")
                     return {"status": "message_added", "ticket_id": ticket_id}
@@ -360,7 +361,7 @@ async def email_webhook(
             "description": parsed["description"],
             "category": "LAINNYA",
             "reporter_contact": from_email,
-            "source_channel": "EMAIL"
+            "channel": "EMAIL"
         })
 
         await notification_service.email.send_report_confirmation(

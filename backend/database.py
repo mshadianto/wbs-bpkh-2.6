@@ -46,6 +46,20 @@ def sanitize_list(items: List[str]) -> List[str]:
     return [sanitize_input(item) for item in items]
 
 
+def sanitize_search_query(search: str) -> str:
+    """
+    Sanitize search query for use in PostgREST ilike filters.
+    Escapes characters that could break filter syntax or enable injection.
+    """
+    if not search:
+        return search
+    # Remove PostgREST special characters that could break or_/ilike syntax
+    # Commas separate filter conditions, dots separate field.operator.value
+    sanitized = re.sub(r'[,.()\[\]{}\\;\'"]', '', search)
+    # Limit length to prevent abuse
+    return sanitized[:200].strip()
+
+
 def parse_date_safe(date_str: str) -> str | None:
     """
     Safely parse date string to ISO format.
@@ -144,9 +158,10 @@ class ReportRepository:
             "incident_date": parse_date_safe(report_data.get("incident_date")),
             "incident_location": sanitize_input(report_data.get("incident_location") or ""),
             "involved_parties": sanitize_list(report_data.get("parties_involved", [])),
+            "reporter_contact": sanitize_input(report_data.get("reporter_contact") or ""),
             "status": "NEW",
             "severity": None,
-            "category": None,
+            "category": report_data.get("category") or None,
             "fraud_score": None,
             "ai_analysis": None,
             "created_at": datetime.utcnow().isoformat(),
@@ -313,7 +328,9 @@ class ReportRepository:
         if date_to:
             query = query.lte("created_at", date_to)
         if search:
-            query = query.or_(f"title.ilike.%{search}%,description.ilike.%{search}%,ticket_id.ilike.%{search}%")
+            safe_search = sanitize_search_query(search)
+            if safe_search:
+                query = query.or_(f"title.ilike.%{safe_search}%,description.ilike.%{safe_search}%,ticket_id.ilike.%{safe_search}%")
 
         is_desc = sort_order.lower() == "desc"
         allowed_sort = {"created_at", "severity", "status", "category"}
@@ -350,7 +367,9 @@ class ReportRepository:
         if date_to:
             query = query.lte("created_at", date_to)
         if search:
-            query = query.or_(f"title.ilike.%{search}%,description.ilike.%{search}%,ticket_id.ilike.%{search}%")
+            safe_search = sanitize_search_query(search)
+            if safe_search:
+                query = query.or_(f"title.ilike.%{safe_search}%,description.ilike.%{safe_search}%,ticket_id.ilike.%{safe_search}%")
 
         result = query.execute()
         return result.count if result.count is not None else len(result.data or [])
