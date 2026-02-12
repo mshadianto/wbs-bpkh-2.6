@@ -35,7 +35,8 @@ class OrchestratorAgent:
     4. SeverityAgent: Assess risk level
     5. RecommendationAgent: Generate action items
     6. SummaryAgent: Create executive summary
-    7. SkillAgent + AuditAgent: Verify grounding & audit consistency (parallel)
+    7. SkillAgent: Verify grounding & detect hallucinations
+    8. AuditAgent: Audit consistency & detect bias
     """
     
     def __init__(self, rag_context: Optional[str] = None):
@@ -147,25 +148,31 @@ class OrchestratorAgent:
             analysis_result["executive_summary"] = summary_result
             analysis_result["agents_used"].append("SummaryAgent")
 
-            # Step 7: SkillAgent + AuditAgent in PARALLEL
-            # (both need all prior results, but are independent of each other)
-            logger.info("Step 7: Running SkillAgent & AuditAgent in parallel")
-            skill_result, audit_result = await asyncio.gather(
-                retry_llm_call(lambda: self.skill_agent.verify(
+            # Step 7: SkillAgent (sequential to avoid rate limit)
+            logger.info("Step 7: Running SkillAgent")
+            skill_result = await retry_llm_call(
+                lambda: self.skill_agent.verify(
                     full_content, intake_result, fraud_result,
                     compliance_result, severity_result,
                     recommendation_result, summary_result
-                )),
-                retry_llm_call(lambda: self.audit_agent.audit(
-                    full_content, intake_result, fraud_result,
-                    compliance_result, severity_result,
-                    recommendation_result, summary_result
-                ))
+                )
             )
             analysis_result["skill_verification"] = skill_result
             analysis_result["grounding_score"] = skill_result.get("grounding_score", 0.0)
             analysis_result["agents_used"].append("SkillAgent")
 
+            # Brief delay to respect API rate limits between heavy LLM calls
+            await asyncio.sleep(5)
+
+            # Step 8: AuditAgent
+            logger.info("Step 8: Running AuditAgent")
+            audit_result = await retry_llm_call(
+                lambda: self.audit_agent.audit(
+                    full_content, intake_result, fraud_result,
+                    compliance_result, severity_result,
+                    recommendation_result, summary_result
+                )
+            )
             analysis_result["audit"] = audit_result
             analysis_result["consistency_score"] = audit_result.get("consistency_score", 0.0)
             analysis_result["bias_risk"] = audit_result.get("bias_risk", {}).get("level", "LOW")

@@ -158,7 +158,7 @@ class ReportRepository:
             "incident_date": parse_date_safe(report_data.get("incident_date")),
             "incident_location": sanitize_input(report_data.get("incident_location") or ""),
             "involved_parties": sanitize_list(report_data.get("parties_involved", [])),
-            "reporter_contact": sanitize_input(report_data.get("reporter_contact") or ""),
+            "reporter_email": sanitize_input(report_data.get("reporter_contact") or ""),
             "status": "NEW",
             "severity": None,
             "category": report_data.get("category") or None,
