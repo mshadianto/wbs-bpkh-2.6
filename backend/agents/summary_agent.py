@@ -6,6 +6,7 @@ Generates executive summary from all analysis results.
 
 from groq import Groq
 from typing import Dict, Any
+import asyncio
 import json
 from loguru import logger
 
@@ -124,7 +125,8 @@ TINDAKAN IMMEDIATE:
 """
 
         try:
-            response = self.client.chat.completions.create(
+            response = await asyncio.to_thread(
+                self.client.chat.completions.create,
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},

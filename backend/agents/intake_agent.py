@@ -7,6 +7,7 @@ Parses whistleblower reports using 4W+1H framework.
 
 from groq import Groq
 from typing import Dict, Any
+import asyncio
 import json
 from loguru import logger
 
@@ -75,7 +76,8 @@ Output dalam format JSON:
 }"""
 
         try:
-            response = self.client.chat.completions.create(
+            response = await asyncio.to_thread(
+                self.client.chat.completions.create,
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},

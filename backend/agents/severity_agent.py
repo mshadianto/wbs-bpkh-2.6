@@ -6,6 +6,7 @@ Assesses severity level and risk of violations.
 
 from groq import Groq
 from typing import Dict, Any
+import asyncio
 import json
 from loguru import logger
 
@@ -139,7 +140,8 @@ HASIL ANALISIS SEBELUMNYA:
 """
 
         try:
-            response = self.client.chat.completions.create(
+            response = await asyncio.to_thread(
+                self.client.chat.completions.create,
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},

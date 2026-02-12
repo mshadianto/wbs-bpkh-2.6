@@ -524,7 +524,8 @@
                 incident_location: document.getElementById('incident_location').value || null,
                 parties_involved: document.getElementById('parties_involved').value
                     ? document.getElementById('parties_involved').value.split(',').map(s => s.trim())
-                    : []
+                    : [],
+                category: document.getElementById('category_hint').value || null
             };
 
             try {

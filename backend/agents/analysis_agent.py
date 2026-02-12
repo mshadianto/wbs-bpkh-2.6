@@ -6,6 +6,7 @@ Analyzes fraud indicators and calculates fraud score.
 
 from groq import Groq
 from typing import Dict, Any
+import asyncio
 import json
 from loguru import logger
 
@@ -97,7 +98,8 @@ HASIL PARSING 4W+1H:
 """
 
         try:
-            response = self.client.chat.completions.create(
+            response = await asyncio.to_thread(
+                self.client.chat.completions.create,
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},

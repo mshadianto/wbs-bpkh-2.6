@@ -7,6 +7,7 @@ Uses RAG for regulation knowledge base.
 
 from groq import Groq
 from typing import Dict, Any, Optional
+import asyncio
 import json
 from loguru import logger
 
@@ -146,7 +147,8 @@ HASIL PARSING LAPORAN:
 """
 
         try:
-            response = self.client.chat.completions.create(
+            response = await asyncio.to_thread(
+                self.client.chat.completions.create,
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},

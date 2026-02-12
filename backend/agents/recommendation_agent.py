@@ -6,6 +6,7 @@ Generates recommended actions based on analysis.
 
 from groq import Groq
 from typing import Dict, Any, Optional, List
+import asyncio
 import json
 from loguru import logger
 
@@ -151,7 +152,8 @@ RINGKASAN ANALISIS:
                 context += f"   - Kasus {i}: {case.get('summary', 'N/A')} (Outcome: {case.get('outcome', 'N/A')})\n"
 
         try:
-            response = self.client.chat.completions.create(
+            response = await asyncio.to_thread(
+                self.client.chat.completions.create,
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},
