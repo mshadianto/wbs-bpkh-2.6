@@ -294,10 +294,11 @@ async def email_webhook(
     """
     try:
         # Verify webhook source via shared secret header
-        webhook_secret = request.headers.get("X-Webhook-Secret", "")
-        if settings.secret_key and webhook_secret and webhook_secret != settings.secret_key:
-            logger.warning(f"Email webhook: invalid secret from {request.client.host if request.client else 'unknown'}")
-            raise HTTPException(status_code=401, detail="Invalid webhook secret")
+        if settings.secret_key:
+            webhook_secret = request.headers.get("X-Webhook-Secret", "")
+            if not webhook_secret or webhook_secret != settings.secret_key:
+                logger.warning(f"Email webhook: invalid or missing secret from {request.client.host if request.client else 'unknown'}")
+                raise HTTPException(status_code=401, detail="Invalid webhook secret")
         body = await request.json()
         logger.info(f"Email webhook received from: {body.get('from', 'unknown')}")
 

@@ -124,7 +124,7 @@ Laporan Anda telah kami terima.
 ID Tiket: {ticket_id}
 
 Simpan ID tiket ini untuk memantau status laporan Anda di:
-https://wbs-bpkh.up.railway.app
+{settings.wbs_portal_url}
 
 Kami akan memproses laporan Anda sesuai prosedur yang berlaku.
 Identitas Anda dijamin kerahasiaannya.
@@ -170,7 +170,7 @@ Untuk komunikasi lebih lanjut, gunakan portal WBS BPKH."""
             </div>
 
             <p style="text-align: center;">
-                <a href="https://wbs-bpkh.up.railway.app" class="btn">Pantau Status Laporan</a>
+                <a href="{settings.wbs_portal_url}" class="btn">Pantau Status Laporan</a>
             </p>
 
             <p><strong>Kerahasiaan Terjamin</strong><br>
@@ -201,12 +201,15 @@ Untuk komunikasi lebih lanjut, gunakan portal WBS BPKH."""
     ) -> Dict[str, Any]:
         """Send status update notification email."""
         status_labels = {
-            "SUBMITTED": "Diterima",
-            "UNDER_REVIEW": "Sedang Ditinjau",
-            "INVESTIGATION": "Dalam Investigasi",
-            "ACTION_TAKEN": "Tindakan Diambil",
-            "RESOLVED": "Selesai",
-            "DISMISSED": "Ditutup"
+            "NEW": "Diterima",
+            "REVIEWING": "Sedang Ditinjau",
+            "NEED_INFO": "Butuh Informasi Tambahan",
+            "INVESTIGATING": "Dalam Investigasi",
+            "HOLD": "Ditangguhkan",
+            "ESCALATED": "Dieskalasi",
+            "CLOSED_PROVEN": "Selesai - Terbukti",
+            "CLOSED_NOT_PROVEN": "Selesai - Tidak Terbukti",
+            "CLOSED_INVALID": "Ditutup - Tidak Valid"
         }
 
         new_label = status_labels.get(new_status, new_status)
@@ -222,7 +225,7 @@ ID Tiket: {ticket_id}
 Status baru: {new_label}{note_text}
 
 Pantau perkembangan di:
-https://wbs-bpkh.up.railway.app
+{settings.wbs_portal_url}
 
 Wassalamu'alaikum Wr. Wb.
 Tim WBS BPKH
@@ -266,7 +269,7 @@ Email ini dikirim secara otomatis. Mohon tidak membalas email ini."""
             {note_html}
 
             <p style="text-align: center;">
-                <a href="https://wbs-bpkh.up.railway.app" class="btn">Lihat Detail</a>
+                <a href="{settings.wbs_portal_url}" class="btn">Lihat Detail</a>
             </p>
 
             <p>Wassalamu'alaikum Wr. Wb.<br>
@@ -298,7 +301,7 @@ Ada pesan baru untuk laporan Anda.
 ID Tiket: {ticket_id}
 
 Silakan cek pesan di:
-https://wbs-bpkh.up.railway.app
+{settings.wbs_portal_url}
 
 Wassalamu'alaikum Wr. Wb.
 Tim WBS BPKH
@@ -335,7 +338,7 @@ Email ini dikirim secara otomatis. Mohon tidak membalas email ini."""
             <strong>ID Tiket: {ticket_id}</strong></p>
 
             <p style="text-align: center;">
-                <a href="https://wbs-bpkh.up.railway.app" class="btn">Buka Pesan</a>
+                <a href="{settings.wbs_portal_url}" class="btn">Buka Pesan</a>
             </p>
 
             <p>Wassalamu'alaikum Wr. Wb.<br>

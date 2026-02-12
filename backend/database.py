@@ -324,9 +324,13 @@ class ReportRepository:
         if assigned_to:
             query = query.eq("assigned_to", assigned_to)
         if date_from:
-            query = query.gte("created_at", date_from)
+            safe_date = parse_date_safe(date_from)
+            if safe_date:
+                query = query.gte("created_at", safe_date)
         if date_to:
-            query = query.lte("created_at", date_to)
+            safe_date = parse_date_safe(date_to)
+            if safe_date:
+                query = query.lte("created_at", safe_date)
         if search:
             safe_search = sanitize_search_query(search)
             if safe_search:
@@ -363,9 +367,13 @@ class ReportRepository:
         if assigned_to:
             query = query.eq("assigned_to", assigned_to)
         if date_from:
-            query = query.gte("created_at", date_from)
+            safe_date = parse_date_safe(date_from)
+            if safe_date:
+                query = query.gte("created_at", safe_date)
         if date_to:
-            query = query.lte("created_at", date_to)
+            safe_date = parse_date_safe(date_to)
+            if safe_date:
+                query = query.lte("created_at", safe_date)
         if search:
             safe_search = sanitize_search_query(search)
             if safe_search:

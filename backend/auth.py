@@ -381,6 +381,9 @@ def validate_password_strength(password: str) -> tuple[bool, str]:
     if len(password) < 8:
         return False, "Password minimal 8 karakter"
 
+    if len(password) > 72:
+        return False, "Password maksimal 72 karakter (batas bcrypt)"
+
     if not any(c.isupper() for c in password):
         return False, "Password harus mengandung huruf besar"
 

@@ -108,7 +108,7 @@ Laporan Anda telah kami terima.
 *ID Tiket: {ticket_id}*
 
 Simpan ID tiket ini untuk memantau status laporan Anda di:
-https://wbs-bpkh.up.railway.app
+{settings.wbs_portal_url}
 
 Kami akan memproses laporan Anda sesuai prosedur yang berlaku. Identitas Anda dijamin kerahasiaannya.
 
@@ -127,12 +127,15 @@ _Tim WBS BPKH_"""
     ) -> Dict[str, Any]:
         """Send status update notification."""
         status_labels = {
-            "SUBMITTED": "Diterima",
-            "UNDER_REVIEW": "Sedang Ditinjau",
-            "INVESTIGATION": "Dalam Investigasi",
-            "ACTION_TAKEN": "Tindakan Diambil",
-            "RESOLVED": "Selesai",
-            "DISMISSED": "Ditutup"
+            "NEW": "Diterima",
+            "REVIEWING": "Sedang Ditinjau",
+            "NEED_INFO": "Butuh Informasi Tambahan",
+            "INVESTIGATING": "Dalam Investigasi",
+            "HOLD": "Ditangguhkan",
+            "ESCALATED": "Dieskalasi",
+            "CLOSED_PROVEN": "Selesai - Terbukti",
+            "CLOSED_NOT_PROVEN": "Selesai - Tidak Terbukti",
+            "CLOSED_INVALID": "Ditutup - Tidak Valid"
         }
 
         new_label = status_labels.get(new_status, new_status)
@@ -150,7 +153,7 @@ Status baru: *{new_label}*"""
         message += f"""
 
 Pantau perkembangan di:
-https://wbs-bpkh.up.railway.app
+{settings.wbs_portal_url}
 
 _Tim WBS BPKH_"""
 
@@ -169,7 +172,7 @@ Ada pesan baru untuk laporan Anda.
 ID Tiket: {ticket_id}
 
 Silakan cek pesan di:
-https://wbs-bpkh.up.railway.app
+{settings.wbs_portal_url}
 
 _Tim WBS BPKH_"""
 
