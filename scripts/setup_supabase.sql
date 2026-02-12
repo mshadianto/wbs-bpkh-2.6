@@ -59,19 +59,19 @@ CREATE TYPE report_channel AS ENUM (
 
 -- Sender Type Enum
 CREATE TYPE sender_type AS ENUM (
-    'WHISTLEBLOWER',
+    'REPORTER',
     'SYSTEM',
     'ADMIN',
-    'UP1'
+    'MANAGER'
 );
 
--- User Role Enum
+-- User Role Enum (matches 002_users_auth.sql and Python auth.py)
 CREATE TYPE user_role AS ENUM (
-    'ADMIN',
-    'UP1',
+    'REPORTER',
+    'INTAKE_OFFICER',
     'INVESTIGATOR',
-    'AUDITOR',
-    'VIEWER'
+    'MANAGER',
+    'ADMIN'
 );
 
 -- ============================================================
@@ -84,7 +84,7 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
-    role user_role NOT NULL DEFAULT 'VIEWER',
+    role user_role NOT NULL DEFAULT 'INTAKE_OFFICER',
     department VARCHAR(100),
     is_active BOOLEAN DEFAULT TRUE,
     last_login TIMESTAMPTZ,
