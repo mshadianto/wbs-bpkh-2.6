@@ -19,6 +19,8 @@ from .compliance_agent import ComplianceAgent
 from .severity_agent import SeverityAgent
 from .recommendation_agent import RecommendationAgent
 from .summary_agent import SummaryAgent
+from .skill_agent import SkillAgent
+from .audit_agent import AuditAgent
 from .utils import retry_llm_call, truncate_content
 
 
@@ -33,6 +35,7 @@ class OrchestratorAgent:
     4. SeverityAgent: Assess risk level
     5. RecommendationAgent: Generate action items
     6. SummaryAgent: Create executive summary
+    7. SkillAgent + AuditAgent: Verify grounding & audit consistency (parallel)
     """
     
     def __init__(self, rag_context: Optional[str] = None):
@@ -48,7 +51,9 @@ class OrchestratorAgent:
         self.severity_agent = SeverityAgent(self.client, self.model)
         self.recommendation_agent = RecommendationAgent(self.client, self.model)
         self.summary_agent = SummaryAgent(self.client, self.model)
-        
+        self.skill_agent = SkillAgent(self.client, self.model)
+        self.audit_agent = AuditAgent(self.client, self.model)
+
         logger.info("OrchestratorAgent initialized with all sub-agents")
     
     async def analyze_report(
@@ -141,6 +146,30 @@ class OrchestratorAgent:
             )
             analysis_result["executive_summary"] = summary_result
             analysis_result["agents_used"].append("SummaryAgent")
+
+            # Step 7: SkillAgent + AuditAgent in PARALLEL
+            # (both need all prior results, but are independent of each other)
+            logger.info("Step 7: Running SkillAgent & AuditAgent in parallel")
+            skill_result, audit_result = await asyncio.gather(
+                retry_llm_call(lambda: self.skill_agent.verify(
+                    full_content, intake_result, fraud_result,
+                    compliance_result, severity_result,
+                    recommendation_result, summary_result
+                )),
+                retry_llm_call(lambda: self.audit_agent.audit(
+                    full_content, intake_result, fraud_result,
+                    compliance_result, severity_result,
+                    recommendation_result, summary_result
+                ))
+            )
+            analysis_result["skill_verification"] = skill_result
+            analysis_result["grounding_score"] = skill_result.get("grounding_score", 0.0)
+            analysis_result["agents_used"].append("SkillAgent")
+
+            analysis_result["audit"] = audit_result
+            analysis_result["consistency_score"] = audit_result.get("consistency_score", 0.0)
+            analysis_result["bias_risk"] = audit_result.get("bias_risk", {}).get("level", "LOW")
+            analysis_result["agents_used"].append("AuditAgent")
 
             # Determine category from compliance result
             analysis_result["category"] = self._determine_category(

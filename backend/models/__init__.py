@@ -260,7 +260,14 @@ class FullAnalysisResponse(BaseModel):
     severity_details: Optional[Dict[str, Any]] = None
     recommendations: Optional[Dict[str, Any]] = None
     executive_summary: Optional[Dict[str, Any]] = None
-    
+
+    # Verification & Audit results
+    skill_verification: Optional[Dict[str, Any]] = None
+    audit: Optional[Dict[str, Any]] = None
+    grounding_score: Optional[float] = None
+    consistency_score: Optional[float] = None
+    bias_risk: Optional[str] = None
+
     # Metadata
     similar_cases: List[Dict[str, Any]] = []
     agents_used: List[str] = []

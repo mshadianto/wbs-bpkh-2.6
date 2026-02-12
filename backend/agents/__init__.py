@@ -11,6 +11,8 @@ from .compliance_agent import ComplianceAgent
 from .severity_agent import SeverityAgent
 from .recommendation_agent import RecommendationAgent
 from .summary_agent import SummaryAgent
+from .skill_agent import SkillAgent
+from .audit_agent import AuditAgent
 
 __all__ = [
     "OrchestratorAgent",
@@ -20,5 +22,7 @@ __all__ = [
     "ComplianceAgent",
     "SeverityAgent",
     "RecommendationAgent",
-    "SummaryAgent"
+    "SummaryAgent",
+    "SkillAgent",
+    "AuditAgent"
 ]
