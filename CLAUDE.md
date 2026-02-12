@@ -62,13 +62,15 @@ FastAPI also serves the frontend as static files with route aliases: `/portal`, 
 Orchestrated multi-agent architecture in `backend/agents/orchestrator.py`:
 
 1. **IntakeAgent** — Parses 4W+1H (What, Who, When, Where, How) from reports
-2. **AnalysisAgent** — Calculates fraud indicators using fraud triangle methodology
-3. **ComplianceAgent** — Checks violations against regulations using RAG context
+2. **AnalysisAgent** — Calculates fraud indicators using fraud triangle methodology (parallel with 3)
+3. **ComplianceAgent** — Checks violations against regulations using RAG context (parallel with 2)
 4. **SeverityAgent** — Assesses risk level (CRITICAL/HIGH/MEDIUM/LOW) with SLA mapping
 5. **RecommendationAgent** — Generates action items based on all prior analysis
 6. **SummaryAgent** — Creates executive summary
+7. **SkillAgent** — Anti-hallucination verification: checks all agent outputs are grounded in original report text. Outputs `grounding_score` (0-1), per-agent verification, hallucination/unsupported claim counts, recommended action (ACCEPT/REVIEW/REANALYZE)
+8. **AuditAgent** — Cross-agent consistency validation and bias detection: checks fraud_score↔severity alignment, compliance↔intake consistency, severity↔recommendations proportionality. Outputs `consistency_score` (0-1), `bias_risk` (LOW/MEDIUM/HIGH), audit flags, corrections
 
-`OrchestratorAgent` runs the pipeline sequentially, passing results between agents. `QuickAnalyzer` provides single-prompt analysis for simpler cases. AI analysis is triggered as a FastAPI `BackgroundTask` after report submission so it doesn't block the response.
+`OrchestratorAgent` runs the pipeline sequentially (Steps 2+3 parallel, Steps 7+8 sequential with 5s delay for API rate limits). `QuickAnalyzer` provides single-prompt analysis for simpler cases. AI analysis is triggered as a FastAPI `BackgroundTask` after report submission so it doesn't block the response.
 
 ### RAG System
 
@@ -143,7 +145,8 @@ Static HTML files in `frontend/` — role-specific dashboards exist for INVESTIG
 
 ## Key Patterns
 
-- All agent classes use Groq client with JSON response format (`response_format={"type": "json_object"}`)
+- All agent classes use Groq client with JSON response format (`response_format={"type": "json_object"}`) with temperature 0.1 (deterministic)
+- SkillAgent and AuditAgent run as QA layer after SummaryAgent; results stored in `ai_analysis` JSONB alongside other agent outputs
 - Background tasks for AI analysis after report submission (`BackgroundTasks.add_task`)
 - Ticket IDs are 8-character uppercase hex strings for anonymous tracking
 - Status transitions are constrained by `STATUS_LIFECYCLE` mapping
