@@ -3727,7 +3727,7 @@
 
                     <!-- Recommended Actions -->
                     ${result.recommendations?.immediate_actions?.length ? `
-                    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200 mb-4">
                         <h4 class="font-semibold text-blue-700 mb-2 flex items-center gap-2">
                             <i data-lucide="list-checks" class="w-4 h-4"></i>
                             Tindakan Segera
@@ -3735,6 +3735,118 @@
                         <ul class="text-sm text-slate-600 space-y-1">
                             ${result.recommendations.immediate_actions.map(a => `<li class="flex items-start gap-2"><span class="text-blue-500">•</span>${a.action}</li>`).join('')}
                         </ul>
+                    </div>
+                    ` : ''}
+
+                    <!-- Skill Verification (Anti-Hallucination) -->
+                    ${result.skill_verification ? `
+                    <div class="bg-teal-50 rounded-lg p-4 mb-4 border border-teal-200">
+                        <h4 class="font-semibold text-teal-700 mb-3 flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            Verifikasi Kualitas (Anti-Hallucination)
+                        </h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <p class="text-xs text-slate-500 mb-1">Grounding Score</p>
+                                <p class="text-xl font-bold ${result.skill_verification.grounding_score >= 0.7 ? 'text-teal-600' : result.skill_verification.grounding_score >= 0.5 ? 'text-amber-600' : 'text-red-600'}">${(result.skill_verification.grounding_score * 100).toFixed(0)}%</p>
+                                <div class="w-full bg-slate-200 rounded-full h-1.5 mt-1">
+                                    <div class="h-1.5 rounded-full ${result.skill_verification.grounding_score >= 0.7 ? 'bg-teal-500' : result.skill_verification.grounding_score >= 0.5 ? 'bg-amber-500' : 'bg-red-500'}" style="width: ${(result.skill_verification.grounding_score * 100).toFixed(0)}%"></div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <p class="text-xs text-slate-500 mb-1">Status</p>
+                                <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold ${result.skill_verification.recommended_action === 'ACCEPT' ? 'bg-green-100 text-green-700' : result.skill_verification.recommended_action === 'REVIEW' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">${result.skill_verification.recommended_action}</span>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <p class="text-xs text-slate-500 mb-1">Hallucinations</p>
+                                <p class="text-xl font-bold ${result.skill_verification.total_hallucinations === 0 ? 'text-green-600' : 'text-red-600'}">${result.skill_verification.total_hallucinations}</p>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <p class="text-xs text-slate-500 mb-1">Klaim Tidak Didukung</p>
+                                <p class="text-xl font-bold ${result.skill_verification.total_unsupported_claims === 0 ? 'text-green-600' : 'text-amber-600'}">${result.skill_verification.total_unsupported_claims}</p>
+                            </div>
+                        </div>
+                        ${result.skill_verification.agent_verification ? `
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mb-3">
+                            ${Object.entries(result.skill_verification.agent_verification).map(([agent, detail]) => `
+                            <div class="bg-white rounded-lg p-2 text-center border ${detail.grounded ? 'border-teal-200' : 'border-red-200'}">
+                                <p class="text-xs text-slate-500 capitalize">${agent.replace('_', ' ')}</p>
+                                <p class="text-sm font-bold ${detail.score >= 0.8 ? 'text-teal-600' : detail.score >= 0.6 ? 'text-amber-600' : 'text-red-600'}">${(detail.score * 100).toFixed(0)}%</p>
+                            </div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                        ${result.skill_verification.verification_summary ? `
+                        <p class="text-xs text-teal-700 bg-white rounded p-2"><strong>Ringkasan:</strong> ${result.skill_verification.verification_summary}</p>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+
+                    <!-- Audit & Bias Detection -->
+                    ${result.audit && result.audit.status === 'SUCCESS' ? `
+                    <div class="bg-indigo-50 rounded-lg p-4 mb-4 border border-indigo-200">
+                        <h4 class="font-semibold text-indigo-700 mb-3 flex items-center gap-2">
+                            <i data-lucide="scale" class="w-4 h-4"></i>
+                            Audit & Deteksi Bias
+                        </h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <p class="text-xs text-slate-500 mb-1">Consistency Score</p>
+                                <p class="text-xl font-bold ${result.audit.consistency_score >= 0.7 ? 'text-indigo-600' : result.audit.consistency_score >= 0.5 ? 'text-amber-600' : 'text-red-600'}">${(result.audit.consistency_score * 100).toFixed(0)}%</p>
+                                <div class="w-full bg-slate-200 rounded-full h-1.5 mt-1">
+                                    <div class="h-1.5 rounded-full ${result.audit.consistency_score >= 0.7 ? 'bg-indigo-500' : result.audit.consistency_score >= 0.5 ? 'bg-amber-500' : 'bg-red-500'}" style="width: ${(result.audit.consistency_score * 100).toFixed(0)}%"></div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <p class="text-xs text-slate-500 mb-1">Risiko Bias</p>
+                                <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold ${result.audit.bias_risk?.level === 'LOW' ? 'bg-green-100 text-green-700' : result.audit.bias_risk?.level === 'MEDIUM' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">${result.audit.bias_risk?.level || '-'}</span>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <p class="text-xs text-slate-500 mb-1">Penilaian</p>
+                                <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold ${result.audit.overall_assessment === 'CONSISTENT' ? 'bg-green-100 text-green-700' : result.audit.overall_assessment === 'MINOR_ISSUES' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">${result.audit.overall_assessment}</span>
+                            </div>
+                            <div class="bg-white rounded-lg p-3 text-center">
+                                <p class="text-xs text-slate-500 mb-1">Confidence</p>
+                                <span class="inline-block px-2 py-1 rounded-full text-xs font-semibold ${result.audit.confidence_in_analysis === 'HIGH' ? 'bg-green-100 text-green-700' : result.audit.confidence_in_analysis === 'MEDIUM' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}">${result.audit.confidence_in_analysis || '-'}</span>
+                            </div>
+                        </div>
+                        ${result.audit.cross_validation ? `
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                            ${Object.entries(result.audit.cross_validation).map(([check, detail]) => `
+                            <div class="bg-white rounded-lg p-2 border ${detail.consistent ? 'border-green-200' : 'border-red-200'}">
+                                <div class="flex items-center gap-1 mb-1">
+                                    <span class="text-xs ${detail.consistent ? 'text-green-600' : 'text-red-600'}">${detail.consistent ? '✓' : '✗'}</span>
+                                    <p class="text-xs text-slate-600 font-medium">${check.replace(/_/g, ' ').replace(/vs/g, '↔')}</p>
+                                </div>
+                                <p class="text-xs text-slate-500 line-clamp-2">${detail.notes || '-'}</p>
+                            </div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                        ${result.audit.audit_flags?.length ? `
+                        <div class="mb-3">
+                            <p class="text-xs font-semibold text-indigo-700 mb-1">Audit Flags:</p>
+                            <div class="space-y-1">
+                                ${result.audit.audit_flags.map(f => `
+                                <div class="flex items-start gap-2 text-xs bg-white rounded p-2">
+                                    <span class="px-1.5 py-0.5 rounded text-xs font-semibold ${f.severity === 'HIGH' ? 'bg-red-100 text-red-700' : f.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}">${f.severity}</span>
+                                    <span class="text-slate-600">${f.description}</span>
+                                </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                        ${result.audit.audit_summary ? `
+                        <p class="text-xs text-indigo-700 bg-white rounded p-2"><strong>Ringkasan Audit:</strong> ${result.audit.audit_summary}</p>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+
+                    <!-- Agents Used -->
+                    ${result.agents_used?.length ? `
+                    <div class="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-slate-200">
+                        <span class="text-xs text-slate-400 mr-1">Agents:</span>
+                        ${result.agents_used.map(a => `<span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded-full">${a}</span>`).join('')}
                     </div>
                     ` : ''}
                 </div>`;
