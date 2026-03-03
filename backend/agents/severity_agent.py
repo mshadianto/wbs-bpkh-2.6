@@ -139,19 +139,22 @@ HASIL ANALISIS SEBELUMNYA:
 - Jumlah Pelanggaran: {len(compliance_result.get('potential_violations', []))}
 """
 
+        from .utils import AgentProcessingError
+
+        # LLM call - let API errors propagate for retry_llm_call to handle
+        response = await asyncio.to_thread(
+            self.client.chat.completions.create,
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"LAPORAN ASLI:\n{report_content}\n\n{context}"}
+            ],
+            temperature=0.1,
+            max_tokens=2048,
+            response_format={"type": "json_object"}
+        )
+
         try:
-            response = await asyncio.to_thread(
-                self.client.chat.completions.create,
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"LAPORAN ASLI:\n{report_content}\n\n{context}"}
-                ],
-                temperature=0.1,
-                max_tokens=2048,
-                response_format={"type": "json_object"}
-            )
-            
             result = json.loads(response.choices[0].message.content)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
@@ -162,20 +165,18 @@ HASIL ANALISIS SEBELUMNYA:
                 result["level"] = "MEDIUM"
 
             # VALIDATION: Enforce severity based on financial impact assessment
-            # This overrides LLM decision if it doesn't match criteria
             financial_assessment = result.get("factors", {}).get("financial_impact", {}).get("assessment", "")
             original_level = result.get("level")
 
             severity_by_financial = {
-                "MINOR": "LOW",        # < Rp 10 juta
-                "MODERATE": "MEDIUM",  # Rp 10 - 100 juta
-                "SIGNIFICANT": "HIGH", # Rp 100 juta - 1 milyar
-                "SEVERE": "CRITICAL"   # > Rp 1 milyar
+                "MINOR": "LOW",
+                "MODERATE": "MEDIUM",
+                "SIGNIFICANT": "HIGH",
+                "SEVERE": "CRITICAL"
             }
 
             if financial_assessment in severity_by_financial:
                 expected_level = severity_by_financial[financial_assessment]
-                # Only downgrade if LLM overestimated (e.g., CRITICAL when should be HIGH)
                 level_order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2, "CRITICAL": 3}
                 if level_order.get(original_level, 0) > level_order.get(expected_level, 0):
                     result["level"] = expected_level
@@ -187,20 +188,23 @@ HASIL ANALISIS SEBELUMNYA:
             # Set default SLA if not provided
             if "sla" not in result:
                 result["sla"] = self._get_default_sla(result.get("level", "MEDIUM"))
-            
+
             logger.info(f"{self.name}: Severity = {result['level']}, Score = {result.get('score', 0)}")
             return result
-            
-        except Exception as e:
-            logger.error(f"{self.name} error: {e}")
-            return {
-                "agent": self.name,
-                "status": "ERROR",
-                "error": str(e),
-                "level": "MEDIUM",
-                "score": 50,
-                "sla": self._get_default_sla("MEDIUM")
-            }
+
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            logger.error(f"{self.name} response parsing error: {e}")
+            raise AgentProcessingError(
+                f"{self.name}: Failed to parse LLM response: {e}",
+                fallback_data={
+                    "agent": self.name,
+                    "status": "ERROR",
+                    "error": str(e),
+                    "level": "MEDIUM",
+                    "score": 50,
+                    "sla": self._get_default_sla("MEDIUM")
+                }
+            )
     
     def _get_default_sla(self, level: str) -> Dict[str, int]:
         """Get default SLA based on severity level"""

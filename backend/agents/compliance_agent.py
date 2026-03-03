@@ -146,37 +146,43 @@ HASIL PARSING LAPORAN:
 - Modus: {intake_result.get('how', {}).get('modus_operandi', 'N/A')}
 """
 
+        from .utils import AgentProcessingError
+
+        # LLM call - let API errors propagate for retry_llm_call to handle
+        response = await asyncio.to_thread(
+            self.client.chat.completions.create,
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"LAPORAN:\n{report_content}\n\n{intake_context}"}
+            ],
+            temperature=0.1,
+            max_tokens=2048,
+            response_format={"type": "json_object"}
+        )
+
         try:
-            response = await asyncio.to_thread(
-                self.client.chat.completions.create,
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"LAPORAN:\n{report_content}\n\n{intake_context}"}
-                ],
-                temperature=0.1,
-                max_tokens=2048,
-                response_format={"type": "json_object"}
-            )
-            
             result = json.loads(response.choices[0].message.content)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
-            
+
             # Ensure categories is a list
             if not isinstance(result.get("categories"), list):
                 result["categories"] = ["OTHER"]
-            
+
             logger.info(f"{self.name}: Found {len(result.get('potential_violations', []))} potential violations")
             return result
-            
-        except Exception as e:
-            logger.error(f"{self.name} error: {e}")
-            return {
-                "agent": self.name,
-                "status": "ERROR",
-                "error": str(e),
-                "categories": ["OTHER"],
-                "potential_violations": [],
-                "confidence_level": "LOW"
-            }
+
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            logger.error(f"{self.name} response parsing error: {e}")
+            raise AgentProcessingError(
+                f"{self.name}: Failed to parse LLM response: {e}",
+                fallback_data={
+                    "agent": self.name,
+                    "status": "ERROR",
+                    "error": str(e),
+                    "categories": ["OTHER"],
+                    "potential_violations": [],
+                    "confidence_level": "LOW"
+                }
+            )

@@ -2949,6 +2949,16 @@
 
         // ============== Global UI Utilities ==============
 
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function showLoading(message = 'Memproses...') {
             document.getElementById('loading-message').textContent = message;
             document.getElementById('global-loading').classList.remove('hidden');
@@ -2974,7 +2984,7 @@
             };
             const toast = document.createElement('div');
             toast.className = `${colors[type] || colors.info} text-white px-5 py-3 rounded-lg shadow-lg pointer-events-auto flex items-center gap-3 transform translate-x-full transition-transform duration-300 max-w-sm`;
-            toast.innerHTML = `<span class="text-lg">${icons[type] || icons.info}</span><span class="text-sm">${message}</span>`;
+            toast.innerHTML = `<span class="text-lg">${icons[type] || icons.info}</span><span class="text-sm">${escapeHtml(message)}</span>`;
             container.appendChild(toast);
             requestAnimationFrame(() => toast.classList.remove('translate-x-full'));
             setTimeout(() => {
@@ -3462,10 +3472,10 @@
                             <div class="flex items-center justify-between">
                                 <div>
                                     <span class="font-medium text-islamic-dark">${report.ticket_id}</span>
-                                    <p class="text-sm text-slate-600 truncate max-w-xs">${report.subject}</p>
+                                    <p class="text-sm text-slate-600 truncate max-w-xs">${escapeHtml(report.subject)}</p>
                                 </div>
                                 <div class="text-right">
-                                    <span class="status-badge ${getSeverityClass(report.severity)}">${report.severity || 'PENDING'}</span>
+                                    <span class="status-badge ${getSeverityClass(report.severity)}">${escapeHtml(report.severity || 'PENDING')}</span>
                                     <p class="text-xs text-slate-400 mt-1">${formatDate(report.created_at)}</p>
                                 </div>
                             </div>
@@ -3508,8 +3518,8 @@
                 <tr class="hover:bg-islamic-light">
                     <td class="px-6 py-4"><span class="font-mono text-sm font-medium text-islamic-dark">${report.ticket_id}</span></td>
                     <td class="px-4 py-4">${getChannelBadge(report.channel)}</td>
-                    <td class="px-6 py-4"><p class="text-sm text-islamic-dark truncate max-w-xs">${report.subject}</p></td>
-                    <td class="px-6 py-4"><span class="status-badge bg-islamic-light text-islamic-dark">${report.category || '-'}</span></td>
+                    <td class="px-6 py-4"><p class="text-sm text-islamic-dark truncate max-w-xs">${escapeHtml(report.subject)}</p></td>
+                    <td class="px-6 py-4"><span class="status-badge bg-islamic-light text-islamic-dark">${escapeHtml(report.category || '-')}</span></td>
                     <td class="px-6 py-4"><span class="status-badge ${getSeverityClass(report.severity)}">${report.severity || '-'}</span></td>
                     <td class="px-6 py-4"><span class="status-badge ${getStatusClass(report.status)}">${report.status}</span></td>
                     <td class="px-6 py-4">${report.fraud_score ? `<div class="flex items-center gap-2"><div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden"><div class="h-full ${getFraudScoreColor(report.fraud_score)}" style="width: ${report.fraud_score * 100}%"></div></div><span class="text-sm text-slate-600">${(report.fraud_score * 100).toFixed(0)}%</span></div>` : '-'}</td>
@@ -3568,9 +3578,23 @@
                             <span class="text-red-600 text-lg">&#10007;</span>
                             <p class="text-red-700 font-medium">Analisis AI Gagal</p>
                         </div>
-                        <p class="text-red-600 text-sm mb-3">${analysis.error || 'Unknown error'}</p>
+                        <p class="text-red-600 text-sm mb-3">${escapeHtml(analysis.error || 'Unknown error')}</p>
                         <button onclick="retryAnalysis('${report.id}')"
                                 class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                            Ulangi Analisis
+                        </button>
+                    </div>`;
+            } else if (analysis && (analysis.status === 'PARTIAL' || analysis.status === 'DEGRADED')) {
+                analysisHtml = `
+                    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-amber-600 text-lg">&#9888;</span>
+                            <p class="text-amber-700 font-medium">Analisis ${analysis.status === 'PARTIAL' ? 'Sebagian Berhasil' : 'Terdegradasi'}</p>
+                        </div>
+                        <p class="text-amber-600 text-sm mb-2">Beberapa agent gagal: ${escapeHtml((analysis.failed_agents || []).join(', '))}</p>
+                        <p class="text-amber-600 text-xs mb-3">Hasil analisis mungkin tidak lengkap. Disarankan untuk mengulangi analisis.</p>
+                        <button onclick="retryAnalysis('${report.id}')"
+                                class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
                             Ulangi Analisis
                         </button>
                     </div>`;
@@ -3589,11 +3613,11 @@
                     <div>
                         <h4 class="text-sm font-semibold text-islamic-dark uppercase tracking-wider mb-2">Informasi Laporan</h4>
                         <div class="space-y-3">
-                            <div><p class="text-xs text-slate-500">Subject</p><p class="text-islamic-dark">${report.subject}</p></div>
-                            <div><p class="text-xs text-slate-500">Deskripsi</p><p class="text-islamic-dark text-sm">${report.description}</p></div>
+                            <div><p class="text-xs text-slate-500">Subject</p><p class="text-islamic-dark">${escapeHtml(report.subject)}</p></div>
+                            <div><p class="text-xs text-slate-500">Deskripsi</p><p class="text-islamic-dark text-sm">${escapeHtml(report.description)}</p></div>
                             <div class="grid grid-cols-2 gap-4">
-                                <div><p class="text-xs text-slate-500">Tanggal Kejadian</p><p class="text-islamic-dark">${report.incident_date || '-'}</p></div>
-                                <div><p class="text-xs text-slate-500">Lokasi</p><p class="text-islamic-dark">${report.incident_location || '-'}</p></div>
+                                <div><p class="text-xs text-slate-500">Tanggal Kejadian</p><p class="text-islamic-dark">${escapeHtml(report.incident_date || '-')}</p></div>
+                                <div><p class="text-xs text-slate-500">Lokasi</p><p class="text-islamic-dark">${escapeHtml(report.incident_location || '-')}</p></div>
                             </div>
                         </div>
                     </div>
@@ -3708,7 +3732,7 @@
                             <i data-lucide="file-text" class="w-4 h-4"></i>
                             Ringkasan Eksekutif
                         </h4>
-                        <p class="text-sm text-slate-600">${result.executive_summary.executive_summary || '-'}</p>
+                        <p class="text-sm text-slate-600">${escapeHtml(result.executive_summary.executive_summary || '-')}</p>
                     </div>
                     ` : ''}
 
@@ -3720,7 +3744,7 @@
                             Temuan Utama
                         </h4>
                         <ul class="text-sm text-slate-600 list-disc list-inside">
-                            ${result.executive_summary.key_findings.map(f => `<li>${f}</li>`).join('')}
+                            ${result.executive_summary.key_findings.map(f => `<li>${escapeHtml(f)}</li>`).join('')}
                         </ul>
                     </div>
                     ` : ''}
@@ -3733,7 +3757,7 @@
                             Tindakan Segera
                         </h4>
                         <ul class="text-sm text-slate-600 space-y-1">
-                            ${result.recommendations.immediate_actions.map(a => `<li class="flex items-start gap-2"><span class="text-blue-500">•</span>${a.action}</li>`).join('')}
+                            ${result.recommendations.immediate_actions.map(a => `<li class="flex items-start gap-2"><span class="text-blue-500">•</span>${escapeHtml(a.action)}</li>`).join('')}
                         </ul>
                     </div>
                     ` : ''}
@@ -3777,7 +3801,7 @@
                         </div>
                         ` : ''}
                         ${result.skill_verification.verification_summary ? `
-                        <p class="text-xs text-teal-700 bg-white rounded p-2"><strong>Ringkasan:</strong> ${result.skill_verification.verification_summary}</p>
+                        <p class="text-xs text-teal-700 bg-white rounded p-2"><strong>Ringkasan:</strong> ${escapeHtml(result.skill_verification.verification_summary)}</p>
                         ` : ''}
                     </div>
                     ` : ''}
@@ -3818,7 +3842,7 @@
                                     <span class="text-xs ${detail.consistent ? 'text-green-600' : 'text-red-600'}">${detail.consistent ? '✓' : '✗'}</span>
                                     <p class="text-xs text-slate-600 font-medium">${check.replace(/_/g, ' ').replace(/vs/g, '↔')}</p>
                                 </div>
-                                <p class="text-xs text-slate-500 line-clamp-2">${detail.notes || '-'}</p>
+                                <p class="text-xs text-slate-500 line-clamp-2">${escapeHtml(detail.notes || '-')}</p>
                             </div>
                             `).join('')}
                         </div>
@@ -3830,14 +3854,14 @@
                                 ${result.audit.audit_flags.map(f => `
                                 <div class="flex items-start gap-2 text-xs bg-white rounded p-2">
                                     <span class="px-1.5 py-0.5 rounded text-xs font-semibold ${f.severity === 'HIGH' ? 'bg-red-100 text-red-700' : f.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}">${f.severity}</span>
-                                    <span class="text-slate-600">${f.description}</span>
+                                    <span class="text-slate-600">${escapeHtml(f.description)}</span>
                                 </div>
                                 `).join('')}
                             </div>
                         </div>
                         ` : ''}
                         ${result.audit.audit_summary ? `
-                        <p class="text-xs text-indigo-700 bg-white rounded p-2"><strong>Ringkasan Audit:</strong> ${result.audit.audit_summary}</p>
+                        <p class="text-xs text-indigo-700 bg-white rounded p-2"><strong>Ringkasan Audit:</strong> ${escapeHtml(result.audit.audit_summary)}</p>
                         ` : ''}
                     </div>
                     ` : ''}
@@ -3851,7 +3875,7 @@
                     ` : ''}
                 </div>`;
                 lucide.createIcons();
-            } catch (error) { resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-red-200"><p class="text-red-600">Gagal menjalankan analisis: ${error.message}</p></div>`; }
+            } catch (error) { resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-red-200"><p class="text-red-600">Gagal menjalankan analisis: ${escapeHtml(error.message)}</p></div>`; }
         }
 
         async function updateStatus() {
@@ -3880,7 +3904,7 @@
             const message = input.value.trim();
             if (!message) return;
             const container = document.getElementById('chat-messages');
-            container.innerHTML += `<div class="flex justify-end"><div class="bg-islamic-green text-white rounded-lg px-4 py-2 max-w-[70%]"><p>${message}</p><span class="text-xs text-emerald-200">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span></div></div>`;
+            container.innerHTML += `<div class="flex justify-end"><div class="bg-islamic-green text-white rounded-lg px-4 py-2 max-w-[70%]"><p>${escapeHtml(message)}</p><span class="text-xs text-emerald-200">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span></div></div>`;
             input.value = '';
             container.scrollTop = container.scrollHeight;
         }
@@ -4249,7 +4273,7 @@
             caseList.innerHTML = cases.map(c => `
                 <button onclick="selectAnalysisCase('${c.id}')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-indigo-50 border border-transparent hover:border-indigo-200 transition">
                     <p class="font-mono text-sm text-indigo-600">${c.ticket_id}</p>
-                    <p class="text-xs text-slate-500 truncate">${(c.subject || c.title || '').substring(0, 30)}</p>
+                    <p class="text-xs text-slate-500 truncate">${escapeHtml((c.subject || c.title || '').substring(0, 30))}</p>
                 </button>
             `).join('');
         }
@@ -4306,7 +4330,7 @@
                         <div class="absolute -left-6 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white"></div>
                         <div class="bg-slate-50 rounded-lg p-3 border">
                             <p class="text-xs text-indigo-600 font-medium">${new Date(t.date).toLocaleDateString('id-ID')}</p>
-                            <p class="text-sm text-slate-700">${t.event}</p>
+                            <p class="text-sm text-slate-700">${escapeHtml(t.event)}</p>
                         </div>
                     </div>
                 `).join('');
@@ -4414,7 +4438,7 @@
                 <tr class="hover:bg-islamic-light">
                     <td class="px-4 py-3 font-mono text-sm text-amber-600">${e.id}</td>
                     <td class="px-4 py-3"><span class="status-badge bg-amber-100 text-amber-700">${e.type}</span></td>
-                    <td class="px-4 py-3 text-sm text-islamic-dark">${e.description.substring(0, 40)}...</td>
+                    <td class="px-4 py-3 text-sm text-islamic-dark">${escapeHtml(e.description.substring(0, 40))}...</td>
                     <td class="px-4 py-3 text-sm text-slate-500">${e.storage}</td>
                     <td class="px-4 py-3"><span class="status-badge bg-islamic-green/20 text-islamic-green">SECURED</span></td>
                     <td class="px-4 py-3">
@@ -4527,7 +4551,7 @@
             tbody.innerHTML = investigationData.interviews.map(i => `
                 <tr class="hover:bg-islamic-light">
                     <td class="px-4 py-3 text-sm text-islamic-dark">${new Date(i.date).toLocaleDateString('id-ID')} ${i.time}</td>
-                    <td class="px-4 py-3 text-sm text-islamic-dark font-medium">${i.name}</td>
+                    <td class="px-4 py-3 text-sm text-islamic-dark font-medium">${escapeHtml(i.name)}</td>
                     <td class="px-4 py-3"><span class="status-badge ${roleColors[i.role]}">${i.role.replace('_', ' ')}</span></td>
                     <td class="px-4 py-3"><span class="status-badge ${i.status === 'COMPLETED' ? 'bg-islamic-green/20 text-islamic-green' : 'bg-blue-100 text-blue-700'}">${i.status}</span></td>
                     <td class="px-4 py-3">${i.berita_acara ? '<span class="text-islamic-green"><i data-lucide="check-circle" class="w-4 h-4"></i></span>' : '<span class="text-slate-400">-</span>'}</td>
@@ -4662,9 +4686,9 @@
             tbody.innerHTML = investigationData.findings.map(f => `
                 <tr class="hover:bg-islamic-light">
                     <td class="px-4 py-3 text-sm text-islamic-dark">${f.id}</td>
-                    <td class="px-4 py-3 text-sm text-islamic-dark">${f.description.substring(0, 50)}...</td>
-                    <td class="px-4 py-3 text-sm text-slate-500">${f.evidence}</td>
-                    <td class="px-4 py-3 text-sm text-slate-500">${f.regulation}</td>
+                    <td class="px-4 py-3 text-sm text-islamic-dark">${escapeHtml(f.description.substring(0, 50))}...</td>
+                    <td class="px-4 py-3 text-sm text-slate-500">${escapeHtml(f.evidence)}</td>
+                    <td class="px-4 py-3 text-sm text-slate-500">${escapeHtml(f.regulation)}</td>
                     <td class="px-4 py-3"><span class="status-badge ${impactColors[f.impact]}">${f.impact}</span></td>
                     <td class="px-4 py-3">
                         <button onclick="deleteFinding(${f.id})" class="text-red-500 hover:text-red-700">
@@ -5664,7 +5688,7 @@
                 console.error('Error running screening:', error);
                 resultsEl.innerHTML = `
                     <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <p class="text-red-700">Gagal menjalankan screening: ${error.message}</p>
+                        <p class="text-red-700">Gagal menjalankan screening: ${escapeHtml(error.message)}</p>
                     </div>
                 `;
             }

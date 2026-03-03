@@ -75,43 +75,49 @@ Output dalam format JSON:
     "clarification_needed": ["pertanyaan klarifikasi yang perlu diajukan"]
 }"""
 
+        from .utils import AgentProcessingError
+
+        # LLM call - let API errors propagate for retry_llm_call to handle
+        response = await asyncio.to_thread(
+            self.client.chat.completions.create,
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Laporan Pelanggaran:\n\n{report_content}"}
+            ],
+            temperature=0.1,
+            max_tokens=2048,
+            response_format={"type": "json_object"}
+        )
+
         try:
-            response = await asyncio.to_thread(
-                self.client.chat.completions.create,
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Laporan Pelanggaran:\n\n{report_content}"}
-                ],
-                temperature=0.1,
-                max_tokens=2048,
-                response_format={"type": "json_object"}
-            )
-            
             result = json.loads(response.choices[0].message.content)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
-            
+
             # Calculate completeness score if not provided
             if "completeness_score" not in result or result["completeness_score"] == 0:
                 result["completeness_score"] = self._calculate_completeness(result)
-            
+
             logger.info(f"{self.name}: Parsed report with completeness={result['completeness_score']:.2f}")
             return result
-            
-        except Exception as e:
-            logger.error(f"{self.name} error: {e}")
-            return {
-                "agent": self.name,
-                "status": "ERROR",
-                "error": str(e),
-                "what": {"violation_type": "Error parsing", "description": ""},
-                "who": {"reported_parties": []},
-                "when": {"incident_date": "Unknown"},
-                "where": {"location": "Unknown"},
-                "how": {"modus_operandi": "Unknown"},
-                "completeness_score": 0.0
-            }
+
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            logger.error(f"{self.name} response parsing error: {e}")
+            raise AgentProcessingError(
+                f"{self.name}: Failed to parse LLM response: {e}",
+                fallback_data={
+                    "agent": self.name,
+                    "status": "ERROR",
+                    "error": str(e),
+                    "what": {"violation_type": "Error parsing", "description": ""},
+                    "who": {"reported_parties": []},
+                    "when": {"incident_date": "Unknown"},
+                    "where": {"location": "Unknown"},
+                    "how": {"modus_operandi": "Unknown"},
+                    "completeness_score": 0.0
+                }
+            )
     
     def _calculate_completeness(self, parsed: Dict[str, Any]) -> float:
         """Calculate completeness score based on parsed elements"""

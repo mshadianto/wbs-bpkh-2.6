@@ -151,33 +151,39 @@ RINGKASAN ANALISIS:
             for i, case in enumerate(similar_cases[:3], 1):
                 context += f"   - Kasus {i}: {case.get('summary', 'N/A')} (Outcome: {case.get('outcome', 'N/A')})\n"
 
+        from .utils import AgentProcessingError
+
+        # LLM call - let API errors propagate for retry_llm_call to handle
+        response = await asyncio.to_thread(
+            self.client.chat.completions.create,
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"LAPORAN:\n{report_content}\n\n{context}"}
+            ],
+            temperature=0.1,
+            max_tokens=2048,
+            response_format={"type": "json_object"}
+        )
+
         try:
-            response = await asyncio.to_thread(
-                self.client.chat.completions.create,
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"LAPORAN:\n{report_content}\n\n{context}"}
-                ],
-                temperature=0.1,
-                max_tokens=2048,
-                response_format={"type": "json_object"}
-            )
-            
             result = json.loads(response.choices[0].message.content)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
-            
+
             logger.info(f"{self.name}: Overall recommendation = {result.get('overall_recommendation', 'N/A')}")
             return result
-            
-        except Exception as e:
-            logger.error(f"{self.name} error: {e}")
-            return {
-                "agent": self.name,
-                "status": "ERROR",
-                "error": str(e),
-                "overall_recommendation": "INVESTIGATE",
-                "immediate_actions": [],
-                "short_term_actions": []
-            }
+
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            logger.error(f"{self.name} response parsing error: {e}")
+            raise AgentProcessingError(
+                f"{self.name}: Failed to parse LLM response: {e}",
+                fallback_data={
+                    "agent": self.name,
+                    "status": "ERROR",
+                    "error": str(e),
+                    "overall_recommendation": "INVESTIGATE",
+                    "immediate_actions": [],
+                    "short_term_actions": []
+                }
+            )

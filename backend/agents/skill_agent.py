@@ -163,19 +163,22 @@ HASIL ANALISIS YANG PERLU DIVERIFIKASI:
 
 Verifikasi setiap klaim terhadap LAPORAN ASLI di atas. Identifikasi hallucination dan klaim yang tidak didukung."""
 
-        try:
-            response = await asyncio.to_thread(
-                self.client.chat.completions.create,
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.1,
-                max_tokens=3072,
-                response_format={"type": "json_object"}
-            )
+        from .utils import AgentProcessingError
 
+        # LLM call - let API errors propagate for retry_llm_call to handle
+        response = await asyncio.to_thread(
+            self.client.chat.completions.create,
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.1,
+            max_tokens=3072,
+            response_format={"type": "json_object"}
+        )
+
+        try:
             result = json.loads(response.choices[0].message.content)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
@@ -190,20 +193,23 @@ Verifikasi setiap klaim terhadap LAPORAN ASLI di atas. Identifikasi hallucinatio
             )
             return result
 
-        except Exception as e:
-            logger.error(f"{self.name} error: {e}")
-            return {
-                "agent": self.name,
-                "status": "ERROR",
-                "error": str(e),
-                "grounding_score": 0.5,
-                "agent_verification": {},
-                "total_hallucinations": 0,
-                "total_unsupported_claims": 0,
-                "confidence_threshold_met": False,
-                "verification_summary": "Error during verification",
-                "recommended_action": "REVIEW"
-            }
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            logger.error(f"{self.name} response parsing error: {e}")
+            raise AgentProcessingError(
+                f"{self.name}: Failed to parse LLM response: {e}",
+                fallback_data={
+                    "agent": self.name,
+                    "status": "ERROR",
+                    "error": str(e),
+                    "grounding_score": 0.5,
+                    "agent_verification": {},
+                    "total_hallucinations": 0,
+                    "total_unsupported_claims": 0,
+                    "confidence_threshold_met": False,
+                    "verification_summary": "Error during verification",
+                    "recommended_action": "REVIEW"
+                }
+            )
 
     def _validate_result(self, result: dict) -> dict:
         """Post-processing validation of verification result"""

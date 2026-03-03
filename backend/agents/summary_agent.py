@@ -124,33 +124,39 @@ TINDAKAN IMMEDIATE:
 {chr(10).join(['• ' + ia.get('action', '') for ia in recommendation_result.get('immediate_actions', [])[:3]])}
 """
 
+        from .utils import AgentProcessingError
+
+        # LLM call - let API errors propagate for retry_llm_call to handle
+        response = await asyncio.to_thread(
+            self.client.chat.completions.create,
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"LAPORAN ASLI:\n{report_content}\n\n{context}"}
+            ],
+            temperature=0.2,
+            max_tokens=2048,
+            response_format={"type": "json_object"}
+        )
+
         try:
-            response = await asyncio.to_thread(
-                self.client.chat.completions.create,
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"LAPORAN ASLI:\n{report_content}\n\n{context}"}
-                ],
-                temperature=0.2,
-                max_tokens=2048,
-                response_format={"type": "json_object"}
-            )
-            
             result = json.loads(response.choices[0].message.content)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
-            
+
             logger.info(f"{self.name}: Executive summary generated")
             return result
-            
-        except Exception as e:
-            logger.error(f"{self.name} error: {e}")
-            return {
-                "agent": self.name,
-                "status": "ERROR",
-                "error": str(e),
-                "executive_summary": "Error generating summary",
-                "key_findings": [],
-                "recommended_action": {"primary": "Manual review required"}
-            }
+
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            logger.error(f"{self.name} response parsing error: {e}")
+            raise AgentProcessingError(
+                f"{self.name}: Failed to parse LLM response: {e}",
+                fallback_data={
+                    "agent": self.name,
+                    "status": "ERROR",
+                    "error": str(e),
+                    "executive_summary": "Error generating summary",
+                    "key_findings": [],
+                    "recommended_action": {"primary": "Manual review required"}
+                }
+            )

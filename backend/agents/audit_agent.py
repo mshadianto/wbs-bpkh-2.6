@@ -203,19 +203,22 @@ METRIK UTAMA:
 
 Lakukan audit menyeluruh terhadap konsistensi dan potensi bias dari seluruh hasil analisis di atas."""
 
-        try:
-            response = await asyncio.to_thread(
-                self.client.chat.completions.create,
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.1,
-                max_tokens=3072,
-                response_format={"type": "json_object"}
-            )
+        from .utils import AgentProcessingError
 
+        # LLM call - let API errors propagate for retry_llm_call to handle
+        response = await asyncio.to_thread(
+            self.client.chat.completions.create,
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.1,
+            max_tokens=3072,
+            response_format={"type": "json_object"}
+        )
+
+        try:
             result = json.loads(response.choices[0].message.content)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
@@ -230,25 +233,28 @@ Lakukan audit menyeluruh terhadap konsistensi dan potensi bias dari seluruh hasi
             )
             return result
 
-        except Exception as e:
-            logger.error(f"{self.name} error: {e}")
-            return {
-                "agent": self.name,
-                "status": "ERROR",
-                "error": str(e),
-                "consistency_score": 0.5,
-                "bias_risk": {
-                    "level": "LOW",
-                    "types_detected": [],
-                    "details": "Error during audit"
-                },
-                "cross_validation": {},
-                "audit_flags": [],
-                "corrections": [],
-                "overall_assessment": "MINOR_ISSUES",
-                "audit_summary": "Error during audit process",
-                "confidence_in_analysis": "LOW"
-            }
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            logger.error(f"{self.name} response parsing error: {e}")
+            raise AgentProcessingError(
+                f"{self.name}: Failed to parse LLM response: {e}",
+                fallback_data={
+                    "agent": self.name,
+                    "status": "ERROR",
+                    "error": str(e),
+                    "consistency_score": 0.5,
+                    "bias_risk": {
+                        "level": "LOW",
+                        "types_detected": [],
+                        "details": "Error during audit"
+                    },
+                    "cross_validation": {},
+                    "audit_flags": [],
+                    "corrections": [],
+                    "overall_assessment": "MINOR_ISSUES",
+                    "audit_summary": "Error during audit process",
+                    "confidence_in_analysis": "LOW"
+                }
+            )
 
     def _validate_result(self, result: dict) -> dict:
         """Post-processing validation of audit result"""

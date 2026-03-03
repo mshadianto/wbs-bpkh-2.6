@@ -8,6 +8,18 @@ import asyncio
 from loguru import logger
 
 
+class AgentProcessingError(Exception):
+    """Non-retryable agent processing error (JSON parse, validation).
+
+    Contains fallback data that can be used as degraded result.
+    LLM API errors should NOT use this - they should propagate
+    to retry_llm_call for automatic retry.
+    """
+    def __init__(self, message: str, fallback_data: dict):
+        super().__init__(message)
+        self.fallback_data = fallback_data
+
+
 async def retry_llm_call(func, max_retries: int = 3, base_delay: float = 2.0):
     """
     Retry an async LLM call with exponential backoff.

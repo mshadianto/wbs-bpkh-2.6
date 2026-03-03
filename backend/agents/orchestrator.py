@@ -21,7 +21,7 @@ from .recommendation_agent import RecommendationAgent
 from .summary_agent import SummaryAgent
 from .skill_agent import SkillAgent
 from .audit_agent import AuditAgent
-from .utils import retry_llm_call, truncate_content
+from .utils import retry_llm_call, truncate_content, AgentProcessingError
 
 
 class OrchestratorAgent:
@@ -90,24 +90,48 @@ class OrchestratorAgent:
                 full_content += f"\n\n[LAMPIRAN]:\n{attachments_text}"
             full_content = truncate_content(full_content)
 
+            failed_agents = []
+
             # Step 1: Intake Agent - Parse 4W+1H (must run first)
             logger.info("Step 1: Running IntakeAgent (4W+1H)")
-            intake_result = await retry_llm_call(
-                lambda: self.intake_agent.parse(full_content)
+            intake_result = await self._run_agent_step(
+                "IntakeAgent",
+                lambda: self.intake_agent.parse(full_content),
+                {"agent": "IntakeAgent", "status": "ERROR",
+                 "what": {"violation_type": "Error parsing", "description": ""},
+                 "who": {"reported_parties": []}, "when": {"incident_date": "Unknown"},
+                 "where": {"location": "Unknown"}, "how": {"modus_operandi": "Unknown"},
+                 "completeness_score": 0.0},
+                failed_agents
             )
             analysis_result["intake"] = intake_result
             analysis_result["agents_used"].append("IntakeAgent")
 
             # Step 2+3: AnalysisAgent + ComplianceAgent in PARALLEL
-            # (both depend on intake_result but are independent of each other)
             logger.info("Step 2+3: Running AnalysisAgent & ComplianceAgent in parallel")
+
+            async def _run_analysis():
+                return await self._run_agent_step(
+                    "AnalysisAgent",
+                    lambda: self.analysis_agent.analyze(full_content, intake_result),
+                    {"agent": "AnalysisAgent", "status": "ERROR",
+                     "fraud_score": 0.5, "red_flags_identified": [],
+                     "confidence_level": "LOW"},
+                    failed_agents
+                )
+
+            async def _run_compliance():
+                return await self._run_agent_step(
+                    "ComplianceAgent",
+                    lambda: self.compliance_agent.check(full_content, intake_result, self.rag_context),
+                    {"agent": "ComplianceAgent", "status": "ERROR",
+                     "categories": ["OTHER"], "potential_violations": [],
+                     "confidence_level": "LOW"},
+                    failed_agents
+                )
+
             fraud_result, compliance_result = await asyncio.gather(
-                retry_llm_call(lambda: self.analysis_agent.analyze(
-                    full_content, intake_result
-                )),
-                retry_llm_call(lambda: self.compliance_agent.check(
-                    full_content, intake_result, self.rag_context
-                ))
+                _run_analysis(), _run_compliance()
             )
             analysis_result["fraud_analysis"] = fraud_result
             analysis_result["fraud_score"] = fraud_result.get("fraud_score", 0.0)
@@ -115,12 +139,17 @@ class OrchestratorAgent:
             analysis_result["compliance"] = compliance_result
             analysis_result["agents_used"].append("ComplianceAgent")
 
-            # Step 4: Severity Agent - needs both fraud + compliance results
+            # Step 4: Severity Agent
             logger.info("Step 4: Running SeverityAgent")
-            severity_result = await retry_llm_call(
+            severity_result = await self._run_agent_step(
+                "SeverityAgent",
                 lambda: self.severity_agent.assess(
                     full_content, intake_result, fraud_result, compliance_result
-                )
+                ),
+                {"agent": "SeverityAgent", "status": "ERROR",
+                 "level": "MEDIUM", "score": 50,
+                 "sla": self.severity_agent._get_default_sla("MEDIUM")},
+                failed_agents
             )
             analysis_result["severity"] = severity_result.get("level", "MEDIUM")
             analysis_result["severity_details"] = severity_result
@@ -128,34 +157,53 @@ class OrchestratorAgent:
 
             # Step 5: Recommendation Agent
             logger.info("Step 5: Running RecommendationAgent")
-            recommendation_result = await retry_llm_call(
+            recommendation_result = await self._run_agent_step(
+                "RecommendationAgent",
                 lambda: self.recommendation_agent.recommend(
                     full_content, intake_result, fraud_result,
                     compliance_result, severity_result, similar_cases
-                )
+                ),
+                {"agent": "RecommendationAgent", "status": "ERROR",
+                 "overall_recommendation": "INVESTIGATE",
+                 "immediate_actions": [], "short_term_actions": []},
+                failed_agents
             )
             analysis_result["recommendations"] = recommendation_result
             analysis_result["agents_used"].append("RecommendationAgent")
 
             # Step 6: Summary Agent
             logger.info("Step 6: Running SummaryAgent")
-            summary_result = await retry_llm_call(
+            summary_result = await self._run_agent_step(
+                "SummaryAgent",
                 lambda: self.summary_agent.summarize(
                     full_content, intake_result, fraud_result,
                     compliance_result, severity_result, recommendation_result
-                )
+                ),
+                {"agent": "SummaryAgent", "status": "ERROR",
+                 "executive_summary": "Error generating summary",
+                 "key_findings": [],
+                 "recommended_action": {"primary": "Manual review required"}},
+                failed_agents
             )
             analysis_result["executive_summary"] = summary_result
             analysis_result["agents_used"].append("SummaryAgent")
 
             # Step 7: SkillAgent (sequential to avoid rate limit)
             logger.info("Step 7: Running SkillAgent")
-            skill_result = await retry_llm_call(
+            skill_result = await self._run_agent_step(
+                "SkillAgent",
                 lambda: self.skill_agent.verify(
                     full_content, intake_result, fraud_result,
                     compliance_result, severity_result,
                     recommendation_result, summary_result
-                )
+                ),
+                {"agent": "SkillAgent", "status": "ERROR",
+                 "grounding_score": 0.5, "agent_verification": {},
+                 "total_hallucinations": 0, "total_unsupported_claims": 0,
+                 "confidence_threshold_met": False,
+                 "verification_summary": "Error during verification",
+                 "recommended_action": "REVIEW"},
+                failed_agents
             )
             analysis_result["skill_verification"] = skill_result
             analysis_result["grounding_score"] = skill_result.get("grounding_score", 0.0)
@@ -166,12 +214,21 @@ class OrchestratorAgent:
 
             # Step 8: AuditAgent
             logger.info("Step 8: Running AuditAgent")
-            audit_result = await retry_llm_call(
+            audit_result = await self._run_agent_step(
+                "AuditAgent",
                 lambda: self.audit_agent.audit(
                     full_content, intake_result, fraud_result,
                     compliance_result, severity_result,
                     recommendation_result, summary_result
-                )
+                ),
+                {"agent": "AuditAgent", "status": "ERROR",
+                 "consistency_score": 0.5,
+                 "bias_risk": {"level": "LOW", "types_detected": [], "details": "Error during audit"},
+                 "cross_validation": {}, "audit_flags": [], "corrections": [],
+                 "overall_assessment": "MINOR_ISSUES",
+                 "audit_summary": "Error during audit process",
+                 "confidence_in_analysis": "LOW"},
+                failed_agents
             )
             analysis_result["audit"] = audit_result
             analysis_result["consistency_score"] = audit_result.get("consistency_score", 0.0)
@@ -194,15 +251,52 @@ class OrchestratorAgent:
             if similar_cases:
                 analysis_result["similar_cases"] = similar_cases[:3]
 
-            analysis_result["status"] = "COMPLETED"
-            logger.info(f"Analysis completed: Severity={analysis_result['severity']}, Score={analysis_result['fraud_score']:.2f}")
-            
+            # Determine final status based on agent failures
+            analysis_result["failed_agents"] = failed_agents
+            if not failed_agents:
+                analysis_result["status"] = "COMPLETED"
+            elif len(failed_agents) <= 2:
+                analysis_result["status"] = "PARTIAL"
+            else:
+                analysis_result["status"] = "DEGRADED"
+
+            logger.info(
+                f"Analysis {'completed' if not failed_agents else 'completed with failures'}: "
+                f"Severity={analysis_result['severity']}, Score={analysis_result['fraud_score']:.2f}"
+                f"{', Failed=' + str(failed_agents) if failed_agents else ''}"
+            )
+
         except Exception as e:
             logger.error(f"Analysis pipeline error: {str(e)}")
             analysis_result["status"] = "ERROR"
             analysis_result["error"] = str(e)
-        
+
         return analysis_result
+
+    async def _run_agent_step(
+        self,
+        agent_name: str,
+        agent_call,
+        fallback_data: dict,
+        failed_agents: list
+    ) -> Dict[str, Any]:
+        """Run a single agent step with error handling.
+
+        LLM API errors trigger retries via retry_llm_call.
+        AgentProcessingError (JSON parse failures) use fallback data.
+        All other errors after retry exhaustion use fallback data.
+        """
+        try:
+            return await retry_llm_call(agent_call)
+        except AgentProcessingError as e:
+            logger.warning(f"{agent_name} processing failed, using fallback: {e}")
+            failed_agents.append(agent_name)
+            return e.fallback_data
+        except Exception as e:
+            logger.error(f"{agent_name} failed after retries: {e}")
+            failed_agents.append(agent_name)
+            fallback_data["error"] = str(e)
+            return fallback_data
     
     def _determine_category(
         self,

@@ -97,39 +97,45 @@ HASIL PARSING 4W+1H:
 - How: {json.dumps(intake_result.get('how', {}), ensure_ascii=False)}
 """
 
+        from .utils import AgentProcessingError
+
+        # LLM call - let API errors propagate for retry_llm_call to handle
+        response = await asyncio.to_thread(
+            self.client.chat.completions.create,
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"LAPORAN ASLI:\n{report_content}\n\n{intake_context}"}
+            ],
+            temperature=0.1,
+            max_tokens=2048,
+            response_format={"type": "json_object"}
+        )
+
         try:
-            response = await asyncio.to_thread(
-                self.client.chat.completions.create,
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"LAPORAN ASLI:\n{report_content}\n\n{intake_context}"}
-                ],
-                temperature=0.1,
-                max_tokens=2048,
-                response_format={"type": "json_object"}
-            )
-            
             result = json.loads(response.choices[0].message.content)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
-            
+
             # Ensure fraud_score is within bounds
             result["fraud_score"] = max(0.0, min(1.0, result.get("fraud_score", 0.5)))
-            
+
             logger.info(f"{self.name}: Fraud score = {result['fraud_score']:.2f}")
             return result
-            
-        except Exception as e:
-            logger.error(f"{self.name} error: {e}")
-            return {
-                "agent": self.name,
-                "status": "ERROR",
-                "error": str(e),
-                "fraud_score": 0.5,
-                "red_flags_identified": [],
-                "confidence_level": "LOW"
-            }
+
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            logger.error(f"{self.name} response parsing error: {e}")
+            raise AgentProcessingError(
+                f"{self.name}: Failed to parse LLM response: {e}",
+                fallback_data={
+                    "agent": self.name,
+                    "status": "ERROR",
+                    "error": str(e),
+                    "fraud_score": 0.5,
+                    "red_flags_identified": [],
+                    "confidence_level": "LOW"
+                }
+            )
     
     def interpret_score(self, score: float) -> Dict[str, str]:
         """Interpret fraud score"""

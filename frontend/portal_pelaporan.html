@@ -68,12 +68,22 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-4 right-4 z-[9998] flex flex-col gap-2 pointer-events-none"></div>
     <script>
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function showToast(message, type = 'info', duration = 4000) {
             const container = document.getElementById('toast-container');
             const colors = { success: 'bg-green-600', error: 'bg-red-600', warning: 'bg-yellow-600', info: 'bg-blue-600' };
             const toast = document.createElement('div');
             toast.className = `${colors[type] || colors.info} text-white px-5 py-3 rounded-lg shadow-lg pointer-events-auto flex items-center gap-3 transform translate-x-full transition-transform duration-300 max-w-sm`;
-            toast.innerHTML = `<span class="text-sm">${message}</span>`;
+            toast.innerHTML = `<span class="text-sm">${escapeHtml(message)}</span>`;
             container.appendChild(toast);
             requestAnimationFrame(() => toast.classList.remove('translate-x-full'));
             setTimeout(() => { toast.classList.add('translate-x-full'); setTimeout(() => toast.remove(), 300); }, duration);
@@ -597,16 +607,16 @@
                         <div class="flex items-start justify-between mb-4">
                             <div>
                                 <p class="text-sm text-slate-500">Nomor Tiket</p>
-                                <p class="text-xl font-mono font-bold text-islamic-dark">${result.ticket_id}</p>
+                                <p class="text-xl font-mono font-bold text-islamic-dark">${escapeHtml(result.ticket_id)}</p>
                             </div>
                             <span class="px-4 py-2 rounded-full text-sm font-medium ${getStatusClass(result.status)}">
-                                ${result.status}
+                                ${escapeHtml(result.status)}
                             </span>
                         </div>
                         <div class="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <p class="text-slate-500">Status</p>
-                                <p class="text-islamic-dark font-medium">${result.status_description || getStatusDescription(result.status)}</p>
+                                <p class="text-islamic-dark font-medium">${escapeHtml(result.status_description || getStatusDescription(result.status))}</p>
                             </div>
                             <div>
                                 <p class="text-slate-500">Terakhir Diperbarui</p>
@@ -627,7 +637,7 @@
                 resultDiv.innerHTML = `
                     <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
                         <i data-lucide="alert-circle" class="w-12 h-12 text-red-400 mx-auto mb-3"></i>
-                        <p class="text-red-700 font-medium">${error.message}</p>
+                        <p class="text-red-700 font-medium">${escapeHtml(error.message)}</p>
                         <p class="text-red-600 text-sm mt-1">Pastikan nomor tiket yang dimasukkan sudah benar</p>
                     </div>
                 `;
@@ -653,8 +663,8 @@
                 historyDiv.innerHTML = messages.map(msg => `
                     <div class="flex ${msg.sender === 'Anda' ? 'justify-end' : 'justify-start'}">
                         <div class="max-w-[80%] px-4 py-2 rounded-lg ${msg.sender === 'Anda' ? 'bg-islamic-green text-white' : 'bg-islamic-light text-islamic-dark'}">
-                            <p class="text-sm">${msg.content}</p>
-                            <p class="text-xs ${msg.sender === 'Anda' ? 'text-emerald-200' : 'text-slate-400'} mt-1">${msg.sender} - ${formatDateTime(msg.created_at)}</p>
+                            <p class="text-sm">${escapeHtml(msg.content)}</p>
+                            <p class="text-xs ${msg.sender === 'Anda' ? 'text-emerald-200' : 'text-slate-400'} mt-1">${escapeHtml(msg.sender)} - ${formatDateTime(msg.created_at)}</p>
                         </div>
                     </div>
                 `).join('');
