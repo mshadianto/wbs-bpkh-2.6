@@ -11,6 +11,7 @@ from loguru import logger
 from datetime import datetime
 import re
 import uuid
+import time
 
 from database import report_repo, message_repo
 from services.notification_service import notification_service
@@ -131,6 +132,16 @@ async def whatsapp_webhook(
 
         if not message_body:
             return {"status": "ignored", "reason": "Empty message"}
+
+        # Replay protection: reject messages older than 5 minutes
+        msg_timestamp = payload.get("timestamp", 0)
+        if msg_timestamp and abs(time.time() - msg_timestamp) > 300:
+            logger.warning(f"WhatsApp webhook: stale message (timestamp: {msg_timestamp})")
+            return {"status": "ignored", "reason": "Stale message"}
+
+        # Cap message length to prevent abuse
+        if len(message_body) > 5000:
+            message_body = message_body[:5000]
 
         message_upper = message_body.upper()
 
@@ -308,6 +319,22 @@ async def email_webhook(
 
         if not body_text:
             return {"status": "ignored", "reason": "Empty body"}
+
+        # Replay protection: reject emails older than 5 minutes
+        received_at = body.get("received_at")
+        if received_at:
+            try:
+                recv_time = datetime.fromisoformat(received_at.replace("Z", "+00:00"))
+                if abs((datetime.utcnow() - recv_time.replace(tzinfo=None)).total_seconds()) > 300:
+                    logger.warning(f"Email webhook: stale message (received_at: {received_at})")
+                    return {"status": "ignored", "reason": "Stale message"}
+            except (ValueError, TypeError):
+                pass
+
+        # Cap lengths to prevent abuse
+        subject = subject[:200] if subject else ""
+        if len(body_text) > 10000:
+            body_text = body_text[:10000]
 
         subject_upper = subject.upper()
 

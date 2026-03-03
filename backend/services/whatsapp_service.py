@@ -41,6 +41,9 @@ class WhatsAppService:
         # Ensure it starts with country code
         if cleaned.startswith('0'):
             cleaned = '62' + cleaned[1:]  # Indonesia
+        # Validate: must be 10-15 digits (E.164 range)
+        if not (10 <= len(cleaned) <= 15):
+            logger.warning(f"Invalid phone number length: {len(cleaned)} digits")
         return cleaned + '@c.us'
 
     async def send_message(

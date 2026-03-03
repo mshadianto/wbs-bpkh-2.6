@@ -188,17 +188,24 @@ async def refresh_token(refresh_token: str):
 
     user = await user_repo.get_by_id(payload["sub"])
 
-    if not user or user.get("status") != "ACTIVE":
+    if not user or str(user.get("status", "")).upper() != "ACTIVE":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User tidak ditemukan atau tidak aktif"
+        )
+
+    # Check if account is locked
+    if await user_repo.is_account_locked(user["id"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Akun terkunci"
         )
 
     # Create new access token
     new_access_token = create_access_token(
         user_id=user["id"],
         email=user["email"],
-        role=UserRole(user["role"])
+        role=UserRole(str(user["role"]).upper())
     )
 
     return {
@@ -305,12 +312,16 @@ async def logout(current_user: TokenData = Depends(require_auth)):
 async def list_users(
     role: Optional[str] = None,
     status: Optional[str] = None,
+    page: int = 1,
+    per_page: int = 50,
     current_user: TokenData = Depends(require_role(UserRole.ADMIN))
 ):
     """
-    List all users (Admin only).
+    List all users (Admin only) with pagination.
     """
-    users = await user_repo.list_all(role=role, status=status)
+    per_page = min(per_page, 100)
+    offset = (max(page, 1) - 1) * per_page
+    users = await user_repo.list_all(role=role, status=status, limit=per_page, offset=offset)
 
     return {
         "users": [
@@ -326,7 +337,9 @@ async def list_users(
             }
             for u in users
         ],
-        "total": len(users)
+        "total": len(users),
+        "page": page,
+        "per_page": per_page
     }
 
 
@@ -449,7 +462,7 @@ async def admin_reset_password(
         )
 
     import secrets
-    temp_password = f"Temp{secrets.token_hex(4).upper()}!"
+    temp_password = f"Tmp{secrets.token_urlsafe(8)}!1A"
 
     password_hash = hash_password(temp_password)
     from datetime import datetime

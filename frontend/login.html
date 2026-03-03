@@ -272,8 +272,11 @@
                 window.location.href = '/dashboard';
 
             } catch (error) {
-                console.error('Login error:', error);
-                showError(error.message);
+                if (error instanceof TypeError && error.message.includes('fetch')) {
+                    showError('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+                } else {
+                    showError(error.message || 'Login gagal');
+                }
             } finally {
                 setLoading(false);
             }

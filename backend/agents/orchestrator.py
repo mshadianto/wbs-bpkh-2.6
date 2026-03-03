@@ -278,16 +278,25 @@ class OrchestratorAgent:
         agent_name: str,
         agent_call,
         fallback_data: dict,
-        failed_agents: list
+        failed_agents: list,
+        timeout_seconds: int = 60
     ) -> Dict[str, Any]:
-        """Run a single agent step with error handling.
+        """Run a single agent step with error handling and timeout.
 
         LLM API errors trigger retries via retry_llm_call.
         AgentProcessingError (JSON parse failures) use fallback data.
         All other errors after retry exhaustion use fallback data.
         """
         try:
-            return await retry_llm_call(agent_call)
+            return await asyncio.wait_for(
+                retry_llm_call(agent_call),
+                timeout=timeout_seconds
+            )
+        except asyncio.TimeoutError:
+            logger.error(f"{agent_name} timed out after {timeout_seconds}s")
+            failed_agents.append(agent_name)
+            fallback_data["error"] = f"Timeout after {timeout_seconds}s"
+            return fallback_data
         except AgentProcessingError as e:
             logger.warning(f"{agent_name} processing failed, using fallback: {e}")
             failed_agents.append(agent_name)

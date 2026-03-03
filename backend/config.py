@@ -566,8 +566,25 @@ def get_escalation_level(severity: str, loss_amount: float = 0, involves_directo
 
 @lru_cache()
 def get_settings() -> Settings:
-    """Get cached settings instance"""
-    return Settings()
+    """Get cached settings instance with validation"""
+    s = Settings()
+    missing = []
+    if not s.groq_api_key:
+        missing.append("GROQ_API_KEY")
+    if not s.supabase_url:
+        missing.append("SUPABASE_URL")
+    if not s.supabase_anon_key:
+        missing.append("SUPABASE_ANON_KEY")
+    if not s.jwt_secret:
+        missing.append("JWT_SECRET")
+    if missing:
+        import warnings
+        warnings.warn(
+            f"Missing required environment variables: {', '.join(missing)}. "
+            "Some features will not work correctly.",
+            stacklevel=2
+        )
+    return s
 
 
 # Export settings

@@ -480,11 +480,11 @@
                     <div class="flex items-center justify-between mt-4">
                         <p class="text-sm text-slate-600">Menampilkan <span id="showing-count">0</span> dari <span id="total-count">0</span> laporan</p>
                         <div class="flex items-center gap-2">
-                            <button onclick="prevPage()" class="px-3 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light disabled:opacity-50">
+                            <button id="btn-prev-page" onclick="prevPage()" class="px-3 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light disabled:opacity-50" disabled>
                                 <i data-lucide="chevron-left" class="w-5 h-5"></i>
                             </button>
                             <span id="page-info" class="px-4 py-2 text-sm">Halaman 1</span>
-                            <button onclick="nextPage()" class="px-3 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light disabled:opacity-50">
+                            <button id="btn-next-page" onclick="nextPage()" class="px-3 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light disabled:opacity-50">
                                 <i data-lucide="chevron-right" class="w-5 h-5"></i>
                             </button>
                         </div>
@@ -2943,6 +2943,7 @@
         // Configuration
         let API_URL = localStorage.getItem('api_url') || '';
         let currentPage = 1;
+        let totalReports = 0;
         let currentReportId = null;
         let authToken = null;
         let currentUser = null;
@@ -3217,6 +3218,12 @@
             localStorage.removeItem('wbs_token');
             localStorage.removeItem('wbs_user');
             localStorage.removeItem('wbs_refresh_token');
+            localStorage.removeItem('wbs_must_change_password');
+            authToken = null;
+            currentUser = null;
+            currentReportId = null;
+            currentPage = 1;
+            totalReports = 0;
             window.location.href = '/login';
         }
 
@@ -3305,6 +3312,11 @@
             }
             if (newPw !== confirmPw) {
                 errorEl.textContent = 'Password baru tidak cocok';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (newPw.length < 8 || !/[A-Z]/.test(newPw) || !/[a-z]/.test(newPw) || !/[0-9]/.test(newPw) || !/[^A-Za-z0-9]/.test(newPw)) {
+                errorEl.textContent = 'Password harus min. 8 karakter dengan huruf besar, huruf kecil, angka, dan karakter khusus';
                 errorEl.classList.remove('hidden');
                 return;
             }
@@ -3437,7 +3449,7 @@
                 renderSeverityChart(data.by_severity || {});
                 loadRecentReports();
             } catch (error) {
-                console.log('Dashboard: Using sample data');
+                /* fallback: sample data */;
                 renderSampleDashboard();
             }
         }
@@ -3556,7 +3568,7 @@
                         </div>
                     `).join('');
                 }
-            } catch (error) { console.log('Using sample recent reports'); }
+            } catch (error) { /* fallback: sample data */; }
         }
 
         // Reports functions
@@ -3576,10 +3588,14 @@
                 if (!response.ok) throw new Error('Failed to load reports');
                 const data = await response.json();
                 renderReportsTable(data.reports || []);
+                totalReports = data.total || 0;
+                const perPage = 10;
+                const totalPages = Math.max(1, Math.ceil(totalReports / perPage));
                 document.getElementById('showing-count').textContent = data.reports?.length || 0;
-                document.getElementById('total-count').textContent = data.total || 0;
-                document.getElementById('page-info').textContent = `Halaman ${currentPage}`;
-            } catch (error) { console.log('Using sample reports'); renderSampleReports(); }
+                document.getElementById('total-count').textContent = totalReports;
+                document.getElementById('page-info').textContent = `Halaman ${currentPage} dari ${totalPages}`;
+                updatePaginationButtons(totalPages);
+            } catch (error) { /* fallback: sample data */; renderSampleReports(); }
         }
 
         function renderReportsTable(reports) {
@@ -3635,7 +3651,7 @@
                 if (!response || !response.ok) throw new Error('Failed to load report');
                 const report = await response.json();
                 renderReportDetail(report);
-            } catch (error) { console.log('Using sample report detail'); renderSampleReportDetail(); }
+            } catch (error) { /* fallback: sample data */; renderSampleReportDetail(); }
         }
 
         function renderReportDetail(report) {
@@ -3719,8 +3735,10 @@
 
         function closeModal() { document.getElementById('report-detail-modal').classList.add('hidden'); currentReportId = null; }
 
+        let analysisRunning = false;
         async function runAnalysis() {
-            if (!currentReportId) return;
+            if (!currentReportId || analysisRunning) return;
+            analysisRunning = true;
             document.getElementById('modal-content').innerHTML = `<div class="text-center py-8"><div class="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto"></div><p class="mt-4 text-slate-600">Menjalankan AI Analysis...</p></div>`;
             try {
                 const response = await authFetch(`${API_URL}/api/v1/analysis/run`, { method: 'POST', body: JSON.stringify({ report_id: currentReportId, use_full_analysis: true }) });
@@ -3730,7 +3748,7 @@
                 const severityInterp = getSeverityInterpretation(result.severity);
                 alert(`✅ Analisis Selesai!\n\n📊 Fraud Score: ${(result.fraud_score * 100).toFixed(0)}% (${fraudInterp.label})\n${fraudInterp.description}\n\n⚠️ Severity: ${result.severity} (${severityInterp.label})\n${severityInterp.description}\n\n📁 Kategori: ${result.category}\n🎯 Prioritas: ${result.priority}`);
                 viewReport(currentReportId);
-            } catch (error) { alert('Gagal menjalankan analisis'); }
+            } catch (error) { showToast('Gagal menjalankan analisis', 'error'); } finally { analysisRunning = false; }
         }
 
         async function runAnalysisById() {
@@ -3958,10 +3976,10 @@
             try {
                 const response = await authFetch(`${API_URL}/api/v1/reports/${currentReportId}/status`, { method: 'PATCH', body: JSON.stringify({ new_status: newStatus }) });
                 if (!response || !response.ok) throw new Error('Update failed');
-                alert('Status berhasil diupdate');
+                showToast('Status berhasil diupdate', 'success');
                 closeModal();
                 loadReports();
-            } catch (error) { alert('Gagal update status'); }
+            } catch (error) { showToast('Gagal update status', 'error'); }
         }
 
         async function loadKnowledgeBase() {
@@ -3969,8 +3987,8 @@
                 const response = await authFetch(`${API_URL}/api/v1/knowledge/load`, { method: 'POST' });
                 if (!response || !response.ok) throw new Error('Failed');
                 const result = await response.json();
-                alert(`Knowledge base loaded: ${result.documents_loaded} documents`);
-            } catch (error) { alert('Gagal load knowledge base'); }
+                showToast(`Knowledge base loaded: ${result.documents_loaded} documents`, 'success');
+            } catch (error) { showToast('Gagal load knowledge base', 'error'); }
         }
 
         function sendChatMessage() {
@@ -3983,9 +4001,15 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        function saveSettings() { const apiUrl = document.getElementById('api-url').value; localStorage.setItem('api_url', apiUrl); API_URL = apiUrl; alert('Pengaturan disimpan'); }
+        function saveSettings() { const apiUrl = document.getElementById('api-url').value; localStorage.setItem('api_url', apiUrl); API_URL = apiUrl; showToast('Pengaturan disimpan', 'success'); }
         function prevPage() { if (currentPage > 1) { currentPage--; loadReports(); } }
-        function nextPage() { currentPage++; loadReports(); }
+        function nextPage() { const totalPages = Math.max(1, Math.ceil(totalReports / 10)); if (currentPage < totalPages) { currentPage++; loadReports(); } }
+        function updatePaginationButtons(totalPages) {
+            const prevBtn = document.getElementById('btn-prev-page');
+            const nextBtn = document.getElementById('btn-next-page');
+            if (prevBtn) { prevBtn.disabled = currentPage <= 1; prevBtn.classList.toggle('opacity-50', currentPage <= 1); }
+            if (nextBtn) { nextBtn.disabled = currentPage >= totalPages; nextBtn.classList.toggle('opacity-50', currentPage >= totalPages); }
+        }
 
         function getSeverityClass(severity) {
             const classes = { 'CRITICAL': 'bg-red-100 text-red-700', 'HIGH': 'bg-orange-100 text-orange-700', 'MEDIUM': 'bg-yellow-100 text-yellow-700', 'LOW': 'bg-islamic-green/20 text-islamic-green' };
@@ -4037,7 +4061,7 @@
                 const data = await response.json();
                 renderUsersTable(data.users || []);
             } catch (error) {
-                console.log('Using sample users');
+                /* fallback: sample data */;
                 renderUsersTable([
                     { email: 'admin@bpkh.go.id', full_name: 'Administrator', role: 'ADMIN', department: '-', status: 'ACTIVE' },
                     { email: 'manager@bpkh.go.id', full_name: 'Manager WBS', role: 'MANAGER', department: 'Kepala Unit WBS', status: 'ACTIVE' },
@@ -4196,7 +4220,7 @@
                     investigationData.cases = data.reports || [];
                 }
             } catch (error) {
-                console.log('Using demo data for investigation');
+                /* fallback: demo data */;
             }
 
             // Update counts
@@ -4279,7 +4303,7 @@
                         reports.map(r => `<option value="${r.id}">${r.ticket_id} - ${(r.subject || r.title || '').substring(0, 50)}</option>`).join('');
                 }
             } catch (error) {
-                console.log('Error loading reports for intake');
+                /* error loading intake reports */;
             }
 
             // Check if there's a pre-selected case

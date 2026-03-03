@@ -219,7 +219,7 @@
                         <label class="block text-sm font-medium text-islamic-dark mb-2">
                             Uraian Lengkap <span class="text-red-500">*</span>
                         </label>
-                        <textarea id="description" required minlength="50" rows="6"
+                        <textarea id="description" required minlength="50" maxlength="10000" rows="6"
                             placeholder="Jelaskan secara detail dengan jujur:
 • Apa yang terjadi?
 • Siapa yang terlibat?
@@ -343,7 +343,7 @@
                     <div class="flex gap-3">
                         <textarea id="new_message" rows="2" placeholder="Tulis pesan atau informasi tambahan..."
                             class="flex-1 px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green resize-none"></textarea>
-                        <button onclick="sendMessage()" class="px-4 py-3 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition shadow-lg">
+                        <button id="btn-send-message" onclick="sendMessage()" class="px-4 py-3 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition shadow-lg">
                             <i data-lucide="send" class="w-5 h-5"></i>
                         </button>
                     </div>
@@ -676,9 +676,11 @@
         // Send Message
         async function sendMessage() {
             const messageInput = document.getElementById('new_message');
+            const sendBtn = document.getElementById('btn-send-message');
             const content = messageInput.value.trim();
             if (!content || !currentTicketId) return;
 
+            if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = 'Mengirim...'; }
             try {
                 const response = await fetch(`${API_URL}/api/v1/tickets/${currentTicketId}/messages`, {
                     method: 'POST',
@@ -689,7 +691,9 @@
                 messageInput.value = '';
                 loadMessages(currentTicketId);
             } catch (error) {
-                alert('Gagal mengirim pesan: ' + error.message);
+                showToast('Gagal mengirim pesan', 'error');
+            } finally {
+                if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Kirim'; }
             }
         }
 
@@ -738,7 +742,9 @@
 
         function copyTicketId() {
             const ticketId = document.getElementById('result-ticket-id').textContent;
-            navigator.clipboard.writeText(ticketId).then(() => alert('Nomor tiket disalin!'));
+            navigator.clipboard.writeText(ticketId)
+                .then(() => showToast('Nomor tiket disalin!', 'success'))
+                .catch(() => showToast('Gagal menyalin. Salin manual: ' + ticketId, 'error'));
         }
     </script>
 </body>

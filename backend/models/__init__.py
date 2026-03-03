@@ -75,8 +75,9 @@ class ReportCreate(BaseModel):
         description="Brief subject/title of report"
     )
     description: str = Field(
-        ..., 
+        ...,
         min_length=50,
+        max_length=10000,
         description="Detailed description of violation"
     )
     incident_date: Optional[str] = Field(
@@ -89,7 +90,8 @@ class ReportCreate(BaseModel):
     )
     parties_involved: List[str] = Field(
         default_factory=list,
-        description="Names/positions of parties involved"
+        max_length=20,
+        description="Names/positions of parties involved (max 20)"
     )
     attachments: List[str] = Field(
         default_factory=list,
@@ -152,8 +154,9 @@ class ReportListResponse(BaseModel):
 class MessageCreate(BaseModel):
     """Model for creating new message"""
     content: str = Field(
-        ..., 
+        ...,
         min_length=1,
+        max_length=5000,
         description="Message content"
     )
     attachments: List[str] = Field(
