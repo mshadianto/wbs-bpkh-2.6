@@ -147,14 +147,25 @@ PUBLIC_RATE_LIMITED_PATHS = {
     "/api/v1/auth/login": "POST",
 }
 
+# Prefix-based rate limiting for dynamic path endpoints
+PUBLIC_RATE_LIMITED_PREFIXES = [
+    ("/api/v1/tickets/", "POST"),
+    ("/api/v1/tickets/", "GET"),
+]
+
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     path = request.url.path
     method = request.method
     client_ip = request.client.host if request.client else "unknown"
 
-    # Check if this is a rate-limited public endpoint
+    # Check if this is a rate-limited public endpoint (exact or prefix match)
     is_public_limited = PUBLIC_RATE_LIMITED_PATHS.get(path) == method
+    if not is_public_limited:
+        for prefix, m in PUBLIC_RATE_LIMITED_PREFIXES:
+            if path.startswith(prefix) and method == m:
+                is_public_limited = True
+                break
     if is_public_limited:
         key = f"{client_ip}:{path}"
         now = time.time()
@@ -258,7 +269,7 @@ async def create_report(
         
     except Exception as e:
         logger.error(f"Failed to create report: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 @app.get("/api/v1/reports", response_model=ReportListResponse, tags=["Reports"])
@@ -303,7 +314,7 @@ async def list_reports(
 
     except Exception as e:
         logger.error(f"Failed to list reports: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 @app.get("/api/v1/reports/export", tags=["Reports"])
@@ -324,6 +335,13 @@ async def export_reports(
             status=status, severity=severity, category=category, limit=5000
         )
 
+        def sanitize_csv_value(val):
+            """Prevent CSV injection by escaping formula-triggering characters."""
+            s = str(val) if val is not None else ""
+            if s and s[0] in ('=', '+', '-', '@', '\t', '\r'):
+                return "'" + s
+            return s
+
         output = StringIO()
         writer = csv.writer(output)
         writer.writerow([
@@ -333,15 +351,15 @@ async def export_reports(
         ])
         for r in reports:
             writer.writerow([
-                r.get("ticket_id", ""),
-                r.get("status", ""),
-                r.get("severity", ""),
-                r.get("category", ""),
-                r.get("title", ""),
-                r.get("channel", ""),
+                sanitize_csv_value(r.get("ticket_id", "")),
+                sanitize_csv_value(r.get("status", "")),
+                sanitize_csv_value(r.get("severity", "")),
+                sanitize_csv_value(r.get("category", "")),
+                sanitize_csv_value(r.get("title", "")),
+                sanitize_csv_value(r.get("channel", "")),
                 r.get("is_anonymous", ""),
                 r.get("fraud_score", ""),
-                r.get("assigned_to", ""),
+                sanitize_csv_value(r.get("assigned_to", "")),
                 r.get("created_at", ""),
                 r.get("updated_at", ""),
             ])
@@ -356,7 +374,7 @@ async def export_reports(
 
     except Exception as e:
         logger.error(f"Failed to export reports: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 @app.get("/api/v1/reports/{report_id}", response_model=ReportDetail, tags=["Reports"])
@@ -382,7 +400,7 @@ async def get_report(
         raise
     except Exception as e:
         logger.error(f"Failed to get report: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 @app.patch("/api/v1/reports/{report_id}/status", tags=["Reports"])
@@ -429,7 +447,7 @@ async def update_report_status(
         raise
     except Exception as e:
         logger.error(f"Failed to update status: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 # ============== Admin Message Endpoint ==============
@@ -459,7 +477,7 @@ async def add_admin_message(
         raise
     except Exception as e:
         logger.error(f"Failed to send admin message: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 # ============== Report Assignment Endpoint ==============
@@ -509,7 +527,7 @@ async def assign_report(
         raise
     except Exception as e:
         logger.error(f"Failed to assign report: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 # ============== Ticket Endpoints (Public) ==============
@@ -553,7 +571,7 @@ async def lookup_ticket(lookup: TicketLookup):
         raise
     except Exception as e:
         logger.error(f"Ticket lookup failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 @app.post("/api/v1/tickets/{ticket_id}/messages", tags=["Tickets"])
@@ -592,7 +610,7 @@ async def add_message_by_ticket(
         raise
     except Exception as e:
         logger.error(f"Failed to add message: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 @app.get("/api/v1/tickets/{ticket_id}/messages", tags=["Tickets"])
@@ -624,7 +642,7 @@ async def get_messages_by_ticket(ticket_id: str):
         raise
     except Exception as e:
         logger.error(f"Failed to get messages: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 # ============== Analysis Endpoints ==============
@@ -675,7 +693,7 @@ async def run_analysis(
         raise
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 @app.get("/api/v1/analysis/{report_id}", tags=["Analysis"])
@@ -699,7 +717,7 @@ async def get_analysis(
         raise
     except Exception as e:
         logger.error(f"Failed to get analysis: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 # ============== Dashboard Endpoints ==============
@@ -726,7 +744,7 @@ async def get_dashboard_stats(
         
     except Exception as e:
         logger.error(f"Failed to get stats: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 # ============== Reference Data Endpoints ==============
@@ -764,7 +782,7 @@ async def load_knowledge_base(
         }
     except Exception as e:
         logger.error(f"Failed to load knowledge base: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
 
 
 # ============== Background Tasks ==============

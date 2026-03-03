@@ -6,6 +6,7 @@ Handles email sending/receiving via SMTP.
 
 import smtplib
 import ssl
+import html
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
@@ -233,7 +234,7 @@ Tim WBS BPKH
 ---
 Email ini dikirim secara otomatis. Mohon tidak membalas email ini."""
 
-        note_html = f'<div style="background: #f5f5f5; padding: 15px; border-left: 4px solid #C9A227; margin: 15px 0;"><strong>Catatan:</strong><br>{note}</div>' if note else ""
+        note_html = f'<div style="background: #f5f5f5; padding: 15px; border-left: 4px solid #C9A227; margin: 15px 0;"><strong>Catatan:</strong><br>{html.escape(note)}</div>' if note else ""
 
         body_html = f"""
 <!DOCTYPE html>

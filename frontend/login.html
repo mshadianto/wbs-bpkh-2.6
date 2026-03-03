@@ -261,6 +261,13 @@
                     localStorage.setItem('wbs_refresh_token', data.refresh_token);
                 }
 
+                // Check if user must change password
+                if (data.must_change_password) {
+                    localStorage.setItem('wbs_must_change_password', 'true');
+                } else {
+                    localStorage.removeItem('wbs_must_change_password');
+                }
+
                 // Redirect to dashboard
                 window.location.href = '/dashboard';
 

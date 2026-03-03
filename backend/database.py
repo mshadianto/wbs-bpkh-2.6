@@ -232,7 +232,6 @@ class ReportRepository:
             "category": analysis.get("category"),
             "fraud_score": analysis.get("fraud_score"),
             "ai_analysis": analysis,
-            "status": "REVIEWING",
             "updated_at": datetime.utcnow().isoformat()
         }
 
@@ -240,8 +239,15 @@ class ReportRepository:
         severity = analysis.get("severity", "MEDIUM")
         sla_config = SEVERITY_LEVELS.get(severity, SEVERITY_LEVELS["MEDIUM"])
 
-        # Get report created_at for SLA calculation
+        # Get report to check current status and calculate SLA
         report = await self.get_by_id(report_id)
+
+        # Only advance status to REVIEWING if report is still in NEW status
+        # Do not overwrite if admin already moved it forward
+        if report:
+            current_status = report.get("status", "NEW")
+            if current_status == "NEW":
+                update_data["status"] = "REVIEWING"
         if report:
             created_at = report.get("created_at", datetime.utcnow().isoformat())
             try:
@@ -593,7 +599,20 @@ class UserRepository:
             .execute()
 
     async def increment_login_attempts(self, user_id: str) -> int:
-        """Increment failed login attempts"""
+        """Increment failed login attempts atomically via DB function.
+        Falls back to non-atomic increment if RPC is unavailable."""
+        try:
+            result = self.db.rpc(
+                "increment_login_attempts",
+                {"p_user_id": user_id}
+            ).execute()
+            if result.data:
+                data = result.data if isinstance(result.data, dict) else result.data[0] if result.data else {}
+                return data.get("attempts", 0)
+        except Exception as e:
+            logger.warning(f"Atomic increment RPC failed, using fallback: {e}")
+
+        # Fallback: non-atomic increment (for DBs without the RPC function)
         user = await self.get_by_id(user_id)
         if not user:
             return 0
@@ -601,7 +620,6 @@ class UserRepository:
         attempts = (user.get("login_attempts") or 0) + 1
         update_data = {"login_attempts": attempts}
 
-        # Lock account after 5 failed attempts
         if attempts >= 5:
             lock_until = datetime.utcnow() + timedelta(minutes=30)
             update_data["locked_until"] = lock_until.isoformat()

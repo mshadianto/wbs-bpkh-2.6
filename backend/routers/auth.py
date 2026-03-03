@@ -41,37 +41,30 @@ async def login(credentials: UserLogin, request: Request):
                 detail="Email atau password salah"
             )
 
-        # Check if account is locked
+        # Check if account is locked - use same error to prevent enumeration
         if await user_repo.is_account_locked(user["id"]):
+            logger.warning(f"Locked account login attempt: {credentials.email}")
             raise HTTPException(
-                status_code=status.HTTP_423_LOCKED,
-                detail="Akun terkunci karena terlalu banyak percobaan login. Coba lagi dalam 30 menit."
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Email atau password salah"
             )
 
-        # Check if account is active
+        # Check if account is active - use same error to prevent enumeration
         user_status = str(user.get("status", "")).upper()
         if user_status != "ACTIVE":
             logger.warning(f"Inactive account login attempt: {credentials.email}, status: {user_status}")
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Akun tidak aktif. Hubungi administrator."
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Email atau password salah"
             )
 
         # Verify password
         if not verify_password(credentials.password, user["password_hash"]):
-            attempts = await user_repo.increment_login_attempts(user["id"])
-            remaining = 5 - attempts
-
-            if remaining > 0:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail=f"Email atau password salah. {remaining} percobaan tersisa."
-                )
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_423_LOCKED,
-                    detail="Akun terkunci karena terlalu banyak percobaan login."
-                )
+            await user_repo.increment_login_attempts(user["id"])
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Email atau password salah"
+            )
 
         # Update last login
         await user_repo.update_last_login(user["id"])
@@ -109,7 +102,8 @@ async def login(credentials: UserLogin, request: Request):
                 status=user_status_enum,
                 last_login=user.get("last_login"),
                 created_at=user["created_at"]
-            )
+            ),
+            must_change_password=bool(user.get("must_change_password", False))
         )
     except HTTPException:
         raise
@@ -117,7 +111,7 @@ async def login(credentials: UserLogin, request: Request):
         logger.error(f"Login error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Login gagal: {str(e)}"
+            detail="Login gagal. Silakan coba lagi."
         )
 
 

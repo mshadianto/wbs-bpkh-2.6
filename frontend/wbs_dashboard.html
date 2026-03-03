@@ -3249,10 +3249,84 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (!checkAuth()) return;
 
+            // Force password change if required
+            if (localStorage.getItem('wbs_must_change_password') === 'true') {
+                showForcePasswordChange();
+            }
+
             lucide.createIcons();
             loadDashboard();
             document.getElementById('api-url').value = API_URL;
         });
+
+        function showForcePasswordChange() {
+            const overlay = document.createElement('div');
+            overlay.id = 'force-password-overlay';
+            overlay.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-[9999]';
+            overlay.innerHTML = `
+                <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Ubah Password</h2>
+                    <p class="text-gray-600 text-sm mb-6">Password Anda harus diubah sebelum melanjutkan.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Password Saat Ini</label>
+                            <input type="password" id="fp-current" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
+                            <input type="password" id="fp-new" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                            <p class="text-xs text-gray-500 mt-1">Min. 8 karakter, huruf besar, huruf kecil, angka, dan karakter khusus</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
+                            <input type="password" id="fp-confirm" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                        </div>
+                        <p id="fp-error" class="text-red-600 text-sm hidden"></p>
+                        <button onclick="submitForcePasswordChange()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg transition-colors">
+                            Ubah Password
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+        }
+
+        async function submitForcePasswordChange() {
+            const currentPw = document.getElementById('fp-current').value;
+            const newPw = document.getElementById('fp-new').value;
+            const confirmPw = document.getElementById('fp-confirm').value;
+            const errorEl = document.getElementById('fp-error');
+
+            errorEl.classList.add('hidden');
+
+            if (!currentPw || !newPw || !confirmPw) {
+                errorEl.textContent = 'Semua field harus diisi';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            if (newPw !== confirmPw) {
+                errorEl.textContent = 'Password baru tidak cocok';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const resp = await fetch(`${API_URL}/api/v1/auth/change-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({ current_password: currentPw, new_password: newPw })
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.detail || 'Gagal mengubah password');
+
+                localStorage.removeItem('wbs_must_change_password');
+                const overlay = document.getElementById('force-password-overlay');
+                if (overlay) overlay.remove();
+                showToast('Password berhasil diubah', 'success');
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.classList.remove('hidden');
+            }
+        }
 
         // Navigation
         function showPage(page) {
