@@ -4,14 +4,14 @@ WBS BPKH AI - Analysis Agent
 Analyzes fraud indicators and calculates fraud score.
 """
 
-from groq import Groq
 from typing import Dict, Any
-import asyncio
 import json
 from loguru import logger
 
+from .base_agent import BaseAgent
 
-class AnalysisAgent:
+
+class AnalysisAgent(BaseAgent):
     """
     Analysis Agent - Evaluates fraud indicators
     
@@ -22,10 +22,8 @@ class AnalysisAgent:
     - Fraud triangle elements (Pressure, Opportunity, Rationalization)
     """
     
-    def __init__(self, client: Groq, model: str):
-        self.client = client
-        self.model = model
-        self.name = "AnalysisAgent"
+    def __init__(self, client, model: str):
+        super().__init__(client, model, "AnalysisAgent")
     
     async def analyze(
         self,
@@ -100,20 +98,14 @@ HASIL PARSING 4W+1H:
         from .utils import AgentProcessingError
 
         # LLM call - let API errors propagate for retry_llm_call to handle
-        response = await asyncio.to_thread(
-            self.client.chat.completions.create,
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"LAPORAN ASLI:\n{report_content}\n\n{intake_context}"}
-            ],
-            temperature=0.1,
-            max_tokens=2048,
-            response_format={"type": "json_object"}
+        raw = await self._call_llm(
+            system_prompt,
+            f"LAPORAN ASLI:\n{report_content}\n\n{intake_context}",
+            max_tokens=2048
         )
 
         try:
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(raw)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
 

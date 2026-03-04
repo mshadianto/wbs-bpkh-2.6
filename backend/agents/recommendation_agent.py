@@ -4,14 +4,14 @@ WBS BPKH AI - Recommendation Agent
 Generates recommended actions based on analysis.
 """
 
-from groq import Groq
 from typing import Dict, Any, Optional, List
-import asyncio
 import json
 from loguru import logger
 
+from .base_agent import BaseAgent
 
-class RecommendationAgent:
+
+class RecommendationAgent(BaseAgent):
     """
     Recommendation Agent - Generates action recommendations
     
@@ -22,10 +22,8 @@ class RecommendationAgent:
     - Similar historical cases
     """
     
-    def __init__(self, client: Groq, model: str):
-        self.client = client
-        self.model = model
-        self.name = "RecommendationAgent"
+    def __init__(self, client, model: str):
+        super().__init__(client, model, "RecommendationAgent")
     
     async def recommend(
         self,
@@ -154,20 +152,14 @@ RINGKASAN ANALISIS:
         from .utils import AgentProcessingError
 
         # LLM call - let API errors propagate for retry_llm_call to handle
-        response = await asyncio.to_thread(
-            self.client.chat.completions.create,
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"LAPORAN:\n{report_content}\n\n{context}"}
-            ],
-            temperature=0.1,
-            max_tokens=2048,
-            response_format={"type": "json_object"}
+        raw = await self._call_llm(
+            system_prompt,
+            f"LAPORAN:\n{report_content}\n\n{context}",
+            max_tokens=2048
         )
 
         try:
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(raw)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
 

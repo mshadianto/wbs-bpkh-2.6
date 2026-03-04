@@ -7,15 +7,16 @@ Parses whistleblower reports using 4W+1H framework.
 
 from groq import Groq
 from typing import Dict, Any
-import asyncio
 import json
 from loguru import logger
 
+from .base_agent import BaseAgent
 
-class IntakeAgent:
+
+class IntakeAgent(BaseAgent):
     """
     Intake Agent - Extracts structured information from reports
-    
+
     Uses 4W+1H framework:
     - What: Apa yang terjadi (pelanggaran)
     - Who: Siapa yang terlibat
@@ -23,11 +24,9 @@ class IntakeAgent:
     - Where: Dimana terjadi
     - How: Bagaimana modus operandinya
     """
-    
+
     def __init__(self, client: Groq, model: str):
-        self.client = client
-        self.model = model
-        self.name = "IntakeAgent"
+        super().__init__(client, model, "IntakeAgent")
     
     async def parse(self, report_content: str) -> Dict[str, Any]:
         """Parse report using 4W+1H framework"""
@@ -78,20 +77,14 @@ Output dalam format JSON:
         from .utils import AgentProcessingError
 
         # LLM call - let API errors propagate for retry_llm_call to handle
-        response = await asyncio.to_thread(
-            self.client.chat.completions.create,
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Laporan Pelanggaran:\n\n{report_content}"}
-            ],
-            temperature=0.1,
-            max_tokens=2048,
-            response_format={"type": "json_object"}
+        raw = await self._call_llm(
+            system_prompt,
+            f"Laporan Pelanggaran:\n\n{report_content}",
+            max_tokens=2048
         )
 
         try:
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(raw)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
 

@@ -5,14 +5,14 @@ Checks violations against regulations and policies.
 Uses RAG for regulation knowledge base.
 """
 
-from groq import Groq
 from typing import Dict, Any, Optional
-import asyncio
 import json
 from loguru import logger
 
+from .base_agent import BaseAgent
 
-class ComplianceAgent:
+
+class ComplianceAgent(BaseAgent):
     """
     Compliance Agent - Checks regulatory violations
     
@@ -66,10 +66,8 @@ REGULASI UTAMA:
    - Tanggung jawab pengelolaan dana haji
 """
     
-    def __init__(self, client: Groq, model: str):
-        self.client = client
-        self.model = model
-        self.name = "ComplianceAgent"
+    def __init__(self, client, model: str):
+        super().__init__(client, model, "ComplianceAgent")
     
     async def check(
         self,
@@ -149,20 +147,14 @@ HASIL PARSING LAPORAN:
         from .utils import AgentProcessingError
 
         # LLM call - let API errors propagate for retry_llm_call to handle
-        response = await asyncio.to_thread(
-            self.client.chat.completions.create,
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"LAPORAN:\n{report_content}\n\n{intake_context}"}
-            ],
-            temperature=0.1,
-            max_tokens=2048,
-            response_format={"type": "json_object"}
+        raw = await self._call_llm(
+            system_prompt,
+            f"LAPORAN:\n{report_content}\n\n{intake_context}",
+            max_tokens=2048
         )
 
         try:
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(raw)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
 

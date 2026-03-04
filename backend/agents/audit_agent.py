@@ -5,14 +5,14 @@ Cross-validates consistency between agents and
 detects potential biases in the analysis pipeline.
 """
 
-from groq import Groq
 from typing import Dict, Any
-import asyncio
 import json
 from loguru import logger
 
+from .base_agent import BaseAgent
 
-class AuditAgent:
+
+class AuditAgent(BaseAgent):
     """
     Audit & Bias Detection Agent
 
@@ -21,10 +21,8 @@ class AuditAgent:
     confirmation biases in the analysis.
     """
 
-    def __init__(self, client: Groq, model: str):
-        self.client = client
-        self.model = model
-        self.name = "AuditAgent"
+    def __init__(self, client, model: str):
+        super().__init__(client, model, "AuditAgent")
 
     async def audit(
         self,
@@ -206,20 +204,10 @@ Lakukan audit menyeluruh terhadap konsistensi dan potensi bias dari seluruh hasi
         from .utils import AgentProcessingError
 
         # LLM call - let API errors propagate for retry_llm_call to handle
-        response = await asyncio.to_thread(
-            self.client.chat.completions.create,
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.1,
-            max_tokens=3072,
-            response_format={"type": "json_object"}
-        )
+        raw = await self._call_llm(system_prompt, user_prompt, max_tokens=3072)
 
         try:
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(raw)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
 

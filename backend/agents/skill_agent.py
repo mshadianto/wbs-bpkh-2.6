@@ -5,14 +5,14 @@ Verifies that all agent outputs are factually grounded
 in the original report text. Detects hallucinations.
 """
 
-from groq import Groq
 from typing import Dict, Any
-import asyncio
 import json
 from loguru import logger
 
+from .base_agent import BaseAgent
 
-class SkillAgent:
+
+class SkillAgent(BaseAgent):
     """
     Skill Verification Agent - Anti-Hallucination Check
 
@@ -20,10 +20,8 @@ class SkillAgent:
     report text to detect fabricated or unsupported information.
     """
 
-    def __init__(self, client: Groq, model: str):
-        self.client = client
-        self.model = model
-        self.name = "SkillAgent"
+    def __init__(self, client, model: str):
+        super().__init__(client, model, "SkillAgent")
 
     async def verify(
         self,
@@ -166,20 +164,10 @@ Verifikasi setiap klaim terhadap LAPORAN ASLI di atas. Identifikasi hallucinatio
         from .utils import AgentProcessingError
 
         # LLM call - let API errors propagate for retry_llm_call to handle
-        response = await asyncio.to_thread(
-            self.client.chat.completions.create,
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.1,
-            max_tokens=3072,
-            response_format={"type": "json_object"}
-        )
+        raw = await self._call_llm(system_prompt, user_prompt, max_tokens=3072)
 
         try:
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(raw)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
 

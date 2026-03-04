@@ -24,7 +24,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 logging.getLogger("groq").setLevel(logging.WARNING)
 
-from config import settings, REPORT_STATUS, SEVERITY_LEVELS, VIOLATION_CATEGORIES, get_allowed_status_transitions
+from config import settings, REPORT_STATUS, SEVERITY_LEVELS, VIOLATION_CATEGORIES, get_allowed_status_transitions, GENERIC_ERROR_MESSAGE, STATUS_DESCRIPTIONS
 from database import report_repo, message_repo
 from agents import OrchestratorAgent, QuickAnalyzer
 from rag import RAGRetriever, KnowledgeLoader
@@ -269,7 +269,7 @@ async def create_report(
         
     except Exception as e:
         logger.error(f"Failed to create report: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 @app.get("/api/v1/reports", response_model=ReportListResponse, tags=["Reports"])
@@ -314,7 +314,7 @@ async def list_reports(
 
     except Exception as e:
         logger.error(f"Failed to list reports: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 @app.get("/api/v1/reports/export", tags=["Reports"])
@@ -374,7 +374,7 @@ async def export_reports(
 
     except Exception as e:
         logger.error(f"Failed to export reports: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 @app.get("/api/v1/reports/{report_id}", response_model=ReportDetail, tags=["Reports"])
@@ -400,7 +400,7 @@ async def get_report(
         raise
     except Exception as e:
         logger.error(f"Failed to get report: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 @app.patch("/api/v1/reports/{report_id}/status", tags=["Reports"])
@@ -447,7 +447,7 @@ async def update_report_status(
         raise
     except Exception as e:
         logger.error(f"Failed to update status: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 # ============== Admin Message Endpoint ==============
@@ -477,7 +477,7 @@ async def add_admin_message(
         raise
     except Exception as e:
         logger.error(f"Failed to send admin message: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 # ============== Report Assignment Endpoint ==============
@@ -527,7 +527,7 @@ async def assign_report(
         raise
     except Exception as e:
         logger.error(f"Failed to assign report: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 # ============== Ticket Endpoints (Public) ==============
@@ -544,22 +544,10 @@ async def lookup_ticket(lookup: TicketLookup):
             raise HTTPException(status_code=404, detail="Ticket not found")
         
         # Map status to user-friendly description
-        status_descriptions = {
-            "NEW": "Laporan Anda telah diterima dan sedang menunggu ditinjau",
-            "REVIEWING": "Laporan Anda sedang dalam proses telaah oleh tim kami",
-            "NEED_INFO": "Tim kami memerlukan informasi tambahan dari Anda",
-            "INVESTIGATING": "Laporan Anda sedang dalam proses investigasi",
-            "HOLD": "Penanganan laporan sedang ditangguhkan sementara",
-            "ESCALATED": "Laporan Anda telah dieskalasi ke pihak berwenang",
-            "CLOSED_PROVEN": "Investigasi selesai - Laporan terbukti",
-            "CLOSED_NOT_PROVEN": "Investigasi selesai - Tidak cukup bukti",
-            "CLOSED_INVALID": "Laporan ditutup - Tidak dalam lingkup WBS"
-        }
-        
         return TicketStatusResponse(
             ticket_id=report["ticket_id"],
             status=report["status"],
-            status_description=status_descriptions.get(
+            status_description=STATUS_DESCRIPTIONS.get(
                 report["status"], 
                 "Status sedang diproses"
             ),
@@ -571,7 +559,7 @@ async def lookup_ticket(lookup: TicketLookup):
         raise
     except Exception as e:
         logger.error(f"Ticket lookup failed: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 @app.post("/api/v1/tickets/{ticket_id}/messages", tags=["Tickets"])
@@ -610,7 +598,7 @@ async def add_message_by_ticket(
         raise
     except Exception as e:
         logger.error(f"Failed to add message: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 @app.get("/api/v1/tickets/{ticket_id}/messages", tags=["Tickets"])
@@ -642,7 +630,7 @@ async def get_messages_by_ticket(ticket_id: str):
         raise
     except Exception as e:
         logger.error(f"Failed to get messages: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 # ============== Analysis Endpoints ==============
@@ -693,7 +681,7 @@ async def run_analysis(
         raise
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 @app.get("/api/v1/analysis/{report_id}", tags=["Analysis"])
@@ -717,7 +705,7 @@ async def get_analysis(
         raise
     except Exception as e:
         logger.error(f"Failed to get analysis: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 # ============== Dashboard Endpoints ==============
@@ -744,7 +732,7 @@ async def get_dashboard_stats(
         
     except Exception as e:
         logger.error(f"Failed to get stats: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 # ============== Reference Data Endpoints ==============
@@ -782,7 +770,7 @@ async def load_knowledge_base(
         }
     except Exception as e:
         logger.error(f"Failed to load knowledge base: {e}")
-        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal. Silakan coba lagi.")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
 # ============== Background Tasks ==============

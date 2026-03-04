@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -76,11 +76,11 @@
     </div>
 
     <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-[9998] flex flex-col gap-2 pointer-events-none"></div>
+    <div id="toast-container" class="fixed top-4 right-4 z-[9998] flex flex-col gap-2 pointer-events-none" aria-live="polite" role="status"></div>
 
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar with Islamic Design -->
-        <aside id="sidebar" class="sidebar w-64 islamic-sidebar text-white flex flex-col relative z-10">
+        <aside id="sidebar" class="sidebar w-64 islamic-sidebar text-white flex flex-col relative z-10" role="complementary" aria-label="Sidebar navigasi">
             <!-- Logo -->
             <div class="p-6 border-b border-islamic-gold/20 relative">
                 <div class="text-center mb-2">
@@ -103,7 +103,7 @@
             </div>
 
             <!-- Navigation (Role-based) -->
-            <nav class="flex-1 p-4 space-y-2 relative overflow-y-auto scrollbar-thin">
+            <nav class="flex-1 p-4 space-y-2 relative overflow-y-auto scrollbar-thin" aria-label="Menu utama">
                 <a href="#" onclick="showPage('dashboard')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg bg-islamic-gold/20 text-white border border-islamic-gold/30">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     <span>Dashboard</span>
@@ -262,12 +262,12 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto">
+        <main class="flex-1 overflow-y-auto" role="main" aria-label="Konten utama">
             <!-- Header -->
             <header class="bg-white border-b border-islamic-green/20 px-6 py-4 sticky top-0 z-10">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
-                        <button onclick="toggleSidebar()" class="lg:hidden text-islamic-dark">
+                        <button onclick="toggleSidebar()" class="lg:hidden text-islamic-dark" aria-label="Toggle sidebar">
                             <i data-lucide="menu" class="w-6 h-6"></i>
                         </button>
                         <div>
@@ -3746,14 +3746,14 @@
                 const result = await response.json();
                 const fraudInterp = getFraudScoreInterpretation(result.fraud_score);
                 const severityInterp = getSeverityInterpretation(result.severity);
-                alert(`✅ Analisis Selesai!\n\n📊 Fraud Score: ${(result.fraud_score * 100).toFixed(0)}% (${fraudInterp.label})\n${fraudInterp.description}\n\n⚠️ Severity: ${result.severity} (${severityInterp.label})\n${severityInterp.description}\n\n📁 Kategori: ${result.category}\n🎯 Prioritas: ${result.priority}`);
+                showToast(`Analisis selesai - Fraud Score: ${(result.fraud_score * 100).toFixed(0)}%, Severity: ${result.severity}`, 'success');
                 viewReport(currentReportId);
             } catch (error) { showToast('Gagal menjalankan analisis', 'error'); } finally { analysisRunning = false; }
         }
 
         async function runAnalysisById() {
             const reportId = document.getElementById('analysis-report-id').value;
-            if (!reportId) { alert('Masukkan Report ID'); return; }
+            if (!reportId) { showToast('Masukkan Report ID', 'error'); return; }
             const resultContainer = document.getElementById('analysis-result');
             resultContainer.classList.remove('hidden');
             resultContainer.innerHTML = `<div class="bg-white rounded-xl p-6 shadow-sm border border-islamic-green/10"><div class="text-center py-8"><div class="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto"></div><p class="mt-4 text-slate-600">Menjalankan AI Analysis...</p></div></div>`;
@@ -4181,21 +4181,21 @@
                     const error = await response.json();
                     throw new Error(error.detail || 'Gagal membuat user');
                 }
-                alert('User berhasil dibuat');
+                showToast('User berhasil dibuat', 'success');
                 closeAddUserModal();
                 loadUsers();
             } catch (error) {
-                alert('Error: ' + error.message);
+                showToast('Error: ' + error.message, 'error');
             }
         }
 
         function editUser(userId) {
-            alert('Fitur edit user dalam pengembangan');
+            showToast('Fitur edit user dalam pengembangan', 'info');
         }
 
         async function resetUserPassword(userId, email) {
             if (!confirm(`Reset password untuk ${email}?`)) return;
-            alert('Fitur reset password dalam pengembangan');
+            showToast('Fitur reset password dalam pengembangan', 'info');
         }
 
         // =====================================================
@@ -4349,7 +4349,7 @@
 
         function submitIntake(event) {
             event.preventDefault();
-            alert('Mandat investigasi berhasil ditetapkan! Kasus akan berpindah ke tahap Analisis Data.');
+            showToast('Mandat investigasi berhasil ditetapkan', 'success');
             // In real implementation, save to backend
             showPage('inv-analysis');
         }
@@ -4397,14 +4397,14 @@
         }
 
         function saveAnalysisNotes(type) {
-            alert(`Catatan ${type} berhasil disimpan!`);
+            showToast(`Catatan ${type} berhasil disimpan`, 'success');
         }
 
         function addTimelineEvent() {
             const date = document.getElementById('timeline-date').value;
             const event = document.getElementById('timeline-event').value;
             if (!date || !event) {
-                alert('Tanggal dan deskripsi kejadian harus diisi');
+                showToast('Tanggal dan deskripsi kejadian harus diisi', 'error');
                 return;
             }
 
@@ -4437,10 +4437,10 @@
         async function runAIAnalysis() {
             const caseId = localStorage.getItem('current_inv_case');
             if (!caseId) {
-                alert('Pilih kasus terlebih dahulu');
+                showToast('Pilih kasus terlebih dahulu', 'error');
                 return;
             }
-            alert('AI Analysis sedang dijalankan... Hasil akan ditampilkan di halaman AI Analysis.');
+            showToast('AI Analysis sedang dijalankan. Hasil akan ditampilkan di halaman AI Analysis.', 'info');
             showPage('analysis');
         }
 
@@ -4523,7 +4523,7 @@
             closeEvidenceModal();
             renderEvidenceTable();
             updateEvidenceCounts();
-            alert('Bukti berhasil ditambahkan dengan Chain of Custody');
+            showToast('Bukti berhasil ditambahkan dengan Chain of Custody', 'success');
         }
 
         function renderEvidenceTable() {
@@ -4552,7 +4552,7 @@
         function viewEvidenceCoC(evidenceId) {
             const ev = investigationData.evidence.find(e => e.id === evidenceId);
             if (ev) {
-                alert(`Chain of Custody - ${ev.id}\n\nDikumpulkan oleh: ${ev.collected_by}\nTanggal: ${new Date(ev.collected_at).toLocaleString('id-ID')}\nLokasi Pengambilan: ${ev.location}\nLokasi Penyimpanan: ${ev.storage}\nHash: ${ev.hash || 'N/A'}`);
+                showToast(`Chain of Custody ${ev.id} — ${ev.collected_by}, ${new Date(ev.collected_at).toLocaleString('id-ID')}`, 'info');
             }
         }
 
@@ -4629,7 +4629,7 @@
             investigationData.interviews.push(interview);
             closeInterviewModal();
             renderInterviewTable();
-            alert('Wawancara berhasil dijadwalkan');
+            showToast('Wawancara berhasil dijadwalkan', 'success');
         }
 
         function renderInterviewTable() {
@@ -4697,7 +4697,7 @@
             }
             hideBeritaAcaraForm();
             renderInterviewTable();
-            alert('Berita Acara berhasil disimpan');
+            showToast('Berita Acara berhasil disimpan', 'success');
         }
 
         // Findings Page Functions
@@ -4765,7 +4765,7 @@
             closeFindingModal();
             renderFindingsTable();
             updateReportChecklist();
-            alert('Temuan berhasil ditambahkan');
+            showToast('Temuan berhasil ditambahkan', 'success');
         }
 
         function renderFindingsTable() {
@@ -4806,12 +4806,12 @@
         }
 
         function saveRecommendations() {
-            alert('Rekomendasi berhasil disimpan');
+            showToast('Rekomendasi berhasil disimpan', 'success');
             updateReportChecklist();
         }
 
         function saveManagementResponse() {
-            alert('Tanggapan manajemen berhasil disimpan');
+            showToast('Tanggapan manajemen berhasil disimpan', 'success');
         }
 
         function updateReportChecklist() {
@@ -4839,14 +4839,14 @@
 
         function generateFinalReport() {
             if (investigationData.findings.length === 0) {
-                alert('Harap tambahkan minimal satu temuan sebelum generate laporan');
+                showToast('Harap tambahkan minimal satu temuan sebelum generate laporan', 'error');
                 return;
             }
-            alert('Laporan Final Investigasi sedang di-generate...\n\nLaporan akan mencakup:\n- Mandat & Ruang Lingkup\n- Metodologi Investigasi\n- Analisis Data\n- Daftar Bukti & Chain of Custody\n- Hasil Wawancara\n- Matriks Temuan\n- Rekomendasi Tindakan\n- Tanggapan Manajemen');
+            showToast('Laporan Final Investigasi sedang di-generate...', 'info');
         }
 
         function previewReport() {
-            alert('Fitur preview laporan dalam pengembangan');
+            showToast('Fitur preview laporan dalam pengembangan', 'info');
         }
 
         // ============================================
@@ -5150,7 +5150,7 @@
         }
 
         function showRiskDetails(level) {
-            alert(`Menampilkan detail risiko level: ${level.toUpperCase()}\n\nFitur dalam pengembangan`);
+            showToast(`Detail risiko level ${level.toUpperCase()} — fitur dalam pengembangan`, 'info');
         }
 
         async function loadManagerPerformance() {
@@ -5318,7 +5318,7 @@
 
         async function acceptReport() {
             if (!selectedIntakeTicket) {
-                alert('Pilih laporan terlebih dahulu');
+                showToast('Pilih laporan terlebih dahulu', 'error');
                 return;
             }
             if (confirm('Terima laporan ini dan teruskan ke investigasi?')) {
@@ -5330,7 +5330,7 @@
 
         async function requestMoreInfo() {
             if (!selectedIntakeTicket) {
-                alert('Pilih laporan terlebih dahulu');
+                showToast('Pilih laporan terlebih dahulu', 'error');
                 return;
             }
             const message = prompt('Pesan untuk pelapor (informasi yang dibutuhkan):');
@@ -5350,7 +5350,7 @@
 
         async function rejectReport() {
             if (!selectedIntakeTicket) {
-                alert('Pilih laporan terlebih dahulu');
+                showToast('Pilih laporan terlebih dahulu', 'error');
                 return;
             }
             const reason = prompt('Alasan penolakan:');
@@ -5433,7 +5433,7 @@
 
         async function sendMessage() {
             if (!selectedCommTicket) {
-                alert('Pilih tiket terlebih dahulu');
+                showToast('Pilih tiket terlebih dahulu', 'error');
                 return;
             }
 
@@ -5454,7 +5454,7 @@
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
-                alert('Gagal mengirim pesan');
+                showToast('Gagal mengirim pesan', 'error');
             }
         }
 
@@ -5651,7 +5651,7 @@
                 lucide.createIcons();
             } catch (error) {
                 console.error('Error loading report:', error);
-                alert('Gagal memuat detail laporan');
+                showToast('Gagal memuat detail laporan', 'error');
             }
         }
 
@@ -5718,7 +5718,7 @@
 
         async function runQuickScreen() {
             if (!selectedScreenTicket) {
-                alert('Pilih laporan terlebih dahulu');
+                showToast('Pilih laporan terlebih dahulu', 'error');
                 return;
             }
 
@@ -5794,10 +5794,10 @@
 
         function applyScreeningResult() {
             if (!selectedScreenTicket) {
-                alert('Tidak ada hasil screening untuk diterapkan');
+                showToast('Tidak ada hasil screening untuk diterapkan', 'error');
                 return;
             }
-            alert('Hasil screening telah diterapkan ke laporan');
+            showToast('Hasil screening telah diterapkan ke laporan', 'success');
             showPage('intake-review');
         }
 
@@ -5831,7 +5831,7 @@
 
         async function runDeepAnalysis() {
             if (!selectedDeepCase) {
-                alert('Pilih kasus terlebih dahulu');
+                showToast('Pilih kasus terlebih dahulu', 'error');
                 return;
             }
 
@@ -5903,7 +5903,7 @@
                 lucide.createIcons();
             } catch (error) {
                 console.error('Error running deep analysis:', error);
-                alert('Gagal menjalankan deep analysis');
+                showToast('Gagal menjalankan deep analysis', 'error');
             }
         }
 
@@ -6055,7 +6055,7 @@
         }
 
         function exportDeepAnalysis(format) {
-            alert(`Export ke format ${format.toUpperCase()} dalam pengembangan`);
+            showToast(`Export ke format ${format.toUpperCase()} dalam pengembangan`, 'info');
         }
 
         // === AI Insights (MANAGER) ===
@@ -6127,7 +6127,7 @@
         }
 
         function generateInsightsReport(type) {
-            alert(`Generate ${type === 'executive' ? 'Executive Summary' : 'Detailed Report'} dalam pengembangan`);
+            showToast(`Generate ${type === 'executive' ? 'Executive Summary' : 'Detailed Report'} dalam pengembangan`, 'info');
         }
     </script>
 </body>

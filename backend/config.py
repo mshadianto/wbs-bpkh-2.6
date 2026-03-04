@@ -530,6 +530,24 @@ LEGAL_REFERENCES = [
 
 
 # ============================================================================
+# ERROR MESSAGES & UI STRINGS
+# ============================================================================
+GENERIC_ERROR_MESSAGE = "Terjadi kesalahan internal. Silakan coba lagi."
+
+STATUS_DESCRIPTIONS = {
+    "NEW": "Laporan Anda telah diterima dan sedang menunggu ditinjau",
+    "REVIEWING": "Laporan Anda sedang dalam proses telaah oleh tim kami",
+    "NEED_INFO": "Tim kami memerlukan informasi tambahan dari Anda",
+    "INVESTIGATING": "Laporan Anda sedang dalam proses investigasi",
+    "HOLD": "Penanganan laporan sedang ditangguhkan sementara",
+    "ESCALATED": "Laporan Anda telah dieskalasi ke pihak berwenang",
+    "CLOSED_PROVEN": "Investigasi selesai - Laporan terbukti",
+    "CLOSED_NOT_PROVEN": "Investigasi selesai - Tidak cukup bukti",
+    "CLOSED_INVALID": "Laporan ditutup - Tidak dalam lingkup WBS",
+}
+
+
+# ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
 def get_fraud_score_level(score: float) -> Dict[str, Any]:

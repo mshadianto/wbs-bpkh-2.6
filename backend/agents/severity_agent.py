@@ -4,14 +4,14 @@ WBS BPKH AI - Severity Agent
 Assesses severity level and risk of violations.
 """
 
-from groq import Groq
 from typing import Dict, Any
-import asyncio
 import json
 from loguru import logger
 
+from .base_agent import BaseAgent
 
-class SeverityAgent:
+
+class SeverityAgent(BaseAgent):
     """
     Severity Agent - Assesses risk level
     
@@ -22,10 +22,8 @@ class SeverityAgent:
     - CRITICAL: Very serious, involves senior officials or major loss
     """
     
-    def __init__(self, client: Groq, model: str):
-        self.client = client
-        self.model = model
-        self.name = "SeverityAgent"
+    def __init__(self, client, model: str):
+        super().__init__(client, model, "SeverityAgent")
     
     async def assess(
         self,
@@ -142,20 +140,14 @@ HASIL ANALISIS SEBELUMNYA:
         from .utils import AgentProcessingError
 
         # LLM call - let API errors propagate for retry_llm_call to handle
-        response = await asyncio.to_thread(
-            self.client.chat.completions.create,
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"LAPORAN ASLI:\n{report_content}\n\n{context}"}
-            ],
-            temperature=0.1,
-            max_tokens=2048,
-            response_format={"type": "json_object"}
+        raw = await self._call_llm(
+            system_prompt,
+            f"LAPORAN ASLI:\n{report_content}\n\n{context}",
+            max_tokens=2048
         )
 
         try:
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(raw)
             result["agent"] = self.name
             result["status"] = "SUCCESS"
 

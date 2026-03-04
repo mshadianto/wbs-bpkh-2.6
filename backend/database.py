@@ -12,7 +12,7 @@ import json
 import re
 from loguru import logger
 
-from config import settings
+from config import settings, SEVERITY_LEVELS
 import html
 
 
@@ -225,8 +225,6 @@ class ReportRepository:
         analysis: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Update AI analysis results and calculate SLA deadlines"""
-        from config import SEVERITY_LEVELS
-
         update_data = {
             "severity": analysis.get("severity"),
             "category": analysis.get("category"),
@@ -258,7 +256,6 @@ class ReportRepository:
             except (ValueError, TypeError):
                 base_time = datetime.utcnow()
 
-            from datetime import timedelta
             update_data["sla_response_deadline"] = (
                 base_time + timedelta(hours=sla_config["sla_initial_hours"])
             ).isoformat()
