@@ -165,7 +165,7 @@ INSERT INTO users (
     must_change_password
 ) VALUES (
     'admin@bpkh.go.id',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.V4ferGkVXCGqbu',  -- Admin@WBS2025
+    '$2b$12$KdBh9vM6yfhBlpq9ZVwAK.U1S8zRXfnwJ/qgp0nQJoioDiW.gFIfG',  -- Admin@WBS2025
     'Administrator WBS',
     'ADMIN',
     'ACTIVE',
@@ -180,7 +180,7 @@ INSERT INTO users (
 INSERT INTO users (email, password_hash, full_name, role, department)
 VALUES (
     'intake@bpkh.go.id',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.V4ferGkVXCGqbu',
+    '$2b$12$KdBh9vM6yfhBlpq9ZVwAK.U1S8zRXfnwJ/qgp0nQJoioDiW.gFIfG',
     'Petugas Penerima',
     'INTAKE_OFFICER',
     'Unit Kepatuhan'
@@ -190,7 +190,7 @@ VALUES (
 INSERT INTO users (email, password_hash, full_name, role, department)
 VALUES (
     'investigator@bpkh.go.id',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.V4ferGkVXCGqbu',
+    '$2b$12$KdBh9vM6yfhBlpq9ZVwAK.U1S8zRXfnwJ/qgp0nQJoioDiW.gFIfG',
     'Tim Investigasi',
     'INVESTIGATOR',
     'Unit Audit Internal'
@@ -200,7 +200,7 @@ VALUES (
 INSERT INTO users (email, password_hash, full_name, role, department)
 VALUES (
     'manager@bpkh.go.id',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.V4ferGkVXCGqbu',
+    '$2b$12$KdBh9vM6yfhBlpq9ZVwAK.U1S8zRXfnwJ/qgp0nQJoioDiW.gFIfG',
     'Kepala Unit WBS',
     'MANAGER',
     'Direktorat Kepatuhan'
