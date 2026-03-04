@@ -548,6 +548,82 @@ async def assign_report(
         raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
+# ============== Investigation Data Endpoints ==============
+
+@app.get("/api/v1/reports/{report_id}/investigation", tags=["Investigation"])
+async def get_investigation_data(
+    report_id: str,
+    current_user: TokenData = Depends(require_min_role(UserRole.INVESTIGATOR))
+):
+    """Get investigation data (evidence, interviews, findings) for a report"""
+    try:
+        report = await report_repo.get_by_id(report_id)
+        if not report:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        metadata = report.get("metadata") or {}
+        investigation = metadata.get("investigation", {
+            "evidence": [],
+            "interviews": [],
+            "findings": [],
+            "timeline": [],
+            "recommendations": {},
+            "management_response": ""
+        })
+        return investigation
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get investigation data: {e}")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
+
+
+@app.put("/api/v1/reports/{report_id}/investigation", tags=["Investigation"])
+async def save_investigation_data(
+    report_id: str,
+    request: Request,
+    current_user: TokenData = Depends(require_min_role(UserRole.INVESTIGATOR))
+):
+    """Save investigation data (evidence, interviews, findings) for a report"""
+    try:
+        report = await report_repo.get_by_id(report_id)
+        if not report:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        body = await request.json()
+
+        # Validate allowed keys
+        allowed_keys = {"evidence", "interviews", "findings", "timeline", "recommendations", "management_response"}
+        investigation = {k: v for k, v in body.items() if k in allowed_keys}
+
+        # Merge with existing metadata
+        metadata = report.get("metadata") or {}
+        metadata["investigation"] = investigation
+
+        report_repo.db.table("reports")\
+            .update({
+                "metadata": metadata,
+                "updated_at": datetime.utcnow().isoformat()
+            })\
+            .eq("id", report_id)\
+            .execute()
+
+        await report_repo._create_audit_log(
+            report_id,
+            "INVESTIGATION_DATA_UPDATED",
+            {"updated_by": current_user.email, "keys": list(investigation.keys())}
+        )
+
+        return {"message": "Data investigasi berhasil disimpan"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to save investigation data: {e}")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
+
+
 # ============== Ticket Endpoints (Public) ==============
 
 @app.post("/api/v1/tickets/lookup", response_model=TicketStatusResponse, tags=["Tickets"])

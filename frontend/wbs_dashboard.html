@@ -3547,7 +3547,19 @@
                     labels: Object.keys(data),
                     datasets: [{ data: Object.values(data), backgroundColor: ['#006B3F', '#C9A227', '#dc2626', '#8b5cf6', '#3b82f6', '#ec4899'] }]
                 },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    onClick: (evt, elements) => {
+                        if (elements.length > 0) {
+                            const category = Object.keys(data)[elements[0].index];
+                            document.getElementById('filter-category').value = category;
+                            showPage('reports');
+                            loadReports();
+                            showToast(`Filter: kategori ${category}`, 'info');
+                        }
+                    }
+                }
             });
         }
 
@@ -3559,7 +3571,20 @@
                     labels: Object.keys(data),
                     datasets: [{ label: 'Jumlah Laporan', data: Object.values(data), backgroundColor: ['#dc2626', '#ea580c', '#C9A227', '#006B3F'] }]
                 },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } },
+                    onClick: (evt, elements) => {
+                        if (elements.length > 0) {
+                            const severity = Object.keys(data)[elements[0].index];
+                            document.getElementById('filter-severity').value = severity;
+                            showPage('reports');
+                            loadReports();
+                            showToast(`Filter: severity ${severity}`, 'info');
+                        }
+                    }
+                }
             });
         }
 
@@ -4488,14 +4513,56 @@
         // INVESTIGATION DASHBOARD FUNCTIONS
         // =====================================================
 
-        // Investigation data store (in-memory for demo, would be persisted to backend)
+        // Investigation data store (persisted to backend via /investigation API)
         let investigationData = {
             cases: [],
             evidence: [],
             interviews: [],
             findings: [],
-            timeline: []
+            timeline: [],
+            recommendations: {},
+            management_response: ''
         };
+        let currentInvCaseId = null;
+
+        async function loadInvestigationDataFromAPI(reportId) {
+            if (!reportId) return;
+            currentInvCaseId = reportId;
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/reports/${reportId}/investigation`);
+                if (response && response.ok) {
+                    const data = await response.json();
+                    investigationData.evidence = data.evidence || [];
+                    investigationData.interviews = data.interviews || [];
+                    investigationData.findings = data.findings || [];
+                    investigationData.timeline = data.timeline || [];
+                    investigationData.recommendations = data.recommendations || {};
+                    investigationData.management_response = data.management_response || '';
+                }
+            } catch (error) {
+                // Keep in-memory defaults if API fails
+            }
+        }
+
+        async function saveInvestigationDataToAPI() {
+            if (!currentInvCaseId) return;
+            try {
+                await authFetch(`${API_URL}/api/v1/reports/${currentInvCaseId}/investigation`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        evidence: investigationData.evidence,
+                        interviews: investigationData.interviews,
+                        findings: investigationData.findings,
+                        timeline: investigationData.timeline,
+                        recommendations: investigationData.recommendations,
+                        management_response: investigationData.management_response
+                    })
+                });
+            } catch (error) {
+                showToast('Gagal menyimpan data investigasi', 'error');
+            }
+        }
 
         async function loadInvestigationDashboard() {
             try {
@@ -4572,8 +4639,9 @@
             lucide.createIcons();
         }
 
-        function openInvestigationCase(caseId) {
+        async function openInvestigationCase(caseId) {
             localStorage.setItem('current_inv_case', caseId);
+            await loadInvestigationDataFromAPI(caseId);
             showPage('inv-intake');
         }
 
@@ -4731,7 +4799,10 @@
         }
 
         // Evidence Page Functions
-        function loadEvidencePage() {
+        async function loadEvidencePage() {
+            const caseId = localStorage.getItem('current_inv_case');
+            if (caseId && caseId !== currentInvCaseId) await loadInvestigationDataFromAPI(caseId);
+            renderEvidenceTable();
             updateEvidenceCounts();
         }
 
@@ -4793,7 +4864,7 @@
             document.getElementById('evidence-modal')?.remove();
         }
 
-        function addEvidence(event) {
+        async function addEvidence(event) {
             event.preventDefault();
             const evidence = {
                 id: 'EV-' + String(investigationData.evidence.length + 1).padStart(3, '0'),
@@ -4809,6 +4880,7 @@
             closeEvidenceModal();
             renderEvidenceTable();
             updateEvidenceCounts();
+            await saveInvestigationDataToAPI();
             showToast('Bukti berhasil ditambahkan dengan Chain of Custody', 'success');
         }
 
@@ -4843,7 +4915,9 @@
         }
 
         // Interview Page Functions
-        function loadInterviewPage() {
+        async function loadInterviewPage() {
+            const caseId = localStorage.getItem('current_inv_case');
+            if (caseId && caseId !== currentInvCaseId) await loadInvestigationDataFromAPI(caseId);
             renderInterviewTable();
         }
 
@@ -4900,7 +4974,7 @@
             document.getElementById('interview-modal')?.remove();
         }
 
-        function scheduleInterview(event) {
+        async function scheduleInterview(event) {
             event.preventDefault();
             const interview = {
                 id: 'INT-' + String(investigationData.interviews.length + 1).padStart(3, '0'),
@@ -4915,6 +4989,7 @@
             investigationData.interviews.push(interview);
             closeInterviewModal();
             renderInterviewTable();
+            await saveInvestigationDataToAPI();
             showToast('Wawancara berhasil dijadwalkan', 'success');
         }
 
@@ -4966,7 +5041,7 @@
             document.getElementById('berita-acara-form').classList.add('hidden');
         }
 
-        function saveBeritaAcara(event) {
+        async function saveBeritaAcara(event) {
             event.preventDefault();
             const interviewId = localStorage.getItem('current_interview');
             const interview = investigationData.interviews.find(i => i.id === interviewId);
@@ -4983,11 +5058,14 @@
             }
             hideBeritaAcaraForm();
             renderInterviewTable();
+            await saveInvestigationDataToAPI();
             showToast('Berita Acara berhasil disimpan', 'success');
         }
 
         // Findings Page Functions
-        function loadFindingsPage() {
+        async function loadFindingsPage() {
+            const caseId = localStorage.getItem('current_inv_case');
+            if (caseId && caseId !== currentInvCaseId) await loadInvestigationDataFromAPI(caseId);
             renderFindingsTable();
             updateReportChecklist();
         }
@@ -5038,7 +5116,7 @@
             document.getElementById('finding-modal')?.remove();
         }
 
-        function addFinding(event) {
+        async function addFinding(event) {
             event.preventDefault();
             const finding = {
                 id: investigationData.findings.length + 1,
@@ -5051,6 +5129,7 @@
             closeFindingModal();
             renderFindingsTable();
             updateReportChecklist();
+            await saveInvestigationDataToAPI();
             showToast('Temuan berhasil ditambahkan', 'success');
         }
 
@@ -5084,19 +5163,28 @@
             lucide.createIcons();
         }
 
-        function deleteFinding(id) {
+        async function deleteFinding(id) {
             if (confirm('Hapus temuan ini?')) {
                 investigationData.findings = investigationData.findings.filter(f => f.id !== id);
                 renderFindingsTable();
+                await saveInvestigationDataToAPI();
             }
         }
 
-        function saveRecommendations() {
+        async function saveRecommendations() {
+            investigationData.recommendations = {
+                corrective: document.getElementById('rec-corrective')?.value || '',
+                preventive: document.getElementById('rec-preventive')?.value || '',
+                sanctions: document.getElementById('rec-sanctions')?.value || ''
+            };
+            await saveInvestigationDataToAPI();
             showToast('Rekomendasi berhasil disimpan', 'success');
             updateReportChecklist();
         }
 
-        function saveManagementResponse() {
+        async function saveManagementResponse() {
+            investigationData.management_response = document.getElementById('mgmt-response')?.value || '';
+            await saveInvestigationDataToAPI();
             showToast('Tanggapan manajemen berhasil disimpan', 'success');
         }
 
@@ -5129,10 +5217,68 @@
                 return;
             }
             showToast('Laporan Final Investigasi sedang di-generate...', 'info');
+            // Show preview after short delay
+            setTimeout(() => previewReport(), 500);
         }
 
         function previewReport() {
-            showToast('Fitur preview laporan dalam pengembangan', 'info');
+            const ev = investigationData.evidence;
+            const intv = investigationData.interviews;
+            const findings = investigationData.findings;
+            const recs = investigationData.recommendations || {};
+            const mgmt = investigationData.management_response || '';
+            const caseId = localStorage.getItem('current_inv_case');
+
+            const html = `
+                <div id="preview-report-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl w-full max-w-3xl max-h-[85vh] overflow-y-auto p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-islamic-dark flex items-center gap-2">
+                                <span class="text-islamic-gold">۝</span> Preview Laporan Final Investigasi
+                            </h3>
+                            <button onclick="document.getElementById('preview-report-modal')?.remove()" class="text-slate-400 hover:text-slate-600">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <div class="space-y-6 text-sm">
+                            <section>
+                                <h4 class="font-semibold text-islamic-dark border-b border-islamic-green/20 pb-2 mb-3">1. Bukti & Chain of Custody</h4>
+                                ${ev.length > 0 ? `<table class="w-full text-left"><thead><tr class="bg-slate-50"><th class="p-2">ID</th><th class="p-2">Jenis</th><th class="p-2">Deskripsi</th><th class="p-2">Status</th></tr></thead><tbody>${ev.map(e => `<tr class="border-b"><td class="p-2 font-mono text-xs">${e.id}</td><td class="p-2">${e.type}</td><td class="p-2">${escapeHtml((e.description || '').substring(0, 60))}</td><td class="p-2 text-green-600">SECURED</td></tr>`).join('')}</tbody></table>` : '<p class="text-slate-400">Belum ada bukti</p>'}
+                            </section>
+
+                            <section>
+                                <h4 class="font-semibold text-islamic-dark border-b border-islamic-green/20 pb-2 mb-3">2. Hasil Wawancara</h4>
+                                ${intv.length > 0 ? intv.map(i => `<div class="p-3 bg-slate-50 rounded mb-2"><strong>${escapeHtml(i.name)}</strong> (${i.role}) — ${i.status}${i.berita_acara ? ` | BA: ${escapeHtml(i.berita_acara.number)}` : ''}</div>`).join('') : '<p class="text-slate-400">Belum ada wawancara</p>'}
+                            </section>
+
+                            <section>
+                                <h4 class="font-semibold text-islamic-dark border-b border-islamic-green/20 pb-2 mb-3">3. Matriks Temuan</h4>
+                                ${findings.length > 0 ? `<table class="w-full text-left"><thead><tr class="bg-slate-50"><th class="p-2">#</th><th class="p-2">Deskripsi</th><th class="p-2">Regulasi</th><th class="p-2">Impact</th></tr></thead><tbody>${findings.map(f => `<tr class="border-b"><td class="p-2">${f.id}</td><td class="p-2">${escapeHtml((f.description || '').substring(0, 60))}</td><td class="p-2">${escapeHtml(f.regulation || '-')}</td><td class="p-2"><span class="status-badge ${f.impact === 'HIGH' ? 'bg-red-100 text-red-700' : f.impact === 'MEDIUM' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${f.impact}</span></td></tr>`).join('')}</tbody></table>` : '<p class="text-slate-400">Belum ada temuan</p>'}
+                            </section>
+
+                            <section>
+                                <h4 class="font-semibold text-islamic-dark border-b border-islamic-green/20 pb-2 mb-3">4. Rekomendasi</h4>
+                                ${recs.corrective ? `<p><strong>Korektif:</strong> ${escapeHtml(recs.corrective)}</p>` : ''}
+                                ${recs.preventive ? `<p><strong>Preventif:</strong> ${escapeHtml(recs.preventive)}</p>` : ''}
+                                ${recs.sanctions ? `<p><strong>Sanksi:</strong> ${escapeHtml(recs.sanctions)}</p>` : ''}
+                                ${!recs.corrective && !recs.preventive && !recs.sanctions ? '<p class="text-slate-400">Belum ada rekomendasi</p>' : ''}
+                            </section>
+
+                            ${mgmt ? `<section><h4 class="font-semibold text-islamic-dark border-b border-islamic-green/20 pb-2 mb-3">5. Tanggapan Manajemen</h4><p>${escapeHtml(mgmt)}</p></section>` : ''}
+                        </div>
+
+                        <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
+                            <button onclick="document.getElementById('preview-report-modal')?.remove()" class="px-4 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light">Tutup</button>
+                            <button onclick="window.print()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark flex items-center gap-2">
+                                <i data-lucide="printer" class="w-4 h-4"></i> Cetak
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+            lucide.createIcons();
         }
 
         // ============================================
@@ -5436,7 +5582,12 @@
         }
 
         function showRiskDetails(level) {
-            showToast(`Detail risiko level ${level.toUpperCase()} — fitur dalam pengembangan`, 'info');
+            const severityMap = { 'high': 'CRITICAL', 'medium': 'HIGH', 'low': 'MEDIUM' };
+            const severity = severityMap[level] || level.toUpperCase();
+            document.getElementById('filter-severity').value = severity;
+            showPage('reports');
+            loadReports();
+            showToast(`Menampilkan laporan risiko ${level.toUpperCase()}`, 'info');
         }
 
         async function loadManagerPerformance() {
@@ -6341,7 +6492,39 @@
         }
 
         function exportDeepAnalysis(format) {
-            showToast(`Export ke format ${format.toUpperCase()} dalam pengembangan`, 'info');
+            if (!deepAnalysisResults || Object.keys(deepAnalysisResults).length === 0) {
+                showToast('Tidak ada hasil analisis untuk di-export', 'error');
+                return;
+            }
+            if (format === 'json') {
+                const blob = new Blob([JSON.stringify(deepAnalysisResults, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `analysis_${selectedDeepCase || 'report'}_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('Export JSON berhasil', 'success');
+            } else if (format === 'pdf') {
+                // Print-based PDF export
+                const printWin = window.open('', '_blank');
+                const analysis = deepAnalysisResults;
+                printWin.document.write(`<!DOCTYPE html><html lang="id"><head><title>Laporan Analisis AI</title>
+                    <style>body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:20px}h1{color:#006B3F;border-bottom:2px solid #C9A227;padding-bottom:10px}h2{color:#006B3F;margin-top:24px}table{width:100%;border-collapse:collapse;margin:12px 0}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f5f5f5}.score{font-size:24px;font-weight:bold;color:#006B3F}</style>
+                    </head><body>
+                    <h1>Laporan Analisis AI - WBS BPKH</h1>
+                    <p>Tanggal: ${new Date().toLocaleDateString('id-ID')}</p>
+                    ${analysis.executive_summary ? `<h2>Ringkasan Eksekutif</h2><p>${escapeHtml(analysis.executive_summary)}</p>` : ''}
+                    ${analysis.fraud_score !== undefined ? `<h2>Fraud Score</h2><p class="score">${(analysis.fraud_score * 100).toFixed(0)}%</p>` : ''}
+                    ${analysis.severity ? `<h2>Severity</h2><p>${escapeHtml(analysis.severity)}</p>` : ''}
+                    <p style="margin-top:40px;color:#999;font-size:12px">Dokumen ini digenerate oleh WBS BPKH AI Analysis System</p>
+                    </body></html>`);
+                printWin.document.close();
+                printWin.print();
+                showToast('PDF export disiapkan', 'success');
+            } else {
+                showToast(`Format ${format} belum didukung`, 'info');
+            }
         }
 
         // === AI Insights (MANAGER) ===
@@ -6412,8 +6595,51 @@
             `;
         }
 
-        function generateInsightsReport(type) {
-            showToast(`Generate ${type === 'executive' ? 'Executive Summary' : 'Detailed Report'} dalam pengembangan`, 'info');
+        async function generateInsightsReport(type) {
+            showToast(`Generating ${type === 'executive' ? 'Executive Summary' : 'Detailed Report'}...`, 'info');
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/dashboard/stats`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const stats = await response.json();
+
+                const title = type === 'executive' ? 'Executive Summary - WBS BPKH' : 'Laporan Detail - WBS BPKH';
+                const printWin = window.open('', '_blank');
+                printWin.document.write(`<!DOCTYPE html><html lang="id"><head><title>${title}</title>
+                    <style>body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:20px;color:#333}h1{color:#006B3F;border-bottom:2px solid #C9A227;padding-bottom:10px}h2{color:#006B3F;margin-top:24px}table{width:100%;border-collapse:collapse;margin:12px 0}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f5f5f5}.stat{display:inline-block;background:#f0f9ff;padding:12px 20px;border-radius:8px;margin:4px;text-align:center}.stat-num{font-size:28px;font-weight:bold;color:#006B3F}.stat-label{font-size:12px;color:#666}</style>
+                    </head><body>
+                    <h1>${title}</h1>
+                    <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+
+                    <h2>Statistik Umum</h2>
+                    <div>
+                        <div class="stat"><div class="stat-num">${stats.total_reports || 0}</div><div class="stat-label">Total Laporan</div></div>
+                        <div class="stat"><div class="stat-num">${stats.pending_review || 0}</div><div class="stat-label">Pending Review</div></div>
+                        <div class="stat"><div class="stat-num">${stats.active_investigations || 0}</div><div class="stat-label">Investigasi Aktif</div></div>
+                        <div class="stat"><div class="stat-num">${stats.closure_rate || 0}%</div><div class="stat-label">Closure Rate</div></div>
+                    </div>
+
+                    <h2>Distribusi Status</h2>
+                    <table><thead><tr><th>Status</th><th>Jumlah</th></tr></thead><tbody>
+                    ${Object.entries(stats.by_status || {}).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+                    </tbody></table>
+
+                    <h2>Distribusi Severity</h2>
+                    <table><thead><tr><th>Severity</th><th>Jumlah</th></tr></thead><tbody>
+                    ${Object.entries(stats.by_severity || {}).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+                    </tbody></table>
+
+                    <h2>Distribusi Kategori</h2>
+                    <table><thead><tr><th>Kategori</th><th>Jumlah</th></tr></thead><tbody>
+                    ${Object.entries(stats.by_category || {}).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+                    </tbody></table>
+
+                    <p style="margin-top:40px;color:#999;font-size:12px">Dokumen ini digenerate oleh WBS BPKH Dashboard System</p>
+                    </body></html>`);
+                printWin.document.close();
+                printWin.print();
+            } catch (error) {
+                showToast('Gagal generate laporan', 'error');
+            }
         }
     </script>
 </body>
