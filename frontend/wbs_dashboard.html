@@ -277,13 +277,24 @@
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="relative">
-                            <input type="text" placeholder="Cari laporan..." class="pl-10 pr-4 py-2 border border-islamic-green/20 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-islamic-green focus:border-transparent">
+                            <input type="text" id="global-search" placeholder="Cari laporan..." class="pl-10 pr-4 py-2 border border-islamic-green/20 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-islamic-green focus:border-transparent" oninput="debouncedSearch()">
                             <i data-lucide="search" class="w-5 h-5 text-islamic-green/50 absolute left-3 top-2.5"></i>
                         </div>
-                        <button class="relative p-2 text-islamic-dark hover:bg-islamic-light rounded-lg">
-                            <i data-lucide="bell" class="w-5 h-5"></i>
-                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                        </button>
+                        <div class="relative">
+                            <button onclick="toggleNotificationPanel()" class="relative p-2 text-islamic-dark hover:bg-islamic-light rounded-lg" aria-label="Notifikasi">
+                                <i data-lucide="bell" class="w-5 h-5"></i>
+                                <span id="notif-badge" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+                            </button>
+                            <div id="notif-panel" class="hidden absolute right-0 top-12 w-80 bg-white rounded-xl shadow-lg border border-islamic-green/20 z-50 overflow-hidden">
+                                <div class="p-3 border-b border-islamic-green/10 flex items-center justify-between">
+                                    <h4 class="text-sm font-semibold text-islamic-dark">Notifikasi</h4>
+                                    <button onclick="markAllNotifRead()" class="text-xs text-islamic-green hover:underline">Tandai dibaca</button>
+                                </div>
+                                <div id="notif-list" class="max-h-64 overflow-y-auto">
+                                    <p class="p-4 text-sm text-slate-500 text-center">Memuat...</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -443,9 +454,15 @@
                                 <option value="WHATSAPP">💬 WhatsApp</option>
                                 <option value="EMAIL">📧 Email</option>
                             </select>
+                            <input type="text" id="filter-search" placeholder="Cari keyword..." class="px-4 py-2 border border-islamic-green/20 rounded-lg w-44 focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                            <input type="date" id="filter-date-from" class="px-3 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green" title="Dari tanggal">
+                            <input type="date" id="filter-date-to" class="px-3 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green" title="Sampai tanggal">
                             <button onclick="loadReports()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark transition flex items-center gap-2">
                                 <i data-lucide="filter" class="w-4 h-4"></i>
                                 Filter
+                            </button>
+                            <button onclick="clearFilters()" class="px-3 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light transition" title="Reset filter">
+                                <i data-lucide="x" class="w-4 h-4"></i>
                             </button>
                             <button onclick="exportReports()" class="px-4 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light transition flex items-center gap-2">
                                 <i data-lucide="download" class="w-4 h-4"></i>
@@ -459,14 +476,14 @@
                         <table class="w-full">
                             <thead class="bg-islamic-light border-b border-islamic-green/20">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Ticket ID</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider cursor-pointer hover:text-islamic-green select-none" onclick="sortReports('ticket_id')">Ticket ID <span id="sort-ticket_id" class="text-islamic-green/50"></span></th>
                                     <th class="px-4 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Sumber</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Subject</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider cursor-pointer hover:text-islamic-green select-none" onclick="sortReports('subject')">Subject <span id="sort-subject" class="text-islamic-green/50"></span></th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Kategori</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Severity</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Fraud Score</th>
-                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Tanggal</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider cursor-pointer hover:text-islamic-green select-none" onclick="sortReports('severity')">Severity <span id="sort-severity" class="text-islamic-green/50"></span></th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider cursor-pointer hover:text-islamic-green select-none" onclick="sortReports('status')">Status <span id="sort-status" class="text-islamic-green/50"></span></th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider cursor-pointer hover:text-islamic-green select-none" onclick="sortReports('fraud_score')">Fraud Score <span id="sort-fraud_score" class="text-islamic-green/50"></span></th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider cursor-pointer hover:text-islamic-green select-none" onclick="sortReports('created_at')">Tanggal <span id="sort-created_at" class="text-islamic-green/50"></span></th>
                                     <th class="px-6 py-4 text-left text-xs font-semibold text-islamic-dark uppercase tracking-wider">Aksi</th>
                                 </tr>
                             </thead>
@@ -3571,23 +3588,195 @@
             } catch (error) { /* fallback: sample data */; }
         }
 
+        // Notification functions
+        let notifications = [];
+
+        function toggleNotificationPanel() {
+            const panel = document.getElementById('notif-panel');
+            const isHidden = panel.classList.contains('hidden');
+            panel.classList.toggle('hidden');
+            if (isHidden) loadNotifications();
+        }
+
+        async function loadNotifications() {
+            const listEl = document.getElementById('notif-list');
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/reports?per_page=5&sort_by=created_at&sort_order=desc`);
+                if (!response || !response.ok) throw new Error('Failed');
+                const data = await response.json();
+                const reports = data.reports || [];
+                if (reports.length === 0) {
+                    listEl.innerHTML = '<p class="p-4 text-sm text-slate-500 text-center">Tidak ada notifikasi</p>';
+                    return;
+                }
+                notifications = reports.map(r => ({
+                    id: r.id,
+                    title: r.ticket_id,
+                    message: (r.subject || '').substring(0, 60),
+                    status: r.status,
+                    time: r.created_at,
+                    read: false
+                }));
+                renderNotifications();
+            } catch (error) {
+                listEl.innerHTML = '<p class="p-4 text-sm text-red-500 text-center">Gagal memuat</p>';
+            }
+        }
+
+        function renderNotifications() {
+            const listEl = document.getElementById('notif-list');
+            const badge = document.getElementById('notif-badge');
+            const unread = notifications.filter(n => !n.read).length;
+            badge.classList.toggle('hidden', unread === 0);
+            listEl.innerHTML = notifications.map(n => `
+                <div class="p-3 border-b border-slate-100 hover:bg-islamic-light cursor-pointer ${n.read ? 'opacity-60' : ''}" onclick="handleNotifClick('${n.id}')">
+                    <div class="flex items-start gap-2">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${n.status === 'NEW' ? 'bg-blue-100' : n.status === 'INVESTIGATING' ? 'bg-amber-100' : 'bg-islamic-green/20'}">
+                            <i data-lucide="${n.status === 'NEW' ? 'file-plus' : n.status === 'INVESTIGATING' ? 'search' : 'check-circle'}" class="w-4 h-4 ${n.status === 'NEW' ? 'text-blue-600' : n.status === 'INVESTIGATING' ? 'text-amber-600' : 'text-islamic-green'}"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-islamic-dark">${n.title}</p>
+                            <p class="text-xs text-slate-500 truncate">${escapeHtml(n.message)}</p>
+                            <p class="text-xs text-slate-400 mt-1">${formatDate(n.time)}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function handleNotifClick(reportId) {
+            const notif = notifications.find(n => n.id === reportId);
+            if (notif) notif.read = true;
+            renderNotifications();
+            document.getElementById('notif-panel').classList.add('hidden');
+            viewReport(reportId);
+        }
+
+        function markAllNotifRead() {
+            notifications.forEach(n => n.read = true);
+            renderNotifications();
+        }
+
+        // Close notification panel when clicking outside
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('notif-panel');
+            const bell = e.target.closest('[aria-label="Notifikasi"]');
+            if (!bell && panel && !panel.contains(e.target)) {
+                panel.classList.add('hidden');
+            }
+        });
+
+        // ESC key handler for modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                // Close any open modal
+                const modals = ['report-detail-modal', 'add-user-modal', 'edit-user-modal',
+                                'temp-pw-modal', 'evidence-modal', 'finding-modal', 'interview-modal'];
+                modals.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        if (el.classList.contains('hidden')) return;
+                        el.classList.add('hidden');
+                        el.remove?.();
+                    }
+                });
+                // Close notification panel
+                document.getElementById('notif-panel')?.classList.add('hidden');
+            }
+        });
+
         // Reports functions
+        let currentReports = [];
+        let sortColumn = 'created_at';
+        let sortDirection = 'desc';
+        let searchDebounceTimer = null;
+
+        function debouncedSearch() {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                const query = document.getElementById('global-search').value.trim();
+                if (query.length >= 2) {
+                    document.getElementById('filter-search').value = query;
+                    showPage('reports');
+                    loadReports();
+                }
+            }, 400);
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-severity').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-channel').value = '';
+            document.getElementById('filter-search').value = '';
+            document.getElementById('filter-date-from').value = '';
+            document.getElementById('filter-date-to').value = '';
+            document.getElementById('global-search').value = '';
+            currentPage = 1;
+            loadReports();
+        }
+
+        function sortReports(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+            // Update sort indicators
+            document.querySelectorAll('[id^="sort-"]').forEach(el => el.textContent = '');
+            const indicator = document.getElementById(`sort-${column}`);
+            if (indicator) indicator.textContent = sortDirection === 'asc' ? '▲' : '▼';
+            // Client-side sort on loaded data
+            if (currentReports.length > 0) {
+                const severityOrder = { 'CRITICAL': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
+                currentReports.sort((a, b) => {
+                    let valA, valB;
+                    if (column === 'fraud_score') {
+                        valA = a.fraud_score || 0;
+                        valB = b.fraud_score || 0;
+                    } else if (column === 'severity') {
+                        valA = severityOrder[a.severity] || 0;
+                        valB = severityOrder[b.severity] || 0;
+                    } else if (column === 'created_at') {
+                        valA = new Date(a.created_at || 0).getTime();
+                        valB = new Date(b.created_at || 0).getTime();
+                    } else {
+                        valA = (a[column] || '').toString().toLowerCase();
+                        valB = (b[column] || '').toString().toLowerCase();
+                    }
+                    if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+                    if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+                renderReportsTable(currentReports);
+            }
+        }
+
         async function loadReports() {
             const status = document.getElementById('filter-status').value;
             const severity = document.getElementById('filter-severity').value;
             const category = document.getElementById('filter-category').value;
             const channel = document.getElementById('filter-channel').value;
+            const search = document.getElementById('filter-search').value.trim();
+            const dateFrom = document.getElementById('filter-date-from').value;
+            const dateTo = document.getElementById('filter-date-to').value;
             let url = `${API_URL}/api/v1/reports?page=${currentPage}&per_page=10`;
             if (status) url += `&status=${status}`;
             if (severity) url += `&severity=${severity}`;
             if (category) url += `&category=${category}`;
             if (channel) url += `&channel=${channel}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (dateFrom) url += `&date_from=${dateFrom}`;
+            if (dateTo) url += `&date_to=${dateTo}`;
 
             try {
                 const response = await authFetch(url);
                 if (!response.ok) throw new Error('Failed to load reports');
                 const data = await response.json();
-                renderReportsTable(data.reports || []);
+                currentReports = data.reports || [];
+                renderReportsTable(currentReports);
                 totalReports = data.total || 0;
                 const perPage = 10;
                 const totalPages = Math.max(1, Math.ceil(totalReports / perPage));
@@ -4054,12 +4243,15 @@
         function exportReports() { exportCSV(); }
 
         // User Management Functions (ADMIN only)
+        let cachedUsers = [];
+
         async function loadUsers() {
             try {
                 const response = await authFetch(`${API_URL}/api/v1/auth/users`);
                 if (!response || !response.ok) throw new Error('Failed to load users');
                 const data = await response.json();
-                renderUsersTable(data.users || []);
+                cachedUsers = data.users || [];
+                renderUsersTable(cachedUsers);
             } catch (error) {
                 /* fallback: sample data */;
                 renderUsersTable([
@@ -4190,12 +4382,106 @@
         }
 
         function editUser(userId) {
-            showToast('Fitur edit user dalam pengembangan', 'info');
+            const user = cachedUsers.find(u => u.id === userId);
+            if (!user) { showToast('User tidak ditemukan', 'error'); return; }
+            const html = `
+                <div id="edit-user-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-xl w-full max-w-md p-6">
+                        <h3 class="text-lg font-semibold text-islamic-dark mb-4 flex items-center gap-2">
+                            <span class="text-islamic-gold">۝</span> Edit User
+                        </h3>
+                        <form onsubmit="saveUserEdit(event, '${userId}')">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Email</label>
+                                    <input type="email" value="${escapeHtml(user.email)}" disabled class="w-full px-4 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Nama Lengkap</label>
+                                    <input type="text" id="edit-user-name" value="${escapeHtml(user.full_name || '')}" required class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Department</label>
+                                    <input type="text" id="edit-user-dept" value="${escapeHtml(user.department || '')}" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Phone</label>
+                                    <input type="text" id="edit-user-phone" value="${escapeHtml(user.phone || '')}" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-islamic-dark mb-1">Employee ID</label>
+                                    <input type="text" id="edit-user-empid" value="${escapeHtml(user.employee_id || '')}" class="w-full px-4 py-2 border border-islamic-green/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-islamic-green">
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-end gap-2 mt-6">
+                                <button type="button" onclick="document.getElementById('edit-user-modal')?.remove()" class="px-4 py-2 border border-islamic-green/20 rounded-lg hover:bg-islamic-light">Batal</button>
+                                <button type="submit" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark">Simpan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        async function saveUserEdit(event, userId) {
+            event.preventDefault();
+            const updateData = {
+                full_name: document.getElementById('edit-user-name').value,
+                department: document.getElementById('edit-user-dept').value,
+                phone: document.getElementById('edit-user-phone').value,
+                employee_id: document.getElementById('edit-user-empid').value
+            };
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/auth/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateData)
+                });
+                if (!response || !response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Gagal update user');
+                }
+                showToast('User berhasil diupdate', 'success');
+                document.getElementById('edit-user-modal')?.remove();
+                loadUsers();
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
         }
 
         async function resetUserPassword(userId, email) {
-            if (!confirm(`Reset password untuk ${email}?`)) return;
-            showToast('Fitur reset password dalam pengembangan', 'info');
+            if (!confirm(`Reset password untuk ${escapeHtml(email)}? User akan mendapat password sementara.`)) return;
+            try {
+                const response = await authFetch(`${API_URL}/api/v1/auth/users/${userId}/reset-password`, {
+                    method: 'POST'
+                });
+                if (!response || !response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Gagal reset password');
+                }
+                const data = await response.json();
+                // Show temporary password in a copyable format
+                const tempPw = data.temporary_password || '(tidak tersedia)';
+                const pwHtml = `
+                    <div id="temp-pw-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                        <div class="bg-white rounded-xl w-full max-w-sm p-6 text-center">
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="check" class="w-6 h-6 text-green-600"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-islamic-dark mb-2">Password Berhasil Direset</h3>
+                            <p class="text-sm text-slate-500 mb-4">Password sementara untuk ${escapeHtml(email)}:</p>
+                            <div class="bg-slate-100 rounded-lg p-3 font-mono text-lg text-islamic-dark select-all mb-2">${escapeHtml(tempPw)}</div>
+                            <p class="text-xs text-amber-600 mb-4">User harus mengganti password saat login berikutnya</p>
+                            <button onclick="document.getElementById('temp-pw-modal')?.remove()" class="px-4 py-2 bg-islamic-green text-white rounded-lg hover:bg-islamic-dark">Tutup</button>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', pwHtml);
+                lucide.createIcons();
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
         }
 
         // =====================================================

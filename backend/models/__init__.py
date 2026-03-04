@@ -286,6 +286,9 @@ class DashboardStats(BaseModel):
     by_category: Dict[str, int]
     pending_review: int
     sla_at_risk: int
+    active_investigations: int = 0
+    closure_rate: float = 0.0
+    recent_reports_7d: int = 0
 
 
 class StatusUpdate(BaseModel):

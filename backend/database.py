@@ -340,7 +340,7 @@ class ReportRepository:
                 query = query.or_(f"title.ilike.%{safe_search}%,description.ilike.%{safe_search}%,ticket_id.ilike.%{safe_search}%")
 
         is_desc = sort_order.lower() == "desc"
-        allowed_sort = {"created_at", "severity", "status", "category"}
+        allowed_sort = {"created_at", "severity", "status", "category", "ticket_id", "fraud_score"}
         sort_field = sort_by if sort_by in allowed_sort else "created_at"
         query = query.order(sort_field, desc=is_desc)\
             .range(offset, offset + limit - 1)
@@ -387,24 +387,40 @@ class ReportRepository:
     
     async def get_statistics(self) -> Dict[str, Any]:
         """Get dashboard statistics"""
-        all_reports = self.db.table(self.table).select("status, severity, category").execute()
-        
+        all_reports = self.db.table(self.table).select("status, severity, category, created_at").execute()
+
         stats = {
             "total": len(all_reports.data) if all_reports.data else 0,
             "by_status": {},
             "by_severity": {},
-            "by_category": {}
+            "by_category": {},
+            "active_investigations": 0,
+            "closure_rate": 0.0,
+            "recent_reports_7d": 0
         }
-        
+
+        closed_count = 0
+        seven_days_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
+
         for report in (all_reports.data or []):
             status = report.get("status") or "UNKNOWN"
             severity = report.get("severity") or "UNASSIGNED"
             category = report.get("category") or "UNASSIGNED"
-            
+
             stats["by_status"][status] = stats["by_status"].get(status, 0) + 1
             stats["by_severity"][severity] = stats["by_severity"].get(severity, 0) + 1
             stats["by_category"][category] = stats["by_category"].get(category, 0) + 1
-        
+
+            if status in ("INVESTIGATING", "ESCALATED"):
+                stats["active_investigations"] += 1
+            if status.startswith("CLOSED"):
+                closed_count += 1
+            if report.get("created_at", "") >= seven_days_ago:
+                stats["recent_reports_7d"] += 1
+
+        if stats["total"] > 0:
+            stats["closure_rate"] = round(closed_count / stats["total"] * 100, 1)
+
         return stats
     
     async def _create_audit_log(
@@ -424,6 +440,38 @@ class ReportRepository:
             }).execute()
         except Exception as e:
             logger.error(f"Failed to create audit log: {e}")
+
+    async def get_audit_logs(
+        self,
+        report_id: Optional[str] = None,
+        action: Optional[str] = None,
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0
+    ) -> Dict[str, Any]:
+        """Get audit logs with filtering"""
+        query = self.db.table("audit_logs").select("*", count="exact")
+
+        if report_id:
+            query = query.eq("report_id", report_id)
+        if action:
+            query = query.eq("action", action)
+        if date_from:
+            safe_date = parse_date_safe(date_from)
+            if safe_date:
+                query = query.gte("created_at", safe_date)
+        if date_to:
+            safe_date = parse_date_safe(date_to)
+            if safe_date:
+                query = query.lte("created_at", safe_date)
+
+        query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
+        result = query.execute()
+        return {
+            "logs": result.data or [],
+            "total": result.count or 0
+        }
 
 
 class MessageRepository:

@@ -39,6 +39,8 @@ from routers import auth_router, webhooks_router
 from auth import require_auth, require_role, require_min_role, UserRole, TokenData, can_update_status
 from services import NotificationService
 
+notification_service = NotificationService()
+
 
 # ============== App Lifecycle ==============
 
@@ -407,6 +409,7 @@ async def get_report(
 async def update_report_status(
     report_id: str,
     update: StatusUpdate,
+    background_tasks: BackgroundTasks,
     current_user: TokenData = Depends(require_min_role(UserRole.INTAKE_OFFICER))
 ):
     """Update report status (Intake Officer and above)"""
@@ -440,6 +443,21 @@ async def update_report_status(
             new_status,
             updated_by=current_user.email
         )
+
+        # Send notification to reporter in background
+        ticket_id = report.get("ticket_id")
+        reporter_phone = report.get("reporter_phone")
+        reporter_email = report.get("reporter_email")
+        if ticket_id and (reporter_phone or reporter_email):
+            background_tasks.add_task(
+                notification_service.send_status_update,
+                ticket_id=ticket_id,
+                old_status=current_status,
+                new_status=new_status,
+                reporter_phone=reporter_phone,
+                reporter_email=reporter_email,
+                note=update.notes
+            )
 
         return {"message": "Status updated", "new_status": new_status}
 
@@ -727,11 +745,46 @@ async def get_dashboard_stats(
             by_category=stats["by_category"],
             pending_review=stats["by_status"].get("NEW", 0) +
                           stats["by_status"].get("REVIEWING", 0),
-            sla_at_risk=sla_at_risk
+            sla_at_risk=sla_at_risk,
+            active_investigations=stats.get("active_investigations", 0),
+            closure_rate=stats.get("closure_rate", 0.0),
+            recent_reports_7d=stats.get("recent_reports_7d", 0)
         )
         
     except Exception as e:
         logger.error(f"Failed to get stats: {e}")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
+
+
+@app.get("/api/v1/audit-logs", tags=["Dashboard"])
+async def get_audit_logs(
+    report_id: Optional[str] = Query(None),
+    action: Optional[str] = Query(None),
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    current_user: TokenData = Depends(require_min_role(UserRole.MANAGER))
+):
+    """Query audit logs with filters (Manager and above)"""
+    try:
+        offset = (page - 1) * per_page
+        result = await report_repo.get_audit_logs(
+            report_id=report_id,
+            action=action,
+            date_from=date_from,
+            date_to=date_to,
+            limit=per_page,
+            offset=offset
+        )
+        return {
+            "logs": result["logs"],
+            "total": result["total"],
+            "page": page,
+            "per_page": per_page
+        }
+    except Exception as e:
+        logger.error(f"Failed to get audit logs: {e}")
         raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 
