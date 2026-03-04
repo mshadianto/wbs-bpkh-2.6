@@ -410,9 +410,9 @@ python scripts/seed_knowledge.py
 ## 👥 Tim Penyusun
 
 **Disusun oleh:**
-- M. Sopian Hadianto
-- Irham Yusnadi
-- Ismail
+- M. Sopian Hadianto (Team Lead Dev)
+- Irham Yusnadi (Team Member Dev)
+- Ismail (Team Member Dev)
 
 **Disetujui oleh:**
 - **ROJIKIN** - Ketua Komite Audit
