@@ -433,9 +433,11 @@ class ReportRepository:
         try:
             self.db.table("audit_logs").insert({
                 "id": str(uuid.uuid4()),
-                "report_id": report_id,
+                "entity_type": "report",
+                "entity_id": report_id,
                 "action": action,
-                "details": details,
+                "action_details": json.dumps(details) if isinstance(details, dict) else str(details),
+                "actor_type": details.get("actor_type", "SYSTEM") if isinstance(details, dict) else "SYSTEM",
                 "created_at": datetime.utcnow().isoformat()
             }).execute()
         except Exception as e:
@@ -454,7 +456,7 @@ class ReportRepository:
         query = self.db.table("audit_logs").select("*", count="exact")
 
         if report_id:
-            query = query.eq("report_id", report_id)
+            query = query.eq("entity_id", report_id).eq("entity_type", "report")
         if action:
             query = query.eq("action", action)
         if date_from:
@@ -744,6 +746,39 @@ class UserRepository:
     async def delete(self, user_id: str) -> bool:
         """Delete user (soft delete by setting status to INACTIVE)"""
         return await self.update_status(user_id, "INACTIVE")
+
+    async def set_reset_token(self, user_id: str, token: str, expires: datetime) -> bool:
+        """Set password reset token and expiry"""
+        result = self.db.table(self.table)\
+            .update({
+                "password_reset_token": token,
+                "password_reset_expires": expires.isoformat(),
+                "updated_at": datetime.utcnow().isoformat()
+            })\
+            .eq("id", user_id)\
+            .execute()
+        return bool(result.data)
+
+    async def get_by_reset_token(self, token: str) -> Optional[Dict[str, Any]]:
+        """Get user by password reset token (only if not expired)"""
+        result = self.db.table(self.table)\
+            .select("*")\
+            .eq("password_reset_token", token)\
+            .gte("password_reset_expires", datetime.utcnow().isoformat())\
+            .execute()
+        return result.data[0] if result.data else None
+
+    async def clear_reset_token(self, user_id: str) -> bool:
+        """Clear password reset token after use"""
+        result = self.db.table(self.table)\
+            .update({
+                "password_reset_token": None,
+                "password_reset_expires": None,
+                "updated_at": datetime.utcnow().isoformat()
+            })\
+            .eq("id", user_id)\
+            .execute()
+        return bool(result.data)
 
 
 class SessionRepository:

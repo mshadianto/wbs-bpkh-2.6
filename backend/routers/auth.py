@@ -5,11 +5,16 @@ Endpoints for user authentication and management.
 """
 
 from fastapi import APIRouter, HTTPException, status, Request, Depends
-from typing import Optional
+from typing import Optional, Dict
+from datetime import datetime, timedelta
+from collections import defaultdict
+import secrets
+import time
 from loguru import logger
 
 from auth import (
     UserLogin, UserRegister, UserResponse, TokenResponse, PasswordChange,
+    ForgotPasswordRequest, ResetPasswordRequest,
     UserRole, UserStatus,
     hash_password, verify_password, validate_password_strength,
     create_access_token, create_refresh_token, decode_token,
@@ -17,8 +22,23 @@ from auth import (
 )
 from database import user_repo
 from config import settings
+from services.email_service import email_service
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
+
+# In-memory rate limiter for forgot password: {email: [timestamp, ...]}
+_forgot_password_attempts: Dict[str, list] = defaultdict(list)
+_FORGOT_PASSWORD_MAX = 3  # max requests per hour per email
+_FORGOT_PASSWORD_WINDOW = 3600  # 1 hour in seconds
+
+
+def _check_forgot_rate_limit(email: str) -> bool:
+    """Returns True if rate limit is NOT exceeded."""
+    now = time.time()
+    attempts = _forgot_password_attempts[email]
+    # Remove old attempts outside window
+    _forgot_password_attempts[email] = [t for t in attempts if now - t < _FORGOT_PASSWORD_WINDOW]
+    return len(_forgot_password_attempts[email]) < _FORGOT_PASSWORD_MAX
 
 
 # ============== Login ==============
@@ -113,6 +133,89 @@ async def login(credentials: UserLogin, request: Request):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Login gagal. Silakan coba lagi."
         )
+
+
+# ============== Forgot Password ==============
+
+@router.post("/forgot-password")
+async def forgot_password(data: ForgotPasswordRequest, request: Request):
+    """
+    Request password reset link. Always returns success to prevent email enumeration.
+    """
+    email = data.email.lower()
+
+    # Rate limit check
+    if not _check_forgot_rate_limit(email):
+        logger.warning(f"Forgot password rate limit exceeded for: {email}")
+        # Still return same message to prevent enumeration
+        return {"message": "Jika email terdaftar, link reset password telah dikirim."}
+
+    _forgot_password_attempts[email].append(time.time())
+
+    # Look up user
+    user = await user_repo.get_by_email(email)
+
+    if user and str(user.get("status", "")).upper() == "ACTIVE":
+        # Generate secure token
+        token = secrets.token_urlsafe(32)
+        expires = datetime.utcnow() + timedelta(hours=1)
+
+        await user_repo.set_reset_token(user["id"], token, expires)
+
+        # Build reset URL
+        base_url = str(request.base_url).rstrip("/")
+        reset_url = f"{base_url}/login?reset_token={token}"
+
+        # Send email (best-effort, don't fail the request)
+        try:
+            await email_service.send_password_reset(email, reset_url)
+            logger.info(f"Password reset email sent to: {email[:5]}***")
+        except Exception as e:
+            logger.error(f"Failed to send reset email: {e}")
+    else:
+        logger.info(f"Forgot password for unknown/inactive email: {email[:5]}***")
+
+    return {"message": "Jika email terdaftar, link reset password telah dikirim."}
+
+
+@router.post("/reset-password")
+async def reset_password(data: ResetPasswordRequest):
+    """
+    Reset password using a valid reset token.
+    """
+    # Look up user by token (only returns if token is not expired)
+    user = await user_repo.get_by_reset_token(data.token)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token reset tidak valid atau sudah expired. Silakan minta ulang."
+        )
+
+    # Validate new password strength
+    is_valid, message = validate_password_strength(data.new_password)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=message
+        )
+
+    # Update password
+    new_hash = hash_password(data.new_password)
+    await user_repo.update_password(user["id"], new_hash)
+
+    # Clear reset token
+    await user_repo.clear_reset_token(user["id"])
+
+    # Unlock account if it was locked
+    user_repo.db.table("users")\
+        .update({"login_attempts": 0, "locked_until": None})\
+        .eq("id", user["id"])\
+        .execute()
+
+    logger.info(f"Password reset completed for user: {user['email']}")
+
+    return {"message": "Password berhasil direset. Silakan login dengan password baru."}
 
 
 # ============== Register (Admin Only) ==============

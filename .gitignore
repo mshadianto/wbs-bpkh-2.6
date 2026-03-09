@@ -23,3 +23,7 @@ nul
 
 # Local settings
 .claude/settings.local.json
+
+# Secrets & backups
+scripts/update_railway_env.sh
+backup/

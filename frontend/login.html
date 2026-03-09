@@ -33,56 +33,145 @@
         .gradient-islamic {
             background: linear-gradient(135deg, #006B3F 0%, #004D2C 50%, #1A3A2F 100%);
         }
+
+        /* View transition animations */
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .view-enter { animation: fadeSlideIn 0.35s ease-out forwards; }
+
+        @keyframes fadeSlideOut {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(-8px); }
+        }
+        .view-exit { animation: fadeSlideOut 0.2s ease-in forwards; }
+
+        /* Header crossfade */
+        @keyframes headerFade {
+            from { opacity: 0; transform: scale(0.95); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        .header-transition { animation: headerFade 0.4s ease-out forwards; }
+
+        /* Success checkmark animation */
+        @keyframes checkCircle {
+            0%   { stroke-dashoffset: 166; }
+            100% { stroke-dashoffset: 0; }
+        }
+        @keyframes checkMark {
+            0%   { stroke-dashoffset: 48; }
+            100% { stroke-dashoffset: 0; }
+        }
+        @keyframes checkScale {
+            0%, 100% { transform: none; }
+            50%      { transform: scale3d(1.1, 1.1, 1); }
+        }
+        .checkmark-svg {
+            width: 56px; height: 56px; display: block; margin: 0 auto;
+            stroke-width: 2; stroke: #006B3F; stroke-miterlimit: 10;
+            animation: checkScale 0.3s ease-in-out 0.9s both;
+        }
+        .checkmark-circle {
+            stroke-dasharray: 166; stroke-dashoffset: 166;
+            stroke-width: 2; stroke: #006B3F; fill: none;
+            animation: checkCircle 0.6s cubic-bezier(0.65,0,0.45,1) forwards;
+        }
+        .checkmark-check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48; stroke-dashoffset: 48;
+            animation: checkMark 0.3s cubic-bezier(0.65,0,0.45,1) 0.8s forwards;
+        }
+
+        /* Password strength meter */
+        .strength-meter { display: flex; gap: 4px; margin-top: 8px; }
+        .strength-seg {
+            height: 4px; flex: 1; border-radius: 2px;
+            background: #e5e7eb; transition: background-color 0.3s ease;
+        }
+        .str-red    { background: #ef4444; }
+        .str-orange { background: #f97316; }
+        .str-yellow { background: #eab308; }
+        .str-lime   { background: #84cc16; }
+        .str-green  { background: #22c55e; }
+
+        /* Eye toggle enhancement */
+        .eye-toggle {
+            cursor: pointer; min-width: 44px; min-height: 44px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Card loading shimmer */
+        @keyframes shimmer {
+            0%   { opacity: 1; }
+            50%  { opacity: 0.92; }
+            100% { opacity: 1; }
+        }
+        .card-loading {
+            animation: shimmer 1.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .card-loading input, .card-loading button, .card-loading a {
+            pointer-events: none; opacity: 0.6;
+        }
+
+        /* iOS zoom fix */
+        input[type="email"], input[type="password"], input[type="text"] {
+            font-size: 16px;
+        }
+
+        /* Toast container */
+        #toast-container {
+            position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+            z-index: 9998; display: flex; flex-direction: column; gap: 0.5rem;
+            pointer-events: none; width: max-content; max-width: 90vw;
+        }
     </style>
 </head>
 <body class="min-h-screen islamic-pattern bg-islamic-cream flex items-center justify-center p-4">
+    <!-- Toast Container -->
+    <div id="toast-container" aria-live="polite" role="status"></div>
+
     <div class="w-full max-w-md">
         <!-- Logo & Header -->
         <div class="text-center mb-8">
-            <p class="font-arabic text-islamic-gold text-lg mb-2">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
+            <p class="font-arabic text-islamic-gold text-lg mb-2">\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064E\u0647\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0646\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650</p>
             <div class="flex items-center justify-center gap-2 mb-2">
-                <span class="text-islamic-gold text-xl">۞</span>
+                <span class="text-islamic-gold text-xl">\u06DE</span>
                 <h1 class="text-2xl font-bold text-islamic-dark">WBS BPKH</h1>
-                <span class="text-islamic-gold text-xl">۞</span>
+                <span class="text-islamic-gold text-xl">\u06DE</span>
             </div>
             <p class="text-islamic-green text-sm">Whistleblowing System - Admin Dashboard</p>
         </div>
 
         <!-- Login Card -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-islamic-gold/20">
-            <!-- Card Header -->
+        <div id="loginCard" class="bg-white rounded-2xl shadow-xl overflow-hidden border border-islamic-gold/20">
+            <!-- Dynamic Card Header -->
             <div class="gradient-islamic p-6 text-center">
-                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <div id="headerIcon" class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                 </div>
-                <h2 class="text-xl font-semibold text-white">Masuk ke Dashboard</h2>
-                <p class="text-green-200 text-sm mt-1">Silakan login dengan akun Anda</p>
+                <h2 id="headerTitle" class="text-xl font-semibold text-white">Masuk ke Dashboard</h2>
+                <p id="headerSubtitle" class="text-green-200 text-sm mt-1">Silakan login dengan akun Anda</p>
             </div>
 
             <!-- Login Form -->
             <form id="loginForm" class="p-6 space-y-5" aria-label="Form login">
-                <!-- Error Alert -->
-                <div id="errorAlert" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                    <span id="errorMessage"></span>
-                </div>
-
                 <!-- Email -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
                         </span>
                         <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            required
+                            type="email" id="email" name="email" required
                             placeholder="contoh@bpkh.go.id"
+                            autocomplete="email" inputmode="email"
                             class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-islamic-green transition"
                         >
                     </div>
@@ -90,7 +179,7 @@
 
                 <!-- Password -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,14 +187,12 @@
                             </svg>
                         </span>
                         <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            required
+                            type="password" id="password" name="password" required
                             placeholder="Masukkan password"
+                            autocomplete="current-password"
                             class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-islamic-green transition"
                         >
-                        <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                        <button type="button" onclick="togglePassword()" class="eye-toggle absolute inset-y-0 right-0 pr-3 text-gray-400 hover:text-gray-600 z-10 transition-colors duration-200" aria-label="Tampilkan/sembunyikan password">
                             <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -114,20 +201,19 @@
                     </div>
                 </div>
 
-                <!-- Remember Me -->
+                <!-- Remember Me & Forgot Password -->
                 <div class="flex items-center justify-between">
-                    <label class="flex items-center">
+                    <label class="flex items-center cursor-pointer">
                         <input type="checkbox" id="remember" class="w-4 h-4 text-islamic-green border-gray-300 rounded focus:ring-islamic-green">
                         <span class="ml-2 text-sm text-gray-600">Ingat saya</span>
                     </label>
+                    <button type="button" onclick="showForgotView()" class="text-sm text-islamic-green hover:text-islamic-green-dark font-medium transition-colors duration-200">
+                        Lupa Password?
+                    </button>
                 </div>
 
                 <!-- Submit Button -->
-                <button
-                    type="submit"
-                    id="submitBtn"
-                    class="w-full bg-islamic-green hover:bg-islamic-green-dark text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"
-                >
+                <button type="submit" id="submitBtn" class="w-full bg-islamic-green hover:bg-islamic-green-dark text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 hover:shadow-lg">
                     <span id="btnText">Masuk</span>
                     <svg id="btnLoader" class="hidden animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -136,9 +222,132 @@
                 </button>
             </form>
 
+            <!-- Forgot Password View -->
+            <form id="forgotView" class="hidden p-6 space-y-5" onsubmit="event.preventDefault(); submitForgotPassword()">
+                <div>
+                    <label for="forgotEmail" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </span>
+                        <input
+                            type="email" id="forgotEmail" required
+                            placeholder="contoh@bpkh.go.id"
+                            autocomplete="email" inputmode="email"
+                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-islamic-green transition"
+                        >
+                    </div>
+                </div>
+
+                <button type="submit" id="forgotBtn" class="w-full bg-islamic-green hover:bg-islamic-green-dark text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 hover:shadow-lg">
+                    <span id="forgotBtnText">Kirim Link Reset</span>
+                    <svg id="forgotBtnLoader" class="hidden animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+
+                <div class="text-center">
+                    <button type="button" onclick="showLoginView()" class="text-sm text-islamic-green hover:text-islamic-green-dark font-medium transition-colors duration-200">
+                        &larr; Kembali ke Login
+                    </button>
+                </div>
+            </form>
+
+            <!-- Reset Password View -->
+            <form id="resetView" class="hidden p-6 space-y-5" onsubmit="event.preventDefault(); submitResetPassword()">
+                <div>
+                    <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-2">Password Baru</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </span>
+                        <input
+                            type="password" id="newPassword" required
+                            placeholder="Password baru"
+                            autocomplete="new-password"
+                            class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-islamic-green transition"
+                            oninput="checkPasswordRequirements()"
+                        >
+                        <button type="button" onclick="toggleResetPassword('newPassword', 'eyeNew')" class="eye-toggle absolute inset-y-0 right-0 pr-3 text-gray-400 hover:text-gray-600 z-10 transition-colors duration-200" aria-label="Tampilkan/sembunyikan password">
+                            <svg id="eyeNew" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Password Strength Meter -->
+                    <div class="strength-meter" id="strengthMeter">
+                        <div class="strength-seg" id="seg1"></div>
+                        <div class="strength-seg" id="seg2"></div>
+                        <div class="strength-seg" id="seg3"></div>
+                        <div class="strength-seg" id="seg4"></div>
+                        <div class="strength-seg" id="seg5"></div>
+                    </div>
+                    <p id="strengthLabel" class="text-xs text-gray-400 mt-1"></p>
+                </div>
+
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">Konfirmasi Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </span>
+                        <input
+                            type="password" id="confirmPassword" required
+                            placeholder="Konfirmasi password baru"
+                            autocomplete="new-password"
+                            class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-islamic-green focus:border-islamic-green transition"
+                            oninput="checkPasswordMatch()"
+                        >
+                        <button type="button" onclick="toggleResetPassword('confirmPassword', 'eyeConfirm')" class="eye-toggle absolute inset-y-0 right-0 pr-3 text-gray-400 hover:text-gray-600 z-10 transition-colors duration-200" aria-label="Tampilkan/sembunyikan password">
+                            <svg id="eyeConfirm" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Match Indicator -->
+                    <div id="matchIndicator" class="hidden text-xs mt-1.5 flex items-center gap-1">
+                        <span id="matchIcon"></span>
+                        <span id="matchText"></span>
+                    </div>
+                </div>
+
+                <!-- Password Requirements -->
+                <div class="bg-gray-50 rounded-lg p-3 text-xs space-y-1.5">
+                    <p class="font-medium text-gray-700 mb-1.5">Syarat password:</p>
+                    <p id="reqLength" class="text-gray-400 flex items-center gap-1.5"><span class="req-icon w-3.5 h-3.5 inline-flex items-center justify-center">&#x2022;</span> Minimal 8 karakter</p>
+                    <p id="reqUpper" class="text-gray-400 flex items-center gap-1.5"><span class="req-icon w-3.5 h-3.5 inline-flex items-center justify-center">&#x2022;</span> Huruf besar (A-Z)</p>
+                    <p id="reqLower" class="text-gray-400 flex items-center gap-1.5"><span class="req-icon w-3.5 h-3.5 inline-flex items-center justify-center">&#x2022;</span> Huruf kecil (a-z)</p>
+                    <p id="reqDigit" class="text-gray-400 flex items-center gap-1.5"><span class="req-icon w-3.5 h-3.5 inline-flex items-center justify-center">&#x2022;</span> Angka (0-9)</p>
+                    <p id="reqSpecial" class="text-gray-400 flex items-center gap-1.5"><span class="req-icon w-3.5 h-3.5 inline-flex items-center justify-center">&#x2022;</span> Karakter spesial (!@#$%^&*)</p>
+                </div>
+
+                <button type="submit" id="resetBtn" class="w-full bg-islamic-green hover:bg-islamic-green-dark text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 hover:shadow-lg">
+                    <span id="resetBtnText">Reset Password</span>
+                    <svg id="resetBtnLoader" class="hidden animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+
+                <div class="text-center">
+                    <button type="button" onclick="showLoginView()" class="text-sm text-islamic-green hover:text-islamic-green-dark font-medium transition-colors duration-200">
+                        &larr; Kembali ke Login
+                    </button>
+                </div>
+            </form>
+
             <!-- Footer -->
             <div class="bg-gray-50 px-6 py-4 text-center border-t">
-                <a href="/" class="text-islamic-green hover:text-islamic-green-dark text-sm">
+                <a href="/" class="text-islamic-green hover:text-islamic-green-dark text-sm transition-colors duration-200">
                     Kembali ke Beranda
                 </a>
             </div>
@@ -152,30 +361,167 @@
     </div>
 
     <script>
-        const API_URL = '';  // Same origin
+        const API_URL = '';
+        let resetToken = null;
+        let originalForgotHTML = '';
+        let originalResetHTML = '';
 
-        // Check if already logged in
+        // ============== Init ==============
+
         document.addEventListener('DOMContentLoaded', () => {
+            // Save original HTML for rebuild after success animations
+            originalForgotHTML = document.getElementById('forgotView').innerHTML;
+            originalResetHTML = document.getElementById('resetView').innerHTML;
+
+            const params = new URLSearchParams(window.location.search);
+            const urlResetToken = params.get('reset_token');
+
+            if (urlResetToken) {
+                resetToken = urlResetToken;
+                showResetView();
+                return;
+            }
+
             const token = localStorage.getItem('wbs_token');
             if (token) {
-                // Verify token is still valid
                 verifyToken(token);
             }
         });
 
+        // ============== Utilities ==============
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function showToast(message, type = 'info', duration = 5000) {
+            const container = document.getElementById('toast-container');
+            const colors = { success:'bg-green-600', error:'bg-red-600', warning:'bg-amber-600', info:'bg-blue-600' };
+            const icons = { success:'\u2713', error:'\u2717', warning:'\u26A0', info:'\u2139' };
+            const toast = document.createElement('div');
+            toast.className = `${colors[type]||colors.info} text-white px-5 py-3 rounded-xl shadow-lg pointer-events-auto flex items-center gap-3 transform -translate-y-4 opacity-0 transition-all duration-300 max-w-sm`;
+            toast.innerHTML = `<span class="text-lg font-bold">${icons[type]||icons.info}</span><span class="text-sm">${escapeHtml(message)}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-4', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+            setTimeout(() => {
+                toast.classList.add('-translate-y-4', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // ============== Dynamic Header ==============
+
+        const VIEW_HEADERS = {
+            login: {
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>',
+                title: 'Masuk ke Dashboard',
+                subtitle: 'Silakan login dengan akun Anda'
+            },
+            forgot: {
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>',
+                title: 'Lupa Password',
+                subtitle: 'Kami akan mengirim link reset ke email Anda'
+            },
+            reset: {
+                icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>',
+                title: 'Reset Password',
+                subtitle: 'Buat password baru Anda'
+            }
+        };
+
+        function updateHeader(viewName) {
+            const cfg = VIEW_HEADERS[viewName];
+            if (!cfg) return;
+            const iconEl = document.getElementById('headerIcon');
+            const titleEl = document.getElementById('headerTitle');
+            const subEl = document.getElementById('headerSubtitle');
+
+            [iconEl, titleEl, subEl].forEach(el => el.classList.remove('header-transition'));
+
+            requestAnimationFrame(() => {
+                iconEl.querySelector('svg').innerHTML = cfg.icon;
+                titleEl.textContent = cfg.title;
+                subEl.textContent = cfg.subtitle;
+                [iconEl, titleEl, subEl].forEach(el => el.classList.add('header-transition'));
+            });
+        }
+
+        // ============== View Switching ==============
+
+        function switchView(targetId, headerKey) {
+            const viewIds = ['loginForm', 'forgotView', 'resetView'];
+            const targetEl = document.getElementById(targetId);
+            const currentEl = viewIds.map(id => document.getElementById(id)).find(el => !el.classList.contains('hidden'));
+
+            updateHeader(headerKey);
+
+            if (currentEl && currentEl !== targetEl) {
+                currentEl.classList.add('view-exit');
+                setTimeout(() => {
+                    currentEl.classList.add('hidden');
+                    currentEl.classList.remove('view-exit');
+                    targetEl.classList.remove('hidden');
+                    targetEl.classList.add('view-enter');
+                    setTimeout(() => targetEl.classList.remove('view-enter'), 350);
+                }, 200);
+            } else if (targetEl) {
+                viewIds.forEach(id => { if (id !== targetId) document.getElementById(id).classList.add('hidden'); });
+                targetEl.classList.remove('hidden');
+                targetEl.classList.add('view-enter');
+                setTimeout(() => targetEl.classList.remove('view-enter'), 350);
+            }
+        }
+
+        function showLoginView() {
+            // Rebuild if innerHTML was replaced by success animation
+            rebuildForgotView();
+            rebuildResetView();
+            switchView('loginForm', 'login');
+            window.history.replaceState({}, '', '/login');
+            setTimeout(() => { const el = document.getElementById('email'); if (el) el.focus(); }, 300);
+        }
+
+        function showForgotView() {
+            rebuildForgotView();
+            switchView('forgotView', 'forgot');
+            setTimeout(() => { const el = document.getElementById('forgotEmail'); if (el) el.focus(); }, 300);
+        }
+
+        function showResetView() {
+            rebuildResetView();
+            switchView('resetView', 'reset');
+            setTimeout(() => { const el = document.getElementById('newPassword'); if (el) el.focus(); }, 300);
+        }
+
+        function rebuildForgotView() {
+            const el = document.getElementById('forgotView');
+            if (originalForgotHTML && !el.querySelector('#forgotBtn')) {
+                el.innerHTML = originalForgotHTML;
+            }
+        }
+
+        function rebuildResetView() {
+            const el = document.getElementById('resetView');
+            if (originalResetHTML && !el.querySelector('#resetBtn')) {
+                el.innerHTML = originalResetHTML;
+            }
+        }
+
+        // ============== Token Verification ==============
+
         async function verifyToken(token) {
             try {
                 const response = await fetch(`${API_URL}/api/v1/auth/me`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
                 if (response.ok) {
-                    // Token valid, redirect to dashboard
                     window.location.href = '/dashboard';
                 } else {
-                    // Token invalid, remove it
                     localStorage.removeItem('wbs_token');
                     localStorage.removeItem('wbs_user');
                 }
@@ -184,40 +530,116 @@
             }
         }
 
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const eyeIcon = document.getElementById('eyeIcon');
+        // ============== Password Toggle ==============
 
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-                `;
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                `;
+        const EYE_OPEN = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>';
+        const EYE_CLOSED = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>';
+
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.innerHTML = isHidden ? EYE_CLOSED : EYE_OPEN;
+        }
+
+        function toggleResetPassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            icon.innerHTML = isHidden ? EYE_CLOSED : EYE_OPEN;
+        }
+
+        // ============== Password Strength & Requirements ==============
+
+        function updatePasswordStrength() {
+            const pw = document.getElementById('newPassword').value;
+            const checks = [pw.length >= 8, /[A-Z]/.test(pw), /[a-z]/.test(pw), /[0-9]/.test(pw), /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(pw)];
+            const score = checks.filter(Boolean).length;
+
+            const colorClass = ['', 'str-red', 'str-orange', 'str-yellow', 'str-lime', 'str-green'];
+            const labels = ['', 'Sangat Lemah', 'Lemah', 'Cukup', 'Kuat', 'Sangat Kuat'];
+            const labelColors = ['', 'text-red-500', 'text-orange-500', 'text-yellow-600', 'text-lime-600', 'text-green-600'];
+
+            for (let i = 1; i <= 5; i++) {
+                const seg = document.getElementById('seg' + i);
+                if (!seg) continue;
+                seg.className = 'strength-seg';
+                if (i <= score) seg.classList.add(colorClass[score]);
+            }
+
+            const label = document.getElementById('strengthLabel');
+            if (label) {
+                label.textContent = pw.length > 0 ? labels[score] : '';
+                label.className = `text-xs mt-1 ${pw.length > 0 ? labelColors[score] : 'text-gray-400'}`;
             }
         }
 
-        function showError(message) {
-            const errorAlert = document.getElementById('errorAlert');
-            const errorMessage = document.getElementById('errorMessage');
-            errorMessage.textContent = message;
-            errorAlert.classList.remove('hidden');
+        const CHECK_SVG = '<svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
+        const BULLET_SVG = '<span class="text-gray-300">&#x2022;</span>';
+
+        function checkPasswordRequirements() {
+            const pw = document.getElementById('newPassword').value;
+            const setReq = (id, met) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.toggle('text-green-600', met);
+                el.classList.toggle('text-gray-400', !met);
+                const icon = el.querySelector('.req-icon');
+                if (icon) icon.innerHTML = met ? CHECK_SVG : BULLET_SVG;
+            };
+            setReq('reqLength', pw.length >= 8);
+            setReq('reqUpper', /[A-Z]/.test(pw));
+            setReq('reqLower', /[a-z]/.test(pw));
+            setReq('reqDigit', /[0-9]/.test(pw));
+            setReq('reqSpecial', /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(pw));
+
+            updatePasswordStrength();
+
+            const confirmPw = document.getElementById('confirmPassword');
+            if (confirmPw && confirmPw.value) checkPasswordMatch();
         }
 
-        function hideError() {
-            document.getElementById('errorAlert').classList.add('hidden');
+        function checkPasswordMatch() {
+            const pw = document.getElementById('newPassword');
+            const cpw = document.getElementById('confirmPassword');
+            const indicator = document.getElementById('matchIndicator');
+            const icon = document.getElementById('matchIcon');
+            const text = document.getElementById('matchText');
+
+            if (!pw || !cpw || !indicator) return;
+
+            if (!cpw.value) {
+                indicator.classList.add('hidden');
+                return;
+            }
+
+            indicator.classList.remove('hidden');
+            if (pw.value === cpw.value) {
+                icon.innerHTML = '<svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
+                text.textContent = 'Password cocok';
+                indicator.className = 'text-xs mt-1.5 flex items-center gap-1 text-green-600';
+            } else {
+                icon.innerHTML = '<svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>';
+                text.textContent = 'Password tidak cocok';
+                indicator.className = 'text-xs mt-1.5 flex items-center gap-1 text-red-500';
+            }
+        }
+
+        // ============== Loading States ==============
+
+        function setCardLoading(loading) {
+            const card = document.getElementById('loginCard');
+            if (loading) card.classList.add('card-loading');
+            else card.classList.remove('card-loading');
         }
 
         function setLoading(loading) {
+            setCardLoading(loading);
             const submitBtn = document.getElementById('submitBtn');
             const btnText = document.getElementById('btnText');
             const btnLoader = document.getElementById('btnLoader');
-
             if (loading) {
                 submitBtn.disabled = true;
                 btnText.textContent = 'Memproses...';
@@ -229,9 +651,134 @@
             }
         }
 
+        function setForgotLoading(loading) {
+            setCardLoading(loading);
+            const btn = document.getElementById('forgotBtn');
+            const text = document.getElementById('forgotBtnText');
+            const loader = document.getElementById('forgotBtnLoader');
+            if (!btn) return;
+            btn.disabled = loading;
+            text.textContent = loading ? 'Mengirim...' : 'Kirim Link Reset';
+            loader.classList.toggle('hidden', !loading);
+        }
+
+        function setResetLoading(loading) {
+            setCardLoading(loading);
+            const btn = document.getElementById('resetBtn');
+            const text = document.getElementById('resetBtnText');
+            const loader = document.getElementById('resetBtnLoader');
+            if (!btn) return;
+            btn.disabled = loading;
+            text.textContent = loading ? 'Memproses...' : 'Reset Password';
+            loader.classList.toggle('hidden', !loading);
+        }
+
+        // ============== Success Animation Helper ==============
+
+        function renderSuccessAnimation(targetEl, title, subtitle, showBackBtn = true) {
+            const backBtn = showBackBtn
+                ? `<button type="button" onclick="showLoginView()" class="mt-4 text-sm text-islamic-green hover:text-islamic-green-dark font-medium transition-colors duration-200">&larr; Kembali ke Login</button>`
+                : '';
+            targetEl.innerHTML = `
+                <div class="text-center py-8 view-enter">
+                    <svg class="checkmark-svg mx-auto mb-4" viewBox="0 0 52 52">
+                        <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">${escapeHtml(title)}</h3>
+                    <p class="text-sm text-gray-500">${subtitle}</p>
+                    ${backBtn}
+                </div>
+            `;
+        }
+
+        // ============== Forgot Password ==============
+
+        async function submitForgotPassword() {
+            const emailInput = document.getElementById('forgotEmail');
+            if (!emailInput) return;
+            const email = emailInput.value.trim();
+            if (!email) { showToast('Masukkan email Anda', 'warning'); return; }
+
+            setForgotLoading(true);
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Terjadi kesalahan');
+
+                showToast(data.message, 'success', 6000);
+                renderSuccessAnimation(
+                    document.getElementById('forgotView'),
+                    'Email Terkirim!',
+                    escapeHtml(data.message)
+                );
+            } catch (error) {
+                showToast(error.message || 'Gagal mengirim email reset', 'error');
+                setForgotLoading(false);
+            }
+        }
+
+        // ============== Reset Password ==============
+
+        async function submitResetPassword() {
+            const newPwEl = document.getElementById('newPassword');
+            const confirmPwEl = document.getElementById('confirmPassword');
+            if (!newPwEl || !confirmPwEl) return;
+
+            const newPw = newPwEl.value;
+            const confirmPw = confirmPwEl.value;
+
+            if (!newPw || !confirmPw) { showToast('Harap isi semua field', 'warning'); return; }
+            if (newPw !== confirmPw) { showToast('Password dan konfirmasi tidak cocok', 'error'); return; }
+
+            setResetLoading(true);
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/auth/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: resetToken, new_password: newPw })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Reset password gagal');
+
+                showToast('Password berhasil direset!', 'success');
+
+                const resetView = document.getElementById('resetView');
+                renderSuccessAnimation(
+                    resetView,
+                    'Password Berhasil Direset!',
+                    'Mengalihkan dalam <span id="countdown" class="font-bold text-islamic-green">3</span> detik...',
+                    false
+                );
+
+                let count = 3;
+                const timer = setInterval(() => {
+                    count--;
+                    const el = document.getElementById('countdown');
+                    if (el) el.textContent = count;
+                    if (count <= 0) {
+                        clearInterval(timer);
+                        showLoginView();
+                    }
+                }, 1000);
+            } catch (error) {
+                showToast(error.message || 'Reset password gagal', 'error');
+                setResetLoading(false);
+            }
+        }
+
+        // ============== Login ==============
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            hideError();
             setLoading(true);
 
             const email = document.getElementById('email').value;
@@ -241,41 +788,31 @@
             try {
                 const response = await fetch(`${API_URL}/api/v1/auth/login`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
 
                 const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Login gagal');
 
-                if (!response.ok) {
-                    throw new Error(data.detail || 'Login gagal');
-                }
-
-                // Store token and user info
                 localStorage.setItem('wbs_token', data.access_token);
                 localStorage.setItem('wbs_user', JSON.stringify(data.user));
+                if (remember) localStorage.setItem('wbs_refresh_token', data.refresh_token);
 
-                if (remember) {
-                    localStorage.setItem('wbs_refresh_token', data.refresh_token);
-                }
-
-                // Check if user must change password
                 if (data.must_change_password) {
                     localStorage.setItem('wbs_must_change_password', 'true');
                 } else {
                     localStorage.removeItem('wbs_must_change_password');
                 }
 
-                // Redirect to dashboard
-                window.location.href = '/dashboard';
+                showToast('Login berhasil! Mengalihkan...', 'success', 2000);
+                setTimeout(() => { window.location.href = '/dashboard'; }, 800);
 
             } catch (error) {
                 if (error instanceof TypeError && error.message.includes('fetch')) {
-                    showError('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+                    showToast('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.', 'error');
                 } else {
-                    showError(error.message || 'Login gagal');
+                    showToast(error.message || 'Login gagal', 'error');
                 }
             } finally {
                 setLoading(false);

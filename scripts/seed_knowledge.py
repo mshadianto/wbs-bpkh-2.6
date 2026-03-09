@@ -450,24 +450,28 @@ async def clear_knowledge_base():
         logger.warning(f"Could not clear knowledge base: {e}")
 
 
-async def insert_vector(embedding_service, doc_id: str, title: str, content: str, metadata: dict):
+async def insert_vector(embedding_service, doc_type: str, doc_name: str, content: str,
+                        chunk_index: int, metadata: dict, doc_source: str = None):
     """Insert a single vector into database"""
     try:
         # Generate embedding
         embedding = embedding_service.embed(content)
-        
-        # Insert into database
+
+        # Insert into database (matches knowledge_vectors schema)
         data = {
-            "doc_id": doc_id,
-            "title": title,
+            "doc_type": doc_type,
+            "doc_name": doc_name,
+            "doc_source": doc_source,
+            "chunk_index": chunk_index,
             "content": content,
+            "content_length": len(content),
             "embedding": embedding,
             "metadata": metadata
         }
-        
+
         supabase.table("knowledge_vectors").insert(data).execute()
         return True
-        
+
     except Exception as e:
         logger.error(f"Failed to insert vector: {e}")
         return False
@@ -481,40 +485,44 @@ async def seed_regulation(embedding_service, reg_key: str, regulation: dict) -> 
     
     logger.info(f"Processing: {regulation['title']}")
     
-    # 1. Index full document
+    # 1. Index full document chunks
     full_chunks = chunk_text(regulation['full_text'])
-    
+
     for i, chunk in enumerate(full_chunks):
         success = await insert_vector(
             embedding_service,
-            doc_id=f"{reg_key}_full_{i}",
-            title=regulation['title'],
+            doc_type="regulation",
+            doc_name=regulation['title'],
+            doc_source=reg_key,
             content=chunk,
+            chunk_index=i,
             metadata={
                 "regulation": reg_key,
-                "type": "full_text",
+                "short_name": regulation['short_name'],
                 "category": regulation['category'],
-                "chunk_index": i,
+                "part": "full_text",
                 "total_chunks": len(full_chunks)
             }
         )
         if success:
             chunks_created += 1
-    
+
     documents_loaded += 1
-    
+
     # 2. Index individual articles
-    for article in regulation.get('articles', []):
+    for j, article in enumerate(regulation.get('articles', [])):
         success = await insert_vector(
             embedding_service,
-            doc_id=f"{reg_key}_{article['number'].replace(' ', '_')}",
-            title=f"{regulation['short_name']} - {article['number']}",
+            doc_type="regulation",
+            doc_name=f"{regulation['short_name']} - {article['number']}",
+            doc_source=reg_key,
             content=article['content'],
+            chunk_index=j,
             metadata={
                 "regulation": reg_key,
-                "type": "article",
-                "article_number": article['number'],
-                "category": regulation['category']
+                "category": regulation['category'],
+                "part": "article",
+                "article_number": article['number']
             }
         )
         if success:

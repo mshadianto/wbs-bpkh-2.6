@@ -356,6 +356,83 @@ Email ini dikirim secara otomatis. Mohon tidak membalas email ini."""
 
         return await self.send_email(to, subject, body_text, body_html)
 
+    async def send_password_reset(
+        self,
+        to: str,
+        reset_url: str
+    ) -> Dict[str, Any]:
+        """Send password reset email with reset link."""
+        subject = "[WBS BPKH] Reset Password"
+
+        body_text = f"""Assalamu'alaikum Wr. Wb.
+
+Anda menerima email ini karena ada permintaan reset password untuk akun WBS BPKH Anda.
+
+Klik link berikut untuk mereset password:
+{reset_url}
+
+Link ini berlaku selama 1 jam.
+
+Jika Anda tidak meminta reset password, abaikan email ini.
+
+Wassalamu'alaikum Wr. Wb.
+Tim WBS BPKH
+
+---
+Email ini dikirim secara otomatis. Mohon tidak membalas email ini."""
+
+        body_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background: linear-gradient(135deg, #006B3F, #004d2e); color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+        .content {{ background: #f9f9f9; padding: 30px; border: 1px solid #ddd; }}
+        .reset-box {{ background: #fff; border: 2px solid #C9A227; padding: 25px; text-align: center; margin: 20px 0; border-radius: 8px; }}
+        .btn {{ display: inline-block; background: #006B3F; color: white; padding: 14px 40px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold; }}
+        .btn:hover {{ background: #004d2e; }}
+        .warning {{ background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 5px; margin: 15px 0; font-size: 13px; }}
+        .footer {{ text-align: center; padding: 20px; color: #666; font-size: 12px; }}
+        .bismillah {{ text-align: center; color: #C9A227; font-size: 18px; margin-bottom: 10px; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="bismillah">&#1576;&#1587;&#1605; &#1575;&#1604;&#1604;&#1607; &#1575;&#1604;&#1585;&#1581;&#1605;&#1606; &#1575;&#1604;&#1585;&#1581;&#1610;&#1605;</div>
+            <h1>Reset Password</h1>
+        </div>
+        <div class="content">
+            <p>Assalamu'alaikum Wr. Wb.</p>
+            <p>Anda menerima email ini karena ada permintaan reset password untuk akun WBS BPKH Anda.</p>
+
+            <div class="reset-box">
+                <p>Klik tombol di bawah untuk mereset password:</p>
+                <a href="{reset_url}" class="btn">Reset Password</a>
+                <p style="color: #666; font-size: 12px; margin-top: 15px;">Link berlaku selama 1 jam</p>
+            </div>
+
+            <div class="warning">
+                <strong>Perhatian:</strong> Jika Anda tidak meminta reset password, abaikan email ini. Akun Anda tetap aman.
+            </div>
+
+            <p>Wassalamu'alaikum Wr. Wb.<br>
+            <strong>Tim WBS BPKH</strong></p>
+        </div>
+        <div class="footer">
+            <p>Email ini dikirim secara otomatis. Mohon tidak membalas email ini.</p>
+            <p>&copy; 2025 Badan Pengelola Keuangan Haji</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+        return await self.send_email(to, subject, body_text, body_html)
+
 
 # Global instance
 email_service = EmailService()

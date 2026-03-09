@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     wbs_portal_url: str = Field(default="https://wbs.bpkh.go.id", env="WBS_PORTAL_URL")
     
     class Config:
-        env_file = ".env"
+        env_file = ("../.env", ".env")
         env_file_encoding = "utf-8"
         extra = "ignore"
 
