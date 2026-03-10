@@ -16,6 +16,25 @@ from config import settings, SEVERITY_LEVELS
 import html
 
 
+MAX_FIELD_LENGTHS = {
+    "title": 500,
+    "description": 50000,
+    "content": 50000,
+    "incident_location": 500,
+    "reporter_email": 255,
+    "reporter_name": 255,
+    "reporter_phone": 50,
+}
+
+
+def validate_field_length(value: str, field_name: str, max_length: int = 0) -> str:
+    """Truncate field if it exceeds max length to prevent resource exhaustion."""
+    if not value:
+        return value
+    limit = max_length or MAX_FIELD_LENGTHS.get(field_name, 10000)
+    return value[:limit]
+
+
 def sanitize_input(text: str) -> str:
     """
     Sanitize user input to prevent XSS attacks.
@@ -147,18 +166,18 @@ class ReportRepository:
         """Create new report"""
         ticket_id = self.generate_ticket_id()
 
-        # Sanitize user inputs to prevent XSS
+        # Sanitize and validate user inputs
         record = {
             "id": str(uuid.uuid4()),
             "ticket_id": ticket_id,
             "channel": report_data.get("channel", "WEB"),
             "is_anonymous": report_data.get("is_anonymous", True),
-            "title": sanitize_input(report_data.get("subject", "")),
-            "description": sanitize_input(report_data.get("description", "")),
+            "title": sanitize_input(validate_field_length(report_data.get("subject", ""), "title")),
+            "description": sanitize_input(validate_field_length(report_data.get("description", ""), "description")),
             "incident_date": parse_date_safe(report_data.get("incident_date")),
-            "incident_location": sanitize_input(report_data.get("incident_location") or ""),
+            "incident_location": sanitize_input(validate_field_length(report_data.get("incident_location") or "", "incident_location")),
             "involved_parties": sanitize_list(report_data.get("parties_involved", [])),
-            "reporter_email": sanitize_input(report_data.get("reporter_contact") or ""),
+            "reporter_email": sanitize_input(validate_field_length(report_data.get("reporter_contact") or "", "reporter_email")),
             "status": "NEW",
             "severity": None,
             "category": report_data.get("category") or None,
@@ -492,12 +511,12 @@ class MessageRepository:
         ticket_id: str = None
     ) -> Dict[str, Any]:
         """Create new message"""
-        # Sanitize message content to prevent XSS
+        # Sanitize and validate message content
         record = {
             "id": str(uuid.uuid4()),
             "report_id": report_id,
             "ticket_id": ticket_id,
-            "content": sanitize_input(content),
+            "content": sanitize_input(validate_field_length(content, "content")),
             "sender_type": sender_type,  # REPORTER, ADMIN, SYSTEM
             "has_attachments": bool(attachments),
             "is_read": False,

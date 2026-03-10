@@ -337,10 +337,9 @@ def can_view_report(user: TokenData, report: dict) -> bool:
     if user.role in [UserRole.ADMIN, UserRole.MANAGER]:
         return True
 
-    # Investigators can view assigned reports
+    # Investigators can only view reports assigned to them
     if user.role == UserRole.INVESTIGATOR:
-        # Check if assigned (would need to query assignments)
-        return True  # Simplified for now
+        return str(report.get("assigned_to", "")) == user.user_id
 
     # Intake officers can view new/reviewing reports
     if user.role == UserRole.INTAKE_OFFICER:

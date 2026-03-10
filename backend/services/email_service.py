@@ -59,26 +59,41 @@ class EmailService:
         return msg
 
     def _send_sync(self, to: str, subject: str, body_text: str, body_html: Optional[str] = None) -> Dict[str, Any]:
-        """Synchronous email send (runs in thread pool)."""
-        try:
-            msg = self._create_message(to, subject, body_text, body_html)
+        """Synchronous email send with retry logic (runs in thread pool)."""
+        import time as _time
 
-            context = ssl.create_default_context()
+        max_retries = 3
+        retry_delays = [2, 5, 10]  # seconds
 
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
-                server.starttls(context=context)
-                server.login(self.smtp_user, self.smtp_password)
-                server.sendmail(self.wbs_email, to, msg.as_string())
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                msg = self._create_message(to, subject, body_text, body_html)
 
-            logger.info(f"Email sent to {to[:5]}***")
-            return {"success": True}
+                context = ssl.create_default_context()
 
-        except smtplib.SMTPException as e:
-            logger.error(f"SMTP error: {e}")
-            return {"success": False, "error": str(e)}
-        except Exception as e:
-            logger.error(f"Email send error: {e}")
-            return {"success": False, "error": str(e)}
+                with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=30) as server:
+                    server.starttls(context=context)
+                    server.login(self.smtp_user, self.smtp_password)
+                    server.sendmail(self.wbs_email, to, msg.as_string())
+
+                logger.info(f"Email sent to {to[:5]}***")
+                return {"success": True}
+
+            except smtplib.SMTPException as e:
+                last_error = e
+                if attempt < max_retries - 1:
+                    delay = retry_delays[attempt]
+                    logger.warning(f"SMTP error (attempt {attempt + 1}/{max_retries}), retrying in {delay}s: {e}")
+                    _time.sleep(delay)
+                else:
+                    logger.error(f"SMTP error after {max_retries} attempts: {e}")
+            except Exception as e:
+                last_error = e
+                logger.error(f"Email send error: {e}")
+                break  # Non-SMTP errors are not retryable
+
+        return {"success": False, "error": str(last_error)}
 
     async def send_email(
         self,

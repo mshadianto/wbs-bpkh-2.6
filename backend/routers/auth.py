@@ -27,9 +27,11 @@ from services.email_service import email_service
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 # In-memory rate limiter for forgot password: {email: [timestamp, ...]}
+# Bounded to prevent memory leak from enumeration attacks
 _forgot_password_attempts: Dict[str, list] = defaultdict(list)
 _FORGOT_PASSWORD_MAX = 3  # max requests per hour per email
 _FORGOT_PASSWORD_WINDOW = 3600  # 1 hour in seconds
+_FORGOT_PASSWORD_MAX_KEYS = 5000  # max tracked emails
 
 
 def _check_forgot_rate_limit(email: str) -> bool:
@@ -38,6 +40,21 @@ def _check_forgot_rate_limit(email: str) -> bool:
     attempts = _forgot_password_attempts[email]
     # Remove old attempts outside window
     _forgot_password_attempts[email] = [t for t in attempts if now - t < _FORGOT_PASSWORD_WINDOW]
+
+    # Periodic cleanup: evict stale entries to prevent unbounded growth
+    if len(_forgot_password_attempts) > _FORGOT_PASSWORD_MAX_KEYS:
+        stale = [k for k, v in _forgot_password_attempts.items() if not v]
+        for k in stale:
+            del _forgot_password_attempts[k]
+        # If still over limit, drop oldest entries
+        if len(_forgot_password_attempts) > _FORGOT_PASSWORD_MAX_KEYS:
+            sorted_keys = sorted(
+                _forgot_password_attempts.keys(),
+                key=lambda k: max(_forgot_password_attempts[k]) if _forgot_password_attempts[k] else 0
+            )
+            for k in sorted_keys[:len(_forgot_password_attempts) - _FORGOT_PASSWORD_MAX_KEYS]:
+                del _forgot_password_attempts[k]
+
     return len(_forgot_password_attempts[email]) < _FORGOT_PASSWORD_MAX
 
 
@@ -305,14 +322,19 @@ async def refresh_token(refresh_token: str):
         )
 
     # Create new access token
+    user_role = UserRole(str(user["role"]).upper())
     new_access_token = create_access_token(
         user_id=user["id"],
         email=user["email"],
-        role=UserRole(str(user["role"]).upper())
+        role=user_role
     )
+
+    # Rotate refresh token: issue a new one to limit reuse window
+    new_refresh_token = create_refresh_token(user_id=user["id"])
 
     return {
         "access_token": new_access_token,
+        "refresh_token": new_refresh_token,
         "token_type": "bearer",
         "expires_in": settings.jwt_expiry_minutes * 60
     }

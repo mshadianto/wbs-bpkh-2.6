@@ -123,6 +123,20 @@ app.add_middleware(
 )
 
 
+# Request Body Size Limit Middleware (5MB max)
+MAX_REQUEST_BODY_SIZE = 5 * 1024 * 1024  # 5MB
+
+@app.middleware("http")
+async def limit_request_body(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > MAX_REQUEST_BODY_SIZE:
+        return JSONResponse(
+            status_code=413,
+            content={"detail": "Request body terlalu besar. Maksimal 5MB."}
+        )
+    return await call_next(request)
+
+
 # Security Headers Middleware
 @app.middleware("http")
 async def add_security_headers(request, call_next):
@@ -131,12 +145,23 @@ async def add_security_headers(request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
     if not settings.debug:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+            "img-src 'self' data:; "
+            "connect-src 'self'"
+        )
     return response
 
-# Rate Limiting (in-memory, per-IP)
+# Rate Limiting (in-memory, per-IP) with bounded size
 _rate_limit_store: Dict[str, List[float]] = defaultdict(list)
+_RATE_LIMIT_MAX_KEYS = 10000  # prevent unbounded memory growth
+_rate_limit_last_cleanup: float = 0.0
 RATE_LIMIT_PUBLIC = 10   # requests per minute for public endpoints
 RATE_LIMIT_AUTH = 60     # requests per minute for authenticated endpoints
 RATE_LIMIT_WINDOW = 60   # seconds
@@ -179,6 +204,19 @@ async def rate_limit_middleware(request: Request, call_next):
                 content={"detail": "Terlalu banyak permintaan. Coba lagi nanti."}
             )
         _rate_limit_store[key].append(now)
+
+        # Periodic cleanup: evict stale keys every 5 minutes to prevent memory leak
+        global _rate_limit_last_cleanup
+        if now - _rate_limit_last_cleanup > 300:
+            _rate_limit_last_cleanup = now
+            stale_keys = [k for k, v in _rate_limit_store.items() if not v or now - max(v) > RATE_LIMIT_WINDOW]
+            for k in stale_keys:
+                del _rate_limit_store[k]
+            # Hard cap: if still too many keys, drop oldest
+            if len(_rate_limit_store) > _RATE_LIMIT_MAX_KEYS:
+                sorted_keys = sorted(_rate_limit_store.keys(), key=lambda k: max(_rate_limit_store[k]) if _rate_limit_store[k] else 0)
+                for k in sorted_keys[:len(_rate_limit_store) - _RATE_LIMIT_MAX_KEYS]:
+                    del _rate_limit_store[k]
 
     return await call_next(request)
 
@@ -907,39 +945,53 @@ async def load_knowledge_base(
 async def run_ai_analysis(
     report_id: str,
     description: str,
-    rag_retriever: RAGRetriever
+    rag_retriever: RAGRetriever,
+    retry_count: int = 0
 ):
-    """Background task to run AI analysis"""
+    """Background task to run AI analysis with retry logic"""
+    MAX_RETRIES = 3
+    RETRY_DELAYS = [10, 30, 60]  # seconds: exponential backoff
+
     try:
-        logger.info(f"Starting background analysis for report {report_id}")
-        
+        logger.info(f"Starting background analysis for report {report_id} (attempt {retry_count + 1}/{MAX_RETRIES + 1})")
+
         # Get RAG context
         rag_context = await rag_retriever.retrieve_context(description)
-        
+
         # Get similar cases
         similar_cases = await rag_retriever.retrieve_similar_cases(description)
-        
+
         # Run analysis
         orchestrator = OrchestratorAgent(rag_context=rag_context)
         analysis = await orchestrator.analyze_report(
             report_content=description,
             similar_cases=similar_cases
         )
-        
+
         # Update report
         await report_repo.update_analysis(report_id, analysis)
-        
+
         logger.info(f"Analysis completed for report {report_id}")
-        
+
     except Exception as e:
-        logger.error(f"Background analysis failed for {report_id}: {e}")
-        # Save error state so frontend can show retry button
+        logger.error(f"Background analysis failed for {report_id} (attempt {retry_count + 1}): {e}")
+
+        # Retry with exponential backoff
+        if retry_count < MAX_RETRIES:
+            delay = RETRY_DELAYS[retry_count]
+            logger.info(f"Retrying analysis for {report_id} in {delay}s (attempt {retry_count + 2}/{MAX_RETRIES + 1})")
+            import asyncio
+            await asyncio.sleep(delay)
+            await run_ai_analysis(report_id, description, rag_retriever, retry_count + 1)
+            return
+
+        # All retries exhausted — save error state so frontend can show retry button
         try:
             error_analysis = {
                 "status": "ERROR",
                 "error": str(e),
                 "analyzed_at": datetime.utcnow().isoformat(),
-                "retry_count": 0
+                "retry_count": retry_count + 1
             }
             report_repo.db.table("reports")\
                 .update({

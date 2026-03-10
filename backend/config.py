@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     app_name: str = Field(default="WBS BPKH AI", env="APP_NAME")
     app_version: str = Field(default="1.1.0", env="APP_VERSION")
     debug: bool = Field(default=False, env="DEBUG")
-    secret_key: str = Field(default="", env="SECRET_KEY")  # Must be set in production
+    secret_key: str = Field(default="", env="SECRET_KEY")  # Required in production (validated at startup)
     
     # Groq API
     groq_api_key: str = Field(default="", env="GROQ_API_KEY")
@@ -593,8 +593,12 @@ def get_settings() -> Settings:
         missing.append("SUPABASE_URL")
     if not s.supabase_anon_key:
         missing.append("SUPABASE_ANON_KEY")
+    if not s.supabase_service_key:
+        missing.append("SUPABASE_SERVICE_KEY")
     if not s.jwt_secret:
         missing.append("JWT_SECRET")
+    if not s.secret_key:
+        missing.append("SECRET_KEY")
     if missing:
         import warnings
         warnings.warn(
@@ -602,6 +606,20 @@ def get_settings() -> Settings:
             "Some features will not work correctly.",
             stacklevel=2
         )
+    # Validate secret strength in non-debug mode
+    if not s.debug:
+        weak = []
+        if s.jwt_secret and len(s.jwt_secret) < 32:
+            weak.append("JWT_SECRET (min 32 chars)")
+        if s.secret_key and len(s.secret_key) < 32:
+            weak.append("SECRET_KEY (min 32 chars)")
+        if weak:
+            import warnings
+            warnings.warn(
+                f"Weak secrets detected: {', '.join(weak)}. "
+                "Use cryptographically strong values in production.",
+                stacklevel=2
+            )
     return s
 
 
