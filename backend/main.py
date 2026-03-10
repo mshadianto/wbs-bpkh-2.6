@@ -29,6 +29,7 @@ from middleware import (
     SecurityHeadersMiddleware,
     RateLimiterMiddleware,
     RequestSizeLimitMiddleware,
+    RequestCorrelationMiddleware,
 )
 from routers import (
     auth_router,
@@ -119,6 +120,9 @@ app.add_middleware(RateLimiterMiddleware)
 
 # Request body size limit (5MB)
 app.add_middleware(RequestSizeLimitMiddleware, max_bytes=5 * 1024 * 1024)
+
+# Request correlation (adds X-Request-ID for log traceability)
+app.add_middleware(RequestCorrelationMiddleware)
 
 
 # ============== Routers ==============
