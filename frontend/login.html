@@ -797,7 +797,7 @@
 
                 localStorage.setItem('wbs_token', data.access_token);
                 localStorage.setItem('wbs_user', JSON.stringify(data.user));
-                if (remember) localStorage.setItem('wbs_refresh_token', data.refresh_token);
+                localStorage.setItem('wbs_refresh_token', data.refresh_token);
 
                 if (data.must_change_password) {
                     localStorage.setItem('wbs_must_change_password', 'true');

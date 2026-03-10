@@ -5,6 +5,7 @@ Endpoints for user authentication and management.
 """
 
 from fastapi import APIRouter, HTTPException, status, Request, Depends
+from pydantic import BaseModel
 from typing import Optional, Dict
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -293,12 +294,16 @@ async def register(
 
 # ============== Token Refresh ==============
 
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
 @router.post("/refresh")
-async def refresh_token(refresh_token: str):
+async def refresh_token(data: RefreshTokenRequest):
     """
     Refresh access token using refresh token.
     """
-    payload = decode_token(refresh_token)
+    payload = decode_token(data.refresh_token)
 
     if not payload or payload.get("type") != "refresh":
         raise HTTPException(

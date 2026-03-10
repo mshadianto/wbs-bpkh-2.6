@@ -3095,12 +3095,40 @@
             try {
                 currentUser = JSON.parse(userJson);
                 updateUserInfo();
+
+                // Verify token is still valid server-side (async, non-blocking)
+                verifyTokenAsync();
+
                 return true;
             } catch (e) {
                 localStorage.removeItem('wbs_token');
                 localStorage.removeItem('wbs_user');
                 window.location.href = '/login';
                 return false;
+            }
+        }
+
+        async function verifyTokenAsync() {
+            try {
+                const resp = await fetch(`${API_URL}/api/v1/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (resp.ok) {
+                    // Update user data with fresh server data
+                    const freshUser = await resp.json();
+                    currentUser = freshUser;
+                    localStorage.setItem('wbs_user', JSON.stringify(freshUser));
+                    updateUserInfo();
+                } else if (resp.status === 401) {
+                    // Token invalid, try refresh before kicking out
+                    const refreshed = await _tryRefreshToken();
+                    if (!refreshed) {
+                        _forceLogout();
+                    }
+                }
+            } catch (e) {
+                console.warn('Token verification failed (network):', e);
+                // Don't logout on network errors — user might be temporarily offline
             }
         }
 
@@ -3244,7 +3272,37 @@
             window.location.href = '/login';
         }
 
-        // API Fetch with Auth
+        // API Fetch with Auth + Auto Token Refresh
+        let _isRefreshing = false;
+        let _refreshPromise = null;
+
+        async function _tryRefreshToken() {
+            const refreshToken = localStorage.getItem('wbs_refresh_token');
+            if (!refreshToken) return false;
+
+            try {
+                const resp = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+
+                if (!resp.ok) return false;
+
+                const data = await resp.json();
+                authToken = data.access_token;
+                localStorage.setItem('wbs_token', data.access_token);
+                if (data.refresh_token) {
+                    localStorage.setItem('wbs_refresh_token', data.refresh_token);
+                }
+                console.log('Token refreshed successfully');
+                return true;
+            } catch (e) {
+                console.error('Token refresh failed:', e);
+                return false;
+            }
+        }
+
         async function authFetch(url, options = {}) {
             if (!authToken) {
                 window.location.href = '/login';
@@ -3257,16 +3315,54 @@
                 ...options.headers
             };
 
-            const response = await fetch(url, { ...options, headers });
-
-            if (response.status === 401) {
-                // Token expired, try refresh or redirect to login
-                localStorage.removeItem('wbs_token');
-                window.location.href = '/login';
+            let response;
+            try {
+                response = await fetch(url, { ...options, headers });
+            } catch (e) {
+                console.error('Network error in authFetch:', e);
+                showToast('Koneksi ke server gagal. Periksa jaringan Anda.', 'error');
                 return null;
             }
 
+            if (response.status === 401) {
+                // Try refresh token (only one concurrent refresh)
+                if (!_isRefreshing) {
+                    _isRefreshing = true;
+                    _refreshPromise = _tryRefreshToken();
+                }
+                const refreshed = await _refreshPromise;
+                _isRefreshing = false;
+
+                if (refreshed) {
+                    // Retry original request with new token
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                    try {
+                        response = await fetch(url, { ...options, headers });
+                        if (response.status === 401) {
+                            // Still 401 after refresh — give up
+                            _forceLogout();
+                            return null;
+                        }
+                        return response;
+                    } catch (e) {
+                        console.error('Retry after refresh failed:', e);
+                        return null;
+                    }
+                } else {
+                    _forceLogout();
+                    return null;
+                }
+            }
+
             return response;
+        }
+
+        function _forceLogout() {
+            localStorage.removeItem('wbs_token');
+            localStorage.removeItem('wbs_user');
+            localStorage.removeItem('wbs_refresh_token');
+            localStorage.removeItem('wbs_must_change_password');
+            window.location.href = '/login';
         }
 
         // Initialize
