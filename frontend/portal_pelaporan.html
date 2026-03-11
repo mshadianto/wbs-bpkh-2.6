@@ -383,6 +383,25 @@
                         <!-- Messages will be loaded here -->
                     </div>
 
+                    <!-- Message File Upload -->
+                    <div id="msg-file-dropzone" class="border-2 border-dashed border-islamic-green/30 rounded-lg p-4 text-center cursor-pointer hover:border-islamic-green/60 hover:bg-islamic-light/30 transition mb-3"
+                        onclick="document.getElementById('msg-file-input').click()"
+                        ondragover="event.preventDefault(); this.classList.add('border-islamic-green', 'bg-islamic-light/50')"
+                        ondragleave="this.classList.remove('border-islamic-green', 'bg-islamic-light/50')"
+                        ondrop="handleMsgFileDrop(event)">
+                        <i data-lucide="upload-cloud" class="w-8 h-8 text-islamic-green/50 mx-auto mb-1"></i>
+                        <p class="text-sm text-islamic-dark/70">Lampirkan file pendukung</p>
+                        <p class="text-xs text-slate-400 mt-1">Maks 5 file, 10MB/file — PDF, DOC, JPG, PNG, MP4, ZIP, dll</p>
+                    </div>
+                    <input type="file" id="msg-file-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.mp3,.mp4,.wav,.txt,.csv,.zip" class="hidden" onchange="handleMsgFileSelect(this.files)">
+                    <div id="msg-file-list" class="space-y-2 mb-3 hidden"></div>
+                    <div id="msg-upload-progress" class="mb-3 hidden">
+                        <div class="flex items-center gap-2 text-sm text-islamic-dark/70">
+                            <div class="w-4 h-4 border-2 border-islamic-green border-t-transparent rounded-full animate-spin"></div>
+                            <span id="msg-upload-progress-text">Mengupload file...</span>
+                        </div>
+                    </div>
+
                     <div class="flex gap-3">
                         <textarea id="new_message" rows="2" placeholder="Tulis pesan atau informasi tambahan..."
                             class="flex-1 px-4 py-3 border border-islamic-green/20 rounded-lg input-focus focus:outline-none focus:border-islamic-green resize-none"></textarea>
@@ -838,27 +857,130 @@
             }
         }
 
+        // ============== Message File Upload ==============
+        let msgSelectedFiles = [];
+
+        function handleMsgFileDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('border-islamic-green', 'bg-islamic-light/50');
+            handleMsgFileSelect(event.dataTransfer.files);
+        }
+
+        function handleMsgFileSelect(files) {
+            for (const file of files) {
+                if (msgSelectedFiles.length >= MAX_FILES) {
+                    showToast(`Maksimal ${MAX_FILES} file`, 'warning');
+                    break;
+                }
+                const ext = '.' + file.name.split('.').pop().toLowerCase();
+                if (!ALLOWED_EXT.includes(ext)) {
+                    showToast(`Format ${ext} tidak diizinkan`, 'warning');
+                    continue;
+                }
+                if (file.size > MAX_FILE_SIZE) {
+                    showToast(`File "${file.name}" terlalu besar (maks 10MB)`, 'warning');
+                    continue;
+                }
+                if (msgSelectedFiles.some(f => f.name === file.name && f.size === file.size)) continue;
+                msgSelectedFiles.push(file);
+            }
+            renderMsgFileList();
+        }
+
+        function removeMsgFile(index) {
+            msgSelectedFiles.splice(index, 1);
+            renderMsgFileList();
+        }
+
+        function renderMsgFileList() {
+            const listEl = document.getElementById('msg-file-list');
+            if (msgSelectedFiles.length === 0) {
+                listEl.classList.add('hidden');
+                listEl.innerHTML = '';
+                return;
+            }
+            listEl.classList.remove('hidden');
+            listEl.innerHTML = msgSelectedFiles.map((f, i) => `
+                <div class="flex items-center justify-between bg-islamic-light/50 rounded-lg px-4 py-2 border border-islamic-green/10">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <i data-lucide="${getFileIcon(f.name)}" class="w-5 h-5 text-islamic-green shrink-0"></i>
+                        <div class="min-w-0">
+                            <p class="text-sm text-islamic-dark truncate">${escapeHtml(f.name)}</p>
+                            <p class="text-xs text-slate-400">${formatFileSize(f.size)}</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="removeMsgFile(${i})" class="text-red-400 hover:text-red-600 p-1 shrink-0" title="Hapus">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        async function uploadMsgFiles() {
+            if (msgSelectedFiles.length === 0) return [];
+            const progressEl = document.getElementById('msg-upload-progress');
+            const progressText = document.getElementById('msg-upload-progress-text');
+            progressEl.classList.remove('hidden');
+            progressText.textContent = `Mengupload ${msgSelectedFiles.length} file...`;
+
+            const formData = new FormData();
+            msgSelectedFiles.forEach(f => formData.append('files', f));
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/uploads`, {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Gagal mengupload file');
+                }
+                const result = await response.json();
+                return (result.files || []).map(f => f.file_id);
+            } catch (error) {
+                showToast(error.message || 'Gagal mengupload file', 'error');
+                return [];
+            } finally {
+                progressEl.classList.add('hidden');
+            }
+        }
+
         // Send Message
         async function sendMessage() {
             const messageInput = document.getElementById('new_message');
             const sendBtn = document.getElementById('btn-send-message');
             const content = messageInput.value.trim();
-            if (!content || !currentTicketId) return;
+            if ((!content && msgSelectedFiles.length === 0) || !currentTicketId) return;
 
-            if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = 'Mengirim...'; }
+            if (sendBtn) { sendBtn.disabled = true; sendBtn.innerHTML = '<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>'; }
             try {
+                let attachments = [];
+                if (msgSelectedFiles.length > 0) {
+                    attachments = await uploadMsgFiles();
+                    if (attachments.length === 0 && !content) {
+                        showToast('Gagal mengupload file', 'error');
+                        return;
+                    }
+                }
+
+                const msgContent = content || `[${attachments.length} file terlampir]`;
                 const response = await fetch(`${API_URL}/api/v1/tickets/${currentTicketId}/messages`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content })
+                    body: JSON.stringify({ content: msgContent, attachments })
                 });
                 if (!response.ok) throw new Error('Gagal mengirim pesan');
                 messageInput.value = '';
+                msgSelectedFiles = [];
+                renderMsgFileList();
+                document.getElementById('msg-file-input').value = '';
                 loadMessages(currentTicketId);
+                if (attachments.length > 0) showToast('Pesan dan file berhasil dikirim', 'success');
             } catch (error) {
                 showToast('Gagal mengirim pesan', 'error');
             } finally {
-                if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Kirim'; }
+                if (sendBtn) { sendBtn.disabled = false; sendBtn.innerHTML = '<i data-lucide="send" class="w-5 h-5"></i>'; lucide.createIcons(); }
             }
         }
 
