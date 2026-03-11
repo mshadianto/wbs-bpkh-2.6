@@ -11,6 +11,7 @@ from .dashboard import router as dashboard_router
 from .investigation import router as investigation_router
 from .reference import router as reference_router
 from .knowledge import router as knowledge_router
+from .uploads import router as uploads_router
 
 __all__ = [
     "auth_router",
@@ -22,4 +23,5 @@ __all__ = [
     "investigation_router",
     "reference_router",
     "knowledge_router",
+    "uploads_router",
 ]

@@ -41,6 +41,7 @@ from routers import (
     investigation_router,
     reference_router,
     knowledge_router,
+    uploads_router,
 )
 
 
@@ -136,6 +137,7 @@ app.include_router(dashboard_router)
 app.include_router(investigation_router)
 app.include_router(reference_router)
 app.include_router(knowledge_router)
+app.include_router(uploads_router)
 
 
 # ============== Health & Root ==============
