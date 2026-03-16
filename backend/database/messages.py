@@ -39,7 +39,16 @@ class MessageRepository:
             "created_at": datetime.utcnow().isoformat(),
         }
         result = self.db.table(self.table).insert(record).execute()
-        return result.data[0] if result.data else record
+        created = result.data[0] if result.data else record
+
+        # Link attachments to report via attachments table
+        if attachments:
+            from database import report_repo
+            await report_repo._link_attachments(
+                report_id, attachments, message_id=created["id"],
+            )
+
+        return created
 
     async def get_by_report(self, report_id: str) -> List[Dict[str, Any]]:
         """Get all messages for a report."""

@@ -4008,17 +4008,53 @@
                     </div>`;
             }
 
+            // Build attachments HTML
+            const attachments = report.attachments || [];
+            let attachmentsHtml = '';
+            if (attachments.length > 0) {
+                const fileItems = attachments.map(att => {
+                    const fname = escapeHtml(att.original_filename || att.filename || 'file');
+                    const fsize = att.file_size ? `(${(att.file_size / 1024).toFixed(0)} KB)` : '';
+                    const ftype = (att.file_type || '').toUpperCase();
+                    const icon = ['jpg','jpeg','png','gif','webp'].includes((att.file_type||'').toLowerCase()) ? '&#128247;' : '&#128196;';
+                    const downloadBtn = att.download_url
+                        ? `<a href="${att.download_url}" target="_blank" class="text-islamic-green hover:underline text-xs ml-2">Download</a>`
+                        : '';
+                    return `<div class="flex items-center gap-2 p-2 bg-slate-50 rounded border border-slate-200">
+                        <span class="text-lg">${icon}</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-islamic-dark truncate">${fname}</p>
+                            <p class="text-xs text-slate-400">${ftype} ${fsize}</p>
+                        </div>
+                        ${downloadBtn}
+                    </div>`;
+                }).join('');
+                attachmentsHtml = `
+                    <div class="mt-4">
+                        <h4 class="text-sm font-semibold text-islamic-dark uppercase tracking-wider mb-2">Lampiran / Bukti (${attachments.length} file)</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${fileItems}</div>
+                    </div>`;
+            }
+
+            // Build parties HTML
+            const parties = report.involved_parties || report.parties_involved || [];
+            const partiesArr = typeof parties === 'string' ? (function(){ try { return JSON.parse(parties); } catch(e) { return parties ? [parties] : []; } })() : (Array.isArray(parties) ? parties : []);
+            const partiesHtml = partiesArr.length > 0
+                ? partiesArr.map(p => `<span class="inline-block bg-slate-100 text-slate-600 rounded px-2 py-0.5 text-xs mr-1 mb-1">${escapeHtml(p)}</span>`).join('')
+                : '<span class="text-slate-400 text-sm">-</span>';
+
             document.getElementById('modal-content').innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <h4 class="text-sm font-semibold text-islamic-dark uppercase tracking-wider mb-2">Informasi Laporan</h4>
                         <div class="space-y-3">
                             <div><p class="text-xs text-slate-500">Subject</p><p class="text-islamic-dark">${escapeHtml(report.subject)}</p></div>
-                            <div><p class="text-xs text-slate-500">Deskripsi</p><p class="text-islamic-dark text-sm">${escapeHtml(report.description)}</p></div>
+                            <div><p class="text-xs text-slate-500">Deskripsi</p><p class="text-islamic-dark text-sm whitespace-pre-line">${escapeHtml(report.description)}</p></div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div><p class="text-xs text-slate-500">Tanggal Kejadian</p><p class="text-islamic-dark">${escapeHtml(report.incident_date || '-')}</p></div>
                                 <div><p class="text-xs text-slate-500">Lokasi</p><p class="text-islamic-dark">${escapeHtml(report.incident_location || '-')}</p></div>
                             </div>
+                            <div><p class="text-xs text-slate-500">Pihak Terlibat</p><div class="mt-1">${partiesHtml}</div></div>
                         </div>
                     </div>
                     <div>
@@ -4034,6 +4070,7 @@
                         </div>
                     </div>
                 </div>
+                ${attachmentsHtml}
             `;
             document.getElementById('modal-status').value = report.status;
         }

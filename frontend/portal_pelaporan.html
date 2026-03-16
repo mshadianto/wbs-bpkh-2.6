@@ -871,6 +871,22 @@
                                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Pihak Terlibat</p>
                                 <div class="text-sm">${partiesHtml}</div>
                             </div>` : ''}
+
+                            ${result.attachments && result.attachments.length > 0 ? `
+                            <div>
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Lampiran (${result.attachments.length} file)</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                    ${result.attachments.map(att => {
+                                        const fname = escapeHtml(att.original_filename || att.filename || 'file');
+                                        const fsize = att.file_size ? '(' + (att.file_size / 1024).toFixed(0) + ' KB)' : '';
+                                        const icon = ['jpg','jpeg','png','gif','webp'].includes((att.file_type||'').toLowerCase()) ? '&#128247;' : '&#128196;';
+                                        return '<div class="flex items-center gap-2 p-2 bg-white/60 rounded border border-islamic-green/10">' +
+                                            '<span class="text-lg">' + icon + '</span>' +
+                                            '<div class="flex-1 min-w-0"><p class="text-islamic-dark truncate text-xs">' + fname + '</p>' +
+                                            '<p class="text-slate-400 text-xs">' + fsize + '</p></div></div>';
+                                    }).join('')}
+                                </div>
+                            </div>` : ''}
                         </div>
                     </div>
                 `;

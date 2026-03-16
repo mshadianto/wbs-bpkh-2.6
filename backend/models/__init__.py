@@ -139,6 +139,7 @@ class ReportDetail(ReportResponse):
     incident_location: Optional[str] = None
     parties_involved: List[str] = []
     messages_count: int = 0
+    attachments: List[Dict[str, Any]] = []
 
 
 class ReportListResponse(BaseModel):
@@ -322,6 +323,7 @@ class TicketStatusResponse(BaseModel):
     incident_date: Optional[str] = None
     incident_location: Optional[str] = None
     parties_involved: List[str] = []
+    attachments: List[Dict[str, Any]] = []
     created_at: Optional[str] = None
     last_updated: str
     can_add_info: bool = True

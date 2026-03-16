@@ -176,11 +176,36 @@ async def get_report(
             raise HTTPException(status_code=404, detail="Report not found")
 
         messages = await message_repo.get_by_report(report_id)
-        return ReportDetail(**report, messages_count=len(messages))
+        attachments = await report_repo.get_attachments(report_id)
+        return ReportDetail(
+            **report,
+            messages_count=len(messages),
+            attachments=attachments,
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to get report: {e}")
+        raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
+
+
+@router.get("/reports/{report_id}/attachments")
+async def get_report_attachments(
+    report_id: str,
+    current_user: TokenData = Depends(require_min_role(UserRole.INTAKE_OFFICER)),
+):
+    """Get all attachments for a report (Intake Officer+)."""
+    try:
+        report = await report_repo.get_by_id(report_id)
+        if not report:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        attachments = await report_repo.get_attachments(report_id)
+        return {"attachments": attachments}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get attachments: {e}")
         raise HTTPException(status_code=500, detail=GENERIC_ERROR_MESSAGE)
 
 

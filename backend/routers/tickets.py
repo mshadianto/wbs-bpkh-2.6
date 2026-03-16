@@ -31,6 +31,9 @@ async def lookup_ticket(lookup: TicketLookup):
             except (json.JSONDecodeError, TypeError):
                 parties_raw = [parties_raw] if parties_raw.strip() else []
 
+        # Get attachments
+        attachments = await report_repo.get_attachments(report["id"])
+
         # Map DB column names to response fields
         # DB: title → subject, involved_parties → parties_involved
         return TicketStatusResponse(
@@ -47,6 +50,7 @@ async def lookup_ticket(lookup: TicketLookup):
             incident_date=report.get("incident_date"),
             incident_location=report.get("incident_location"),
             parties_involved=parties_raw if isinstance(parties_raw, list) else [],
+            attachments=attachments,
             created_at=report.get("created_at"),
             last_updated=report["updated_at"],
             can_add_info=report["status"] in ["NEW", "REVIEWING", "NEED_INFO"],

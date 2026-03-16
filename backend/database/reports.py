@@ -56,6 +56,11 @@ class ReportRepository:
         result = self.db.table(self.table).insert(record).execute()
         logger.info(f"Created report with ticket_id: {ticket_id}")
 
+        # Save attachments to attachments table
+        attachment_ids = report_data.get("attachments") or []
+        if attachment_ids:
+            await self._link_attachments(record["id"], attachment_ids)
+
         await self._create_audit_log(
             record["id"], "REPORT_CREATED",
             {"ticket_id": ticket_id, "channel": record["channel"]},
@@ -282,6 +287,77 @@ class ReportRepository:
             stats["closure_rate"] = round(closed_count / stats["total"] * 100, 1)
 
         return stats
+
+    async def _link_attachments(
+        self, report_id: str, file_ids: List[str],
+        message_id: str = None,
+    ):
+        """Link uploaded files to a report (and optionally a message)."""
+        db = self.db
+        for file_id in file_ids:
+            try:
+                # Try to find the file in Supabase Storage to get metadata
+                storage_path = None
+                original_filename = file_id
+                file_size = None
+                mime_type = None
+
+                # Look for file by ID prefix in storage
+                try:
+                    files_list = db.storage.from_("attachments").list()
+                    for f in (files_list or []):
+                        name = f.get("name", "")
+                        if name.startswith(file_id):
+                            storage_path = name
+                            original_filename = name
+                            file_size = f.get("metadata", {}).get("size")
+                            mime_type = f.get("metadata", {}).get("mimetype")
+                            break
+                except Exception:
+                    storage_path = file_id
+
+                import os
+                ext = os.path.splitext(storage_path or file_id)[1] if storage_path else ""
+
+                record = {
+                    "id": str(uuid.uuid4()),
+                    "report_id": report_id,
+                    "message_id": message_id,
+                    "filename": storage_path or file_id,
+                    "original_filename": original_filename,
+                    "file_type": ext.lstrip(".") if ext else None,
+                    "file_size": file_size,
+                    "mime_type": mime_type,
+                    "storage_path": storage_path,
+                    "storage_bucket": "attachments",
+                    "uploaded_at": datetime.utcnow().isoformat(),
+                }
+                db.table("attachments").insert(record).execute()
+                logger.info(f"Linked attachment {file_id} to report {report_id}")
+            except Exception as e:
+                logger.error(f"Failed to link attachment {file_id}: {e}")
+
+    async def get_attachments(self, report_id: str) -> List[Dict[str, Any]]:
+        """Get all attachments for a report."""
+        try:
+            result = self.db.table("attachments")\
+                .select("*").eq("report_id", report_id)\
+                .order("uploaded_at", desc=False).execute()
+            attachments = result.data or []
+
+            # Generate signed URLs for download
+            for att in attachments:
+                if att.get("storage_path"):
+                    try:
+                        signed = self.db.storage.from_("attachments")\
+                            .create_signed_url(att["storage_path"], 3600)
+                        att["download_url"] = signed.get("signedURL") or signed.get("signedUrl", "")
+                    except Exception:
+                        att["download_url"] = ""
+            return attachments
+        except Exception as e:
+            logger.error(f"Failed to get attachments: {e}")
+            return []
 
     async def _create_audit_log(
         self, report_id: str, action: str, details: Dict[str, Any],
