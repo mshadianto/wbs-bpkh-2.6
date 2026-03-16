@@ -314,5 +314,14 @@ class TicketStatusResponse(BaseModel):
     ticket_id: str
     status: str
     status_description: str
+    category: Optional[str] = None
+    subject: Optional[str] = None
+    description: Optional[str] = None
+    severity: Optional[str] = None
+    channel: Optional[str] = None
+    incident_date: Optional[str] = None
+    incident_location: Optional[str] = None
+    parties_involved: List[str] = []
+    created_at: Optional[str] = None
     last_updated: str
     can_add_info: bool = True

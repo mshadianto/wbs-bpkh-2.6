@@ -376,13 +376,15 @@
                 <div id="message-section" class="mt-8 hidden border-t border-islamic-green/10 pt-6">
                     <h3 class="font-semibold text-islamic-dark mb-4 flex items-center gap-2">
                         <i data-lucide="message-circle" class="w-5 h-5 text-islamic-gold"></i>
-                        Kirim Pesan / Informasi Tambahan
+                        Riwayat Komunikasi
                     </h3>
 
                     <div id="message-history" class="space-y-3 mb-4 max-h-64 overflow-y-auto">
                         <!-- Messages will be loaded here -->
                     </div>
 
+                    <!-- Message Input Form (hidden when status is closed) -->
+                    <div id="message-form">
                     <!-- Message File Upload -->
                     <div id="msg-file-dropzone" class="border-2 border-dashed border-islamic-green/30 rounded-lg p-4 text-center cursor-pointer hover:border-islamic-green/60 hover:bg-islamic-light/30 transition mb-3"
                         onclick="document.getElementById('msg-file-input').click()"
@@ -409,6 +411,7 @@
                             <i data-lucide="send" class="w-5 h-5"></i>
                         </button>
                     </div>
+                    </div><!-- /message-form -->
                 </div>
             </div>
         </div>
@@ -786,35 +789,95 @@
                 const result = await response.json();
                 currentTicketId = ticketId;
 
+                const channelLabels = { 'WEB': 'Web Portal', 'WHATSAPP': 'WhatsApp', 'EMAIL': 'Email' };
+                const severityClasses = {
+                    'CRITICAL': 'bg-red-100 text-red-700',
+                    'HIGH': 'bg-orange-100 text-orange-700',
+                    'MEDIUM': 'bg-yellow-100 text-yellow-700',
+                    'LOW': 'bg-green-100 text-green-700'
+                };
+
+                const partiesHtml = (result.parties_involved && result.parties_involved.length > 0)
+                    ? result.parties_involved.map(p => `<span class="inline-block bg-slate-100 text-slate-600 rounded px-2 py-0.5 mr-1 mb-1">${escapeHtml(p)}</span>`).join('')
+                    : '<span class="text-slate-400">Tidak disebutkan</span>';
+
                 resultDiv.innerHTML = `
-                    <div class="bg-islamic-light/50 rounded-lg p-6 border border-islamic-green/20">
-                        <div class="flex items-start justify-between mb-4">
-                            <div>
-                                <p class="text-sm text-slate-500">Nomor Tiket</p>
-                                <p class="text-xl font-mono font-bold text-islamic-dark">${escapeHtml(result.ticket_id)}</p>
+                    <div class="bg-islamic-light/50 rounded-lg border border-islamic-green/20 overflow-hidden">
+                        <!-- Header -->
+                        <div class="p-6 border-b border-islamic-green/10">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <p class="text-sm text-slate-500">Nomor Tiket</p>
+                                    <p class="text-xl font-mono font-bold text-islamic-dark">${escapeHtml(result.ticket_id)}</p>
+                                </div>
+                                <div class="flex flex-col items-end gap-2">
+                                    <span class="px-4 py-2 rounded-full text-sm font-medium ${getStatusClass(result.status)}">
+                                        ${escapeHtml(result.status_description || getStatusDescription(result.status))}
+                                    </span>
+                                    ${result.severity ? `<span class="px-3 py-1 rounded-full text-xs font-medium ${severityClasses[result.severity] || 'bg-slate-100 text-slate-600'}">${escapeHtml(result.severity)}</span>` : ''}
+                                </div>
                             </div>
-                            <span class="px-4 py-2 rounded-full text-sm font-medium ${getStatusClass(result.status)}">
-                                ${escapeHtml(result.status)}
-                            </span>
+                            ${result.subject ? `<p class="text-islamic-dark font-semibold mt-2">${escapeHtml(result.subject)}</p>` : ''}
                         </div>
-                        <div class="grid grid-cols-2 gap-4 text-sm">
+
+                        <!-- Detail Info -->
+                        <div class="p-6 space-y-4">
+                            ${result.description ? `
                             <div>
-                                <p class="text-slate-500">Status</p>
-                                <p class="text-islamic-dark font-medium">${escapeHtml(result.status_description || getStatusDescription(result.status))}</p>
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Deskripsi Laporan</p>
+                                <p class="text-sm text-islamic-dark leading-relaxed whitespace-pre-line">${escapeHtml(result.description)}</p>
+                            </div>` : ''}
+
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                                ${result.category ? `
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Kategori</p>
+                                    <p class="text-islamic-dark font-medium">${escapeHtml(result.category)}</p>
+                                </div>` : ''}
+                                ${result.channel ? `
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Channel</p>
+                                    <p class="text-islamic-dark">${escapeHtml(channelLabels[result.channel] || result.channel)}</p>
+                                </div>` : ''}
+                                ${result.incident_date ? `
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Tanggal Kejadian</p>
+                                    <p class="text-islamic-dark">${escapeHtml(result.incident_date)}</p>
+                                </div>` : ''}
+                                ${result.incident_location ? `
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Lokasi Kejadian</p>
+                                    <p class="text-islamic-dark">${escapeHtml(result.incident_location)}</p>
+                                </div>` : ''}
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Tanggal Lapor</p>
+                                    <p class="text-islamic-dark">${formatDate(result.created_at)}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Terakhir Diperbarui</p>
+                                    <p class="text-islamic-dark">${formatDate(result.last_updated)}</p>
+                                </div>
                             </div>
+
+                            ${result.parties_involved && result.parties_involved.length > 0 ? `
                             <div>
-                                <p class="text-slate-500">Terakhir Diperbarui</p>
-                                <p class="text-islamic-dark">${formatDate(result.last_updated)}</p>
-                            </div>
+                                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Pihak Terlibat</p>
+                                <div class="text-sm">${partiesHtml}</div>
+                            </div>` : ''}
                         </div>
                     </div>
                 `;
 
-                if (result.can_add_info) {
-                    document.getElementById('message-section').classList.remove('hidden');
-                    loadMessages(ticketId);
-                } else {
-                    document.getElementById('message-section').classList.add('hidden');
+                // Always show message section (chat history), hide input if not allowed
+                document.getElementById('message-section').classList.remove('hidden');
+                loadMessages(ticketId);
+                const msgForm = document.getElementById('message-form');
+                if (msgForm) {
+                    if (result.can_add_info) {
+                        msgForm.classList.remove('hidden');
+                    } else {
+                        msgForm.classList.add('hidden');
+                    }
                 }
 
             } catch (error) {
