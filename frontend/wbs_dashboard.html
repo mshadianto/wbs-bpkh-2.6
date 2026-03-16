@@ -4043,6 +4043,73 @@
                 ? partiesArr.map(p => `<span class="inline-block bg-slate-100 text-slate-600 rounded px-2 py-0.5 text-xs mr-1 mb-1">${escapeHtml(p)}</span>`).join('')
                 : '<span class="text-slate-400 text-sm">-</span>';
 
+            // Build 4W+1H HTML from AI intake analysis
+            let intakeHtml = '';
+            if (analysis && analysis.intake) {
+                const i = analysis.intake;
+                const what = i.what || {};
+                const who = i.who || {};
+                const when_ = i.when || {};
+                const where_ = i.where || {};
+                const how_ = i.how || {};
+                const parties_ai = (who.reported_parties || []);
+                const partiesAiHtml = parties_ai.length > 0
+                    ? parties_ai.map(p => {
+                        const name = typeof p === 'string' ? p : (p.name || p.position || JSON.stringify(p));
+                        return `<span class="inline-block bg-amber-50 text-amber-700 border border-amber-200 rounded px-2 py-0.5 text-xs mr-1 mb-1">${escapeHtml(name)}</span>`;
+                    }).join('')
+                    : '<span class="text-slate-400 text-xs">Tidak teridentifikasi</span>';
+
+                intakeHtml = `
+                    <div class="mt-4">
+                        <h4 class="text-sm font-semibold text-islamic-dark uppercase tracking-wider mb-3">Hasil Analisis AI (4W+1H)</h4>
+                        <div class="bg-blue-50/50 border border-blue-100 rounded-lg p-4 space-y-3">
+                            <div>
+                                <p class="text-xs font-semibold text-blue-600 uppercase">What (Apa)</p>
+                                <p class="text-sm text-islamic-dark">${escapeHtml(what.description || what.violation_type || '-')}</p>
+                                ${what.violation_type ? `<span class="inline-block mt-1 bg-blue-100 text-blue-700 rounded px-2 py-0.5 text-xs">${escapeHtml(what.violation_type)}</span>` : ''}
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-blue-600 uppercase">Who (Siapa)</p>
+                                <div class="mt-1">${partiesAiHtml}</div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs font-semibold text-blue-600 uppercase">When (Kapan)</p>
+                                    <p class="text-sm text-islamic-dark">${escapeHtml(when_.incident_date || when_.period || '-')}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-blue-600 uppercase">Where (Dimana)</p>
+                                    <p class="text-sm text-islamic-dark">${escapeHtml(where_.location || '-')}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-blue-600 uppercase">How (Bagaimana)</p>
+                                <p class="text-sm text-islamic-dark">${escapeHtml(how_.modus_operandi || how_.method || '-')}</p>
+                            </div>
+                            ${i.completeness_score != null ? `<div class="pt-2 border-t border-blue-100"><p class="text-xs text-blue-500">Kelengkapan Laporan: <span class="font-semibold">${(i.completeness_score * 100).toFixed(0)}%</span></p></div>` : ''}
+                        </div>
+                    </div>`;
+            }
+
+            // Build compliance HTML
+            let complianceHtml = '';
+            if (analysis && analysis.compliance && analysis.compliance.status !== 'ERROR') {
+                const c = analysis.compliance;
+                const violations = c.potential_violations || [];
+                if (violations.length > 0) {
+                    const violationItems = violations.map(v => {
+                        const law = typeof v === 'string' ? v : (v.regulation || v.law || v.description || JSON.stringify(v));
+                        return `<li class="text-sm text-islamic-dark">${escapeHtml(law)}</li>`;
+                    }).join('');
+                    complianceHtml = `
+                        <div class="mt-3 bg-amber-50/50 border border-amber-100 rounded-lg p-4">
+                            <p class="text-xs font-semibold text-amber-600 uppercase mb-2">Potensi Pelanggaran Regulasi</p>
+                            <ul class="list-disc list-inside space-y-1">${violationItems}</ul>
+                        </div>`;
+                }
+            }
+
             document.getElementById('modal-content').innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -4058,18 +4125,18 @@
                         </div>
                     </div>
                     <div>
-                        <h4 class="text-sm font-semibold text-islamic-dark uppercase tracking-wider mb-2">Status & Analisis</h4>
+                        <h4 class="text-sm font-semibold text-islamic-dark uppercase tracking-wider mb-2">Status</h4>
                         <div class="space-y-3">
                             <div class="flex items-center gap-4">
                                 <div><p class="text-xs text-slate-500">Status</p><span class="status-badge ${getStatusClass(report.status)}">${report.status}</span></div>
-                                <div><p class="text-xs text-slate-500">Severity</p><span class="status-badge ${getSeverityClass(report.severity)}">${report.severity || 'PENDING'}</span></div>
                                 <div><p class="text-xs text-slate-500">Kategori</p><span class="status-badge bg-islamic-light text-islamic-dark">${report.category || 'PENDING'}</span></div>
                             </div>
-                            ${report.fraud_score ? `<div><p class="text-xs text-slate-500 mb-1">Fraud Score</p><div class="flex items-center gap-3"><div class="flex-1 h-3 bg-slate-200 rounded-full overflow-hidden"><div class="h-full ${getFraudScoreColor(report.fraud_score)}" style="width: ${report.fraud_score * 100}%"></div></div><span class="font-semibold ${report.fraud_score > 0.7 ? 'text-red-600' : report.fraud_score > 0.4 ? 'text-amber-600' : 'text-islamic-green'}">${(report.fraud_score * 100).toFixed(0)}%</span></div></div>` : ''}
                             ${analysisHtml}
                         </div>
                     </div>
                 </div>
+                ${intakeHtml}
+                ${complianceHtml}
                 ${attachmentsHtml}
             `;
             document.getElementById('modal-status').value = report.status;

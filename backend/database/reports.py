@@ -98,41 +98,16 @@ class ReportRepository:
     async def update_analysis(
         self, report_id: str, analysis: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """Update AI analysis results and calculate SLA deadlines."""
+        """Update AI analysis results (4W+1H + compliance only).
+
+        Severity and fraud_score are excluded from automated analysis
+        and should be set manually by the investigation team.
+        """
         update_data = {
-            "severity": analysis.get("severity"),
             "category": analysis.get("category"),
-            "fraud_score": analysis.get("fraud_score"),
             "ai_analysis": analysis,
             "updated_at": datetime.utcnow().isoformat(),
         }
-
-        severity = analysis.get("severity", "MEDIUM")
-        sla_config = SEVERITY_LEVELS.get(severity, SEVERITY_LEVELS["MEDIUM"])
-
-        report = await self.get_by_id(report_id)
-        if report:
-            if report.get("status", "NEW") == "NEW":
-                update_data["status"] = "REVIEWING"
-
-            created_at = report.get("created_at", datetime.utcnow().isoformat())
-            try:
-                if isinstance(created_at, str):
-                    base_time = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
-                else:
-                    base_time = created_at
-            except (ValueError, TypeError):
-                base_time = datetime.utcnow()
-
-            update_data["sla_response_deadline"] = (
-                base_time + timedelta(hours=sla_config["sla_initial_hours"])
-            ).isoformat()
-            update_data["sla_review_deadline"] = (
-                base_time + timedelta(hours=sla_config["sla_investigation_hours"])
-            ).isoformat()
-            update_data["sla_investigation_deadline"] = (
-                base_time + timedelta(days=sla_config["sla_resolution_days"])
-            ).isoformat()
 
         result = self.db.table(self.table).update(update_data)\
             .eq("id", report_id).execute()
