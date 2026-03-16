@@ -22,15 +22,17 @@ async def lookup_ticket(lookup: TicketLookup):
         if not report:
             raise HTTPException(status_code=404, detail="Ticket not found")
 
-        # Parse parties_involved safely
-        parties = report.get("parties_involved") or []
-        if isinstance(parties, str):
+        # Parse involved_parties safely (DB column = involved_parties)
+        parties_raw = report.get("involved_parties") or report.get("parties_involved") or []
+        if isinstance(parties_raw, str):
             import json
             try:
-                parties = json.loads(parties)
+                parties_raw = json.loads(parties_raw)
             except (json.JSONDecodeError, TypeError):
-                parties = []
+                parties_raw = [parties_raw] if parties_raw.strip() else []
 
+        # Map DB column names to response fields
+        # DB: title → subject, involved_parties → parties_involved
         return TicketStatusResponse(
             ticket_id=report["ticket_id"],
             status=report["status"],
@@ -44,7 +46,7 @@ async def lookup_ticket(lookup: TicketLookup):
             channel=report.get("channel"),
             incident_date=report.get("incident_date"),
             incident_location=report.get("incident_location"),
-            parties_involved=parties,
+            parties_involved=parties_raw if isinstance(parties_raw, list) else [],
             created_at=report.get("created_at"),
             last_updated=report["updated_at"],
             can_add_info=report["status"] in ["NEW", "REVIEWING", "NEED_INFO"],
